@@ -1,0 +1,152 @@
+<div class="drawer lg:drawer-open">
+  <input #drawerToggle id="app-drawer" type="checkbox" class="drawer-toggle" />
+
+  <div class="drawer-content flex min-w-0 flex-col bg-base-200">
+    <header class="navbar sticky top-0 z-30 min-h-[60px] gap-2 border-b border-base-300 bg-base-100 px-3 sm:px-4">
+      <div class="flex-none lg:hidden">
+        <label for="app-drawer" class="btn btn-square btn-sm" aria-label="Abrir menu de navegação">
+          <app-icon name="menu" />
+        </label>
+      </div>
+
+      <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+        <button
+          type="button"
+          class="btn h-auto min-h-[38px] max-w-full justify-start gap-2 border-base-300 bg-base-100 px-3 py-1 font-normal sm:max-w-72"
+          (click)="accountModalOpen.set(true)"
+          aria-label="Conta do Google Ads"
+        >
+          <app-icon name="building" size="sm" class="text-base-content/60" />
+          <span class="flex min-w-0 flex-col items-start leading-tight">
+            <span class="max-w-full truncate text-sm font-medium">{{ ws.accountName() || 'Escolher conta' }}</span>
+            @if (account.selectedId()) {
+              <span class="text-xs text-base-content/60">ID {{ formatId(account.selectedId()) }}</span>
+            }
+          </span>
+          <app-icon name="chevron-down" size="xs" class="ml-auto text-base-content/60" />
+        </button>
+
+        <details #periodMenu class="dropdown">
+          <summary
+            class="btn h-auto min-h-[38px] justify-start gap-2 border-base-300 bg-base-100 px-3 py-1 font-normal"
+            aria-label="Período de análise"
+          >
+            <app-icon name="calendar" size="sm" class="text-base-content/60" />
+            <span class="flex flex-col items-start leading-tight">
+              <span class="whitespace-nowrap text-sm font-medium">{{ account.rangeLabel() }}</span>
+              <span class="whitespace-nowrap text-xs text-base-content/60">{{ rangeText(account.window()) }}</span>
+            </span>
+            <app-icon name="chevron-down" size="xs" class="text-base-content/60" />
+          </summary>
+          <div class="dropdown-content z-50 mt-1 w-64 rounded-box border border-base-300 bg-base-100 p-1.5 shadow-lg">
+            <div class="px-3 pt-2 pb-2 font-display text-xs font-semibold uppercase tracking-[0.08em] text-base-content/60">
+              Período
+            </div>
+            <ul class="menu w-full p-0">
+              @for (r of ranges; track r.value) {
+                <li>
+                  <button type="button" [class.menu-active]="r.value === account.range()" (click)="pickRange(r.value)">
+                    {{ r.label }}
+                  </button>
+                </li>
+              }
+            </ul>
+            <p class="mt-1 border-t border-base-300 px-3 pt-2 pb-1 text-xs text-base-content/60">
+              Comparação feita com o período anterior de mesma duração.
+            </p>
+          </div>
+        </details>
+      </div>
+
+      <div class="flex flex-none items-center gap-3">
+        @if (ws.anyLoading()) {
+          <span class="hidden items-center gap-2 text-sm text-base-content/60 sm:flex">
+            <span class="loading loading-spinner loading-xs"></span> Atualizando…
+          </span>
+        } @else if (freshness(); as f) {
+          <span class="hidden items-center gap-2 text-sm text-base-content/60 sm:flex">
+            <span class="status status-success"></span> {{ f }}
+          </span>
+        }
+        <app-theme-toggle />
+      </div>
+    </header>
+
+    <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      @if (!db.persistent()) {
+        <div role="alert" class="alert alert-warning alert-soft mb-4">
+          <app-icon name="warning" />
+          <span class="text-sm">
+            Este navegador não permite salvar dados locais. Leads, conteúdos e histórico ficam só nesta sessão
+            e somem ao fechar a aba.
+          </span>
+        </div>
+      }
+
+      @if (account.discoveryError(); as message) {
+        <div role="alert" class="alert alert-error alert-soft mb-4">
+          <app-icon name="warning" />
+          <div class="min-w-0">
+            <h3 class="font-semibold">Não foi possível consultar as contas do Google Ads</h3>
+            <div class="break-words text-sm">{{ message }}</div>
+          </div>
+          <button type="button" class="btn btn-sm" (click)="account.discover()">Tentar novamente</button>
+        </div>
+      }
+
+      @if (!account.selectedId() && !account.discoveryError()) {
+        <div class="flex flex-col gap-3" aria-busy="true">
+          <div class="skeleton h-24 w-full"></div>
+          <div class="skeleton h-64 w-full"></div>
+        </div>
+      } @else {
+        <router-outlet />
+      }
+    </main>
+  </div>
+
+  <div class="drawer-side z-40">
+    <label for="app-drawer" aria-label="Fechar menu" class="drawer-overlay"></label>
+    <aside class="ads-sidebar flex min-h-full w-72 flex-col border-r">
+      <div class="flex h-[60px] flex-none items-center gap-3 border-b border-white/10 px-6">
+        <span
+          class="relative size-5 flex-none rounded-[3px] border-[3px] border-[#ffcb05] border-r-transparent"
+          aria-hidden="true"
+        >
+          <span
+            class="absolute -right-1.5 top-1/2 -mt-1 size-2 rounded-full"
+            style="background: linear-gradient(180deg, #ffcb05, #f58220)"
+          ></span>
+        </span>
+        <span class="whitespace-nowrap text-xl font-light leading-none tracking-[0.01em] text-white">
+          <strong class="font-medium">{{ brand.logoStrong }}&nbsp;</strong>{{ brand.logoLight }}
+        </span>
+      </div>
+
+      <nav class="grow overflow-y-auto px-2 pb-4" aria-label="Navegação principal">
+        @for (group of groups; track group.title) {
+          <ul class="menu w-full gap-1">
+            <li class="menu-title">{{ group.title }}</li>
+            @for (item of group.items; track item.path) {
+              <li>
+                <a [routerLink]="item.path" routerLinkActive="menu-active" (click)="closeDrawer()">
+                  <app-icon [name]="item.icon" size="sm" />
+                  {{ item.label }}
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      </nav>
+      <p class="flex-none border-t border-white/10 px-6 py-3 text-xs text-white/50">
+        Criado por {{ author.name }}
+      </p>
+    </aside>
+  </div>
+</div>
+
+@defer (when accountModalOpen()) {
+  <app-account-modal [(open)]="accountModalOpen" />
+}
+<app-batch-negative-modal />
+<app-toasts />

@@ -1,0 +1,24 @@
+{
+  "name": "open-ads",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/dev.mjs",
+    "setup": "node scripts/setup.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "token": "node --env-file=server/.env server/get-refresh-token.mjs",
+    "install:all": "npm install && npm --prefix web install",
+    "build": "test -d web && (cd web && npm install && npm run build) || npm run build",
+    "server": "node --env-file=server/.env server/index.mjs",
+    "web": "cd web && npm start",
+    "sync:api": "node scripts/sync-api.mjs",
+    "test:api": "node --test api/_lib/guards.test.js api/_lib/explain.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0"
+  },
+  "engines": {
+    "node": ">=20.6"
+  }
+}

@@ -1,0 +1,27 @@
+import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
+import { App } from './app';
+
+describe('App', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [App],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    }).compileComponents();
+  });
+
+  it('cria o shell do app', () => {
+    const fixture = TestBed.createComponent(App);
+    expect(fixture.componentInstance).toBeTruthy();
+  });
+
+  it('mostra os grupos de navegação', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Visão geral');
+    expect(text).toContain('Operação no Google Ads');
+  });
+});

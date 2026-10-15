@@ -1,0 +1,257 @@
+/*
+ * Tailwind 4 + daisyUI 5, só com os temas oficiais `light` e `dark`.
+ *
+ * - `source(none)` + `@source`: o Tailwind lê apenas o código do app. Sem isso ele
+ *   varre também a documentação das skills em `.agents/`, cheia de exemplos de classes.
+ * - `light --default` é o tema padrão; `dark --prefersdark` entra sozinho quando o
+ *   sistema operacional está em modo escuro. A escolha manual (Claro/Escuro) é
+ *   feita via `data-theme` no <html> pelo ThemeService.
+ */
+@import "tailwindcss" source(none);
+@source "./app";
+@source "./index.html";
+
+@plugin "daisyui" {
+  themes: false;
+}
+
+/* Identidade visual: amarelo/laranja de destaque, grafite e
+   neutros quentes; Oswald nos números e rótulos, Jost no texto. */
+@plugin "daisyui/theme" {
+  name: "light";
+  default: true;
+  color-scheme: light;
+  --color-base-100: #ffffff;
+  --color-base-200: #f1f1f0;
+  --color-base-300: #dcdcdc;
+  --color-base-content: #2b2f31;
+  --color-primary: #f1a10b;
+  --color-primary-content: #2b2b2b;
+  --color-secondary: #44494c;
+  --color-secondary-content: #ffffff;
+  --color-accent: #f58220;
+  --color-accent-content: #2b2b2b;
+  --color-neutral: #363d3f;
+  --color-neutral-content: #fefefe;
+  --color-info: #3d7ea6;
+  --color-info-content: #ffffff;
+  --color-success: #5c9c2f;
+  --color-success-content: #ffffff;
+  --color-warning: #f1a10b;
+  --color-warning-content: #2b2b2b;
+  --color-error: #c0392b;
+  --color-error-content: #ffffff;
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.375rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "dark";
+  prefersdark: true;
+  color-scheme: dark;
+  --color-base-100: #2b2b2b;
+  --color-base-200: #1f1f1f;
+  --color-base-300: #44494c;
+  --color-base-content: #ececec;
+  --color-primary: #f6bc03;
+  --color-primary-content: #1f1f1f;
+  --color-secondary: #5d6367;
+  --color-secondary-content: #ffffff;
+  --color-accent: #f58220;
+  --color-accent-content: #1f1f1f;
+  --color-neutral: #363d3f;
+  --color-neutral-content: #fefefe;
+  --color-info: #5aa0c8;
+  --color-info-content: #1f1f1f;
+  --color-success: #7ab648;
+  --color-success-content: #1f1f1f;
+  --color-warning: #f6bc03;
+  --color-warning-content: #1f1f1f;
+  --color-error: #e0584a;
+  --color-error-content: #1f1f1f;
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.375rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/*
+ * Escala modular do layout.
+ *  - Espaço (base 4px): 4 · 8 · 12 · 16 · 24 · 32 · 48 → Tailwind 1 · 2 · 3 · 4 · 6 · 8 · 12.
+ *    Entre blocos da página: 24. Dentro de um cartão: 16. Título + descrição: 4.
+ *  - Tipografia (razão ~1,2): 12 · 14 · 16 · 20 · 24 · 30 · 36 → text-xs … text-4xl.
+ */
+@theme {
+  --spacing-block: 24px;
+  --spacing-card: 24px;
+  --font-sans: "Jost", "Century Gothic", "Trebuchet MS", sans-serif;
+  --font-display: "Oswald", "Arial Narrow", Impact, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+  h1 {
+    font-weight: 300;
+  }
+  h1 strong {
+    font-weight: 500;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-base-content);
+    outline-offset: 2px;
+  }
+}
+
+/* Números de destaque em Oswald, como nos KPIs do design. */
+.stat-value,
+.kpi-value {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: 0.005em;
+}
+
+/* Cartões planos com contorno fino e sombra leve. */
+.card {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+}
+
+/* Botão primário com o degradê da marca. */
+.btn-primary {
+  background-image: linear-gradient(180deg, #ffcb05 0%, #f58220 100%);
+  border-color: #c96a0c;
+  color: #2b2b2b;
+  font-weight: 500;
+}
+.btn-primary:hover {
+  filter: brightness(0.94);
+}
+
+/* Barra lateral grafite. */
+.ads-sidebar {
+  background: #363d3f;
+  color: #d9dcde;
+  border-color: rgb(255 255 255 / 0.1);
+}
+.ads-sidebar .menu-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #9ca1a5;
+}
+.ads-sidebar .menu li > a {
+  color: #d9dcde;
+  border-radius: 0.25rem;
+}
+.ads-sidebar .menu li > a:hover {
+  background: rgb(255 255 255 / 0.08);
+  color: #fff;
+}
+.ads-sidebar .menu li > a.menu-active {
+  background: linear-gradient(180deg, #f6bf04 0%, #f1a10b 62%, #e08c07 100%);
+  color: #2b2b2b;
+  font-weight: 500;
+}
+
+/* Números alinhados em colunas e tabelas. */
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* O daisyUI faz <p> crescer dentro de .card-body (para empurrar ações ao rodapé).
+   Em cartões de altura igual isso abre um vão no meio; aqui o conteúdo fica no topo.
+   A regra do daisyUI está na camada `utilities`, então a nossa precisa estar nela também. */
+@layer utilities {
+  .card-body p {
+    flex-grow: 0;
+  }
+}
+
+/* KPIs do design: cada .stat vira um cartão próprio, com respiro entre eles,
+   em vez de uma faixa única dividida por linhas. O daisyUI usa inline-grid em
+   coluna única; aqui a grade quebra em linhas conforme a largura disponível. */
+.stats {
+  display: grid;
+  grid-auto-flow: row;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 208px), 1fr));
+  gap: var(--spacing-block);
+  width: 100%;
+  overflow: visible;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none;
+}
+.stats > .stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  border: 1px solid var(--color-base-300) !important;
+  border-radius: var(--radius-box);
+  background: var(--color-base-100);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+  padding: var(--spacing-card);
+}
+.stat-title {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.25;
+  color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+}
+.stat-value {
+  font-size: 30px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+.stat-desc {
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Respiro interno único dos cartões, alinhado ao dos KPIs. */
+.card-body {
+  padding: var(--spacing-card);
+}
+
+/* Link de ação do design ("Ver todos »"): âmbar escuro no claro, amarelo no escuro. */
+@utility link-brand {
+  color: #a85a00;
+  font-weight: 500;
+  &:hover {
+    color: #7a4100;
+  }
+  [data-theme="dark"] & {
+    color: #f6bc03;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) & {
+      color: #f6bc03;
+    }
+  }
+}
+
+/* No celular o respiro dos cartões e entre blocos cai um degrau da escala (24 → 16). */
+@media (max-width: 639px) {
+  :root {
+    --spacing-block: 16px;
+    --spacing-card: 16px;
+  }
+}

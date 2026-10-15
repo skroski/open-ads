@@ -1,0 +1,9 @@
+{
+  "name": "googleads-server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env index.mjs",
+    "dev": "node --watch --env-file=.env index.mjs"
+  }
+}

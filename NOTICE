@@ -1,0 +1,18 @@
+Painel Ads (painel de análise de Google Ads)
+Copyright 2026 Daniel Ribeiro Skroski
+
+Este produto é licenciado sob a Apache License 2.0 com a condição
+"Commons Clause" License Condition v1.0 (veja o arquivo LICENSE).
+
+Atribuição obrigatória: qualquer cópia, distribuição ou versão derivada deve
+manter este arquivo NOTICE e o crédito "Criado por Daniel Ribeiro Skroski"
+na interface (rodapé do menu lateral), ou em local equivalente e visível
+caso a interface seja substituída.
+
+Este produto inclui software de terceiros, cada um sob a própria licença:
+- Angular (MIT) - https://angular.dev
+- Tailwind CSS (MIT) - https://tailwindcss.com
+- daisyUI e a skill de agentes do daisyUI (MIT) - https://daisyui.com
+- Apache ECharts (Apache 2.0) - https://echarts.apache.org
+- Anthropic SDK para TypeScript (MIT) - https://github.com/anthropics/anthropic-sdk-typescript
+- Fontes Jost, Oswald e JetBrains Mono (SIL Open Font License), via Google Fonts
