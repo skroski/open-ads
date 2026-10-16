@@ -9,8 +9,8 @@ import { DataState } from '../../shared/data-state';
 import { Icon } from '../../shared/icon';
 import { TERM_CATEGORY_CLASS, TERM_CATEGORY_LABEL } from '../../shared/labels';
 import { ExportData, PageHeader } from '../../shared/page-header';
+import { ThSort, SortDirection } from '../../shared/th-sort';
 
-type SortKey = 'COST' | 'CLICKS' | 'CONVERSIONS' | 'ALPHA';
 type ConversionFilter = 'ALL' | 'WITH' | 'WITHOUT';
 
 const PAGE_SIZE = 150;
@@ -18,7 +18,7 @@ const PAGE_SIZE = 150;
 @Component({
   selector: 'app-terms-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, PercentPipe, DataState, Icon, PageHeader],
+  imports: [CurrencyPipe, DecimalPipe, PercentPipe, DataState, Icon, PageHeader, ThSort],
   template: `
     <app-page-header
       group="Operação no Google Ads"
@@ -29,7 +29,7 @@ const PAGE_SIZE = 150;
       @if (unqualified().length) {
         <button type="button" class="btn btn-error btn-sm" (click)="negateUnqualified()">
           <app-icon name="ban" size="sm" />
-          Negativar os {{ unqualified().length }} sem intenção de compra
+          Negativar os {{ unqualified().length }} não qualificados
         </button>
       }
     </app-page-header>
@@ -72,7 +72,7 @@ const PAGE_SIZE = 150;
               />
               <select class="select select-sm w-full" aria-label="Categoria" [value]="category()" (change)="category.set(val($event))">
                 <option value="ALL">Todas as categorias</option>
-                <option value="UNQUALIFIED">Sem intenção de compra</option>
+                <option value="UNQUALIFIED">Não Qualificada</option>
                 <option value="BRAND">Marca</option>
                 <option value="QUALIFIED">Qualificado</option>
                 <option value="COMPETITOR">Concorrente</option>
@@ -89,11 +89,11 @@ const PAGE_SIZE = 150;
                 <option value="WITH">Só com conversão</option>
                 <option value="WITHOUT">Só sem conversão</option>
               </select>
-              <select class="select select-sm w-full" aria-label="Ordenar por" [value]="sort()" (change)="sort.set(val($event))">
-                <option value="COST">Maior custo</option>
-                <option value="CLICKS">Mais cliques</option>
-                <option value="CONVERSIONS">Mais conversões</option>
-                <option value="ALPHA">A–Z</option>
+              <select class="select select-sm w-full" aria-label="Ordenar por" [value]="sortSelectValue()" (change)="onSortSelect(val($event))">
+                <option value="cost_desc">Maior custo</option>
+                <option value="clicks_desc">Mais cliques</option>
+                <option value="conversions_desc">Mais conversões</option>
+                <option value="term_asc">A–Z</option>
               </select>
             </div>
           </div>
@@ -115,11 +115,11 @@ const PAGE_SIZE = 150;
           </div>
         }
 
-        <div class="overflow-x-auto rounded-box border border-base-300 bg-base-100">
-          <table class="table table-sm">
+        <div class="overflow-x-auto rounded-box border border-base-300 bg-base-100 shadow-xs">
+          <table class="table table-sm table-zebra-subtle table-bordered-subtle">
             <thead>
-              <tr>
-                <th class="w-8">
+              <tr class="bg-base-200/50 text-xs">
+                <th class="w-10 text-center px-2">
                   <input
                     type="checkbox"
                     class="checkbox checkbox-xs"
@@ -128,23 +128,63 @@ const PAGE_SIZE = 150;
                     (change)="toggleAll()"
                   />
                 </th>
-                <th>Termo</th>
-                <th>Classificação</th>
-                <th>Campanha</th>
-                <th class="text-right">Impressões</th>
-                <th class="text-right">Cliques</th>
-                <th class="text-right">CTR</th>
-                <th class="text-right">CPC</th>
-                <th class="text-right">Custo</th>
-                <th class="text-right">Conversões</th>
-                <th class="text-right">Custo/conv.</th>
-                <th><span class="sr-only">Ações</span></th>
+                <th class="min-w-64 max-w-md px-3">
+                  <app-th-sort field="term" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Termo
+                  </app-th-sort>
+                </th>
+                <th class="w-36 px-2">
+                  <app-th-sort field="category" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Classificação
+                  </app-th-sort>
+                </th>
+                <th class="text-right w-24 px-3">
+                  <app-th-sort field="impressions" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Impressões
+                  </app-th-sort>
+                </th>
+                <th class="text-right w-20 px-3">
+                  <app-th-sort field="clicks" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Cliques
+                  </app-th-sort>
+                </th>
+                <th class="text-right w-20 px-3">
+                  <app-th-sort field="ctr" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    CTR
+                  </app-th-sort>
+                </th>
+                <th class="text-right w-24 px-3">
+                  <app-th-sort field="cpc" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    CPC
+                  </app-th-sort>
+                </th>
+                <th class="min-w-44 max-w-64 px-3">
+                  <app-th-sort field="campaign" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Campanha
+                  </app-th-sort>
+                </th>
+                <th class="text-right w-24 px-3">
+                  <app-th-sort field="cost" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Custo
+                  </app-th-sort>
+                </th>
+                <th class="text-right w-20 px-3">
+                  <app-th-sort field="conversions" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Conversões
+                  </app-th-sort>
+                </th>
+                <th class="text-right w-24 px-3">
+                  <app-th-sort field="cpa" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Custo/conv.
+                  </app-th-sort>
+                </th>
+                <th class="table-sticky-actions px-3"><span class="sr-only">Ações</span></th>
               </tr>
             </thead>
             <tbody>
               @for (t of visible(); track t.term + '|' + t.campaignId + '|' + t.adGroupId) {
-                <tr class="hover:bg-base-200/60" [class.bg-base-200]="isSelected(t.term)">
-                  <td>
+                <tr [class.bg-base-200]="isSelected(t.term)">
+                  <td class="text-center px-2">
                     <input
                       type="checkbox"
                       class="checkbox checkbox-xs"
@@ -153,34 +193,34 @@ const PAGE_SIZE = 150;
                       (change)="toggle(t.term)"
                     />
                   </td>
-                  <td class="max-w-xs">
+                  <td class="min-w-64 max-w-md px-3">
                     <div class="flex flex-wrap items-center gap-2">
-                      <span class="font-medium break-words">{{ t.term }}</span>
+                      <span class="font-medium break-words leading-snug">{{ t.term }}</span>
                       @if (t.alreadyNegative) {
                         <span class="badge badge-ghost badge-xs" title="Já bloqueado por uma palavra negativa">negativado</span>
                       }
                     </div>
                   </td>
-                  <td>
+                  <td class="w-36 px-2">
                     <span [class]="catClass(t.category)" [attr.title]="t.categoryReason">{{ catLabel(t.category) }}</span>
                   </td>
-                  <td class="max-w-48 truncate text-base-content/70" [attr.title]="t.campaignName">{{ t.campaignName }}</td>
-                  <td class="text-right tabular">{{ t.impressions | number: '1.0-0' }}</td>
-                  <td class="text-right tabular">{{ t.clicks | number: '1.0-0' }}</td>
-                  <td class="text-right tabular text-base-content/70">{{ rctr(t) | percent: '1.1-1' }}</td>
-                  <td class="text-right tabular">{{ rcpc(t) | currency: 'BRL' : 'symbol' : '1.2-2' }}</td>
-                  <td class="text-right tabular font-semibold">{{ t.cost | currency: 'BRL' : 'symbol' : '1.2-2' }}</td>
-                  <td class="text-right tabular" [class]="t.conversions > 0 ? 'text-success' : 'text-base-content/50'">
+                  <td class="text-right tabular px-3">{{ t.impressions | number: '1.0-0' }}</td>
+                  <td class="text-right tabular px-3">{{ t.clicks | number: '1.0-0' }}</td>
+                  <td class="text-right tabular text-base-content/70 px-3">{{ rctr(t) | percent: '1.1-1' }}</td>
+                  <td class="text-right tabular px-3">{{ rcpc(t) | currency: 'BRL' : 'symbol' : '1.2-2' }}</td>
+                  <td class="min-w-44 max-w-64 truncate text-base-content/80 px-3" [attr.title]="t.campaignName">{{ t.campaignName }}</td>
+                  <td class="text-right tabular font-semibold px-3">{{ t.cost | currency: 'BRL' : 'symbol' : '1.2-2' }}</td>
+                  <td class="text-right tabular px-3" [class]="t.conversions > 0 ? 'text-success font-medium' : 'text-base-content/50'">
                     {{ t.conversions | number: '1.0-1' }}
                   </td>
-                  <td class="text-right tabular">
+                  <td class="text-right tabular px-3">
                     @if (t.conversions > 0) {
                       {{ t.cost / t.conversions | currency: 'BRL' : 'symbol' : '1.2-2' }}
                     } @else {
                       <span class="text-base-content/40">—</span>
                     }
                   </td>
-                  <td class="whitespace-nowrap">
+                  <td class="table-sticky-actions whitespace-nowrap px-3">
                     <button
                       type="button"
                       class="btn btn-ghost btn-xs"
@@ -227,9 +267,19 @@ export class TermsPage {
   protected readonly category = signal<'ALL' | TermCategory>('ALL');
   protected readonly campaign = signal('ALL');
   protected readonly conversion = signal<ConversionFilter>('ALL');
-  protected readonly sort = signal<SortKey>('COST');
+  protected readonly sortKey = signal<string>('cost');
+  protected readonly sortDir = signal<SortDirection>('desc');
   protected readonly selected = signal<string[]>([]);
   protected readonly shown = signal(PAGE_SIZE);
+
+  protected readonly sortSelectValue = computed(() => {
+    const k = this.sortKey();
+    const d = this.sortDir();
+    if (k === 'clicks' && d === 'desc') return 'clicks_desc';
+    if (k === 'conversions' && d === 'desc') return 'conversions_desc';
+    if (k === 'term' && d === 'asc') return 'term_asc';
+    return 'cost_desc';
+  });
 
   protected readonly terms = this.ws.terms;
   protected readonly campaigns = computed(() => this.ws.campaigns.value() ?? []);
@@ -255,7 +305,9 @@ export class TermsPage {
     const cat = this.category();
     const camp = this.campaign();
     const conv = this.conversion();
-    const sort = this.sort();
+    const key = this.sortKey();
+    const dir = this.sortDir();
+
     const list = this.terms().filter((t) => {
       if (q && !t.term.includes(q) && !t.campaignName.toLowerCase().includes(q)) return false;
       if (cat !== 'ALL' && t.category !== cat) return false;
@@ -264,17 +316,46 @@ export class TermsPage {
       if (conv === 'WITHOUT' && t.conversions > 0) return false;
       return true;
     });
+
     return list.sort((a, b) => {
-      switch (sort) {
-        case 'CLICKS':
-          return b.clicks - a.clicks;
-        case 'CONVERSIONS':
-          return b.conversions - a.conversions;
-        case 'ALPHA':
-          return a.term.localeCompare(b.term, 'pt-BR');
+      let cmp = 0;
+      switch (key) {
+        case 'term':
+          cmp = a.term.localeCompare(b.term, 'pt-BR');
+          break;
+        case 'category':
+          cmp = (TERM_CATEGORY_LABEL[a.category] ?? '').localeCompare(TERM_CATEGORY_LABEL[b.category] ?? '', 'pt-BR');
+          break;
+        case 'campaign':
+          cmp = a.campaignName.localeCompare(b.campaignName, 'pt-BR');
+          break;
+        case 'impressions':
+          cmp = a.impressions - b.impressions;
+          break;
+        case 'clicks':
+          cmp = a.clicks - b.clicks;
+          break;
+        case 'ctr':
+          cmp = ctr(a) - ctr(b);
+          break;
+        case 'cpc':
+          cmp = cpc(a) - cpc(b);
+          break;
+        case 'conversions':
+          cmp = a.conversions - b.conversions;
+          break;
+        case 'cpa': {
+          const cpaA = a.conversions > 0 ? a.cost / a.conversions : Infinity;
+          const cpaB = b.conversions > 0 ? b.cost / b.conversions : Infinity;
+          cmp = cpaA - cpaB;
+          break;
+        }
+        case 'cost':
         default:
-          return b.cost - a.cost;
+          cmp = a.cost - b.cost;
+          break;
       }
+      return dir === 'asc' ? cmp : -cmp;
     });
   });
 
@@ -309,8 +390,19 @@ export class TermsPage {
     this.ws.info.need();
   }
 
-  protected val(event: Event): never {
-    return (event.target as HTMLInputElement | HTMLSelectElement).value as never;
+  protected onSort(e: { field: string; direction: SortDirection }): void {
+    this.sortKey.set(e.field);
+    this.sortDir.set(e.direction);
+  }
+
+  protected onSortSelect(val: string): void {
+    const [field, dir] = val.split('_') as [string, SortDirection];
+    this.sortKey.set(field);
+    this.sortDir.set(dir);
+  }
+
+  protected val(event: Event): any {
+    return (event.target as HTMLInputElement | HTMLSelectElement).value;
   }
 
   protected rctr = (t: SearchTermRow): number => ctr(t);

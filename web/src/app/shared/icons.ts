@@ -44,6 +44,8 @@ export const ICONS = {
   sparkles: ['M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z', 'M19 15l.7 1.8 1.8.7-1.8.7L19 20l-.7-1.8-1.8-.7 1.8-.7L19 15z'],
   'arrow-right': ['M14 5l7 7m0 0l-7 7m7-7H3'],
   'chevron-down': ['M19 9l-7 7-7-7'],
+  'chevron-up': ['M19 15l-7-7-7 7'],
+  'chevrons-up-down': ['M8 9l4-4 4 4', 'M8 15l4 4 4-4'],
   'chevron-right': ['M9 5l7 7-7 7'],
   'trend-up': ['M3 17l6-6 4 4 8-8M15 7h6v6'],
   'trend-down': ['M3 7l6 6 4-4 8 8M15 17h6v-6'],

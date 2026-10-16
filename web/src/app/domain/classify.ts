@@ -59,17 +59,8 @@ export const DEFAULT_AUDIT_RULES: AuditRules = {
     'consultorio',
   ],
   competitorTerms: [
-    'scribenote',
-    'vetsmart',
-    'nuvemvet',
-    'vetus',
-    'simplesvet',
-    'vetwork',
-    'vet soft',
-    'zello',
     'rd station',
     'hubspot',
-    'kommo',
   ],
 };
 

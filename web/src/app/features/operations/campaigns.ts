@@ -1,5 +1,5 @@
 import { CurrencyPipe, DecimalPipe, PercentPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Workspace } from '../../core/workspace';
 import { CHANNEL_LABEL } from '../../domain/format';
 import { cpc, ctr } from '../../domain/metrics';
@@ -11,6 +11,7 @@ import { brl } from '../../domain/format';
 import { wasteCategory } from '../../domain/waste';
 import { EChart, VERDICT_COLOR } from '../../shared/echart';
 import { Kpi } from '../../shared/kpi';
+import { ThSort, SortDirection } from '../../shared/th-sort';
 import { BADGE_TONE, CATEGORY } from '../../shared/waste-category';
 import type { EChartsCoreOption } from 'echarts/core';
 
@@ -27,7 +28,7 @@ interface Row extends CampaignRow {
 @Component({
   selector: 'app-campaigns-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, PercentPipe, DataState, EChart, Kpi, PageHeader],
+  imports: [CurrencyPipe, DecimalPipe, PercentPipe, DataState, EChart, Kpi, PageHeader, ThSort],
   template: `
     <app-page-header
       group="Operação no Google Ads"
@@ -66,74 +67,147 @@ interface Row extends CampaignRow {
         </section>
       }
 
-      <div class="overflow-x-auto rounded-box border border-base-300 bg-base-100">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Campanha</th>
-              <th>Tipo</th>
-              <th>Status</th>
-              <th>Leitura</th>
-              <th class="text-right">Impressões</th>
-              <th class="text-right">Cliques</th>
-              <th class="text-right">CTR</th>
-              <th class="text-right">CPC</th>
-              <th class="text-right">Custo</th>
-              <th class="text-right">Conversões</th>
-              <th class="text-right">Custo/conv.</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (c of rows(); track c.id) {
-              <tr class="hover:bg-base-200/60">
-                <td class="max-w-72">
-                  <div class="font-medium break-words">{{ c.name }}</div>
-                </td>
-                <td><span class="badge badge-soft badge-sm">{{ channel(c.channel) }}</span></td>
-                <td>
-                  <span class="inline-flex items-center gap-2 text-xs">
-                    <span class="status" [class.status-success]="c.status === 'ENABLED'" [class.status-warning]="c.status === 'PAUSED'"></span>
-                    {{ statusLabel(c.status) }}
-                  </span>
-                </td>
-                <td>
-                  @if (categoryOf(c.id); as cat) {
-                    <span [class]="'badge badge-soft badge-sm whitespace-nowrap ' + badge[cat]" [attr.title]="info[cat].tip">{{ info[cat].label }}</span>
-                  }
-                </td>
-                <td class="text-right tabular">{{ c.impressions | number: '1.0-0' }}</td>
-                <td class="text-right tabular">{{ c.clicks | number: '1.0-0' }}</td>
-                <td class="text-right tabular text-base-content/70">{{ ratioCtr(c) | percent: '1.1-1' }}</td>
-                <td class="text-right tabular">{{ ratioCpc(c) | currency: 'BRL' : 'symbol' : '1.2-2' }}</td>
-                <td class="text-right tabular font-semibold">
-                  {{ c.cost | currency: 'BRL' : 'symbol' : '1.2-2' }}
-                  @if (delta(c.cost, c.previous?.cost); as d) {
-                    <div class="text-xs font-normal text-base-content/60">{{ d }} vs. anterior</div>
-                  }
-                </td>
-                <td class="text-right tabular">
-                  {{ c.conversions | number: '1.0-1' }}
-                  @if (delta(c.conversions, c.previous?.conversions); as d) {
-                    <div class="text-xs text-base-content/60">{{ d }} vs. anterior</div>
-                  }
-                </td>
-                <td class="text-right tabular">
-                  @if (c.conversions > 0) {
-                    {{ c.cost / c.conversions | currency: 'BRL' : 'symbol' : '1.2-2' }}
-                  } @else {
-                    <span class="text-base-content/40">—</span>
-                  }
-                </td>
-              </tr>
-            } @empty {
+      <div class="flex flex-col gap-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <input
+              type="search"
+              class="input input-sm w-full sm:w-64"
+              placeholder="Buscar campanha…"
+              aria-label="Buscar campanha"
+              [value]="query()"
+              (input)="query.set(val($event))"
+            />
+            <select class="select select-sm" aria-label="Filtrar por status" [value]="statusFilter()" (change)="statusFilter.set(val($event))">
+              <option value="ALL">Todos os status</option>
+              <option value="ENABLED">Ativas</option>
+              <option value="PAUSED">Pausadas</option>
+            </select>
+            <select class="select select-sm" aria-label="Filtrar por canal" [value]="channelFilter()" (change)="channelFilter.set(val($event))">
+              <option value="ALL">Todos os tipos</option>
+              @for (ch of channels(); track ch) {
+                <option [value]="ch">{{ channel(ch) }}</option>
+              }
+            </select>
+          </div>
+          <span class="text-sm text-base-content/60 tabular">
+            {{ rows().length }} de {{ allRows().length }} campanhas
+          </span>
+        </div>
+
+        <div class="overflow-x-auto rounded-box border border-base-300 bg-base-100">
+          <table class="table">
+            <thead>
               <tr>
-                <td colspan="11" class="py-12 text-center text-base-content/60">
-                  Nenhuma campanha com dados neste período.
-                </td>
+                <th>
+                  <app-th-sort field="name" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Campanha
+                  </app-th-sort>
+                </th>
+                <th>
+                  <app-th-sort field="channel" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Tipo
+                  </app-th-sort>
+                </th>
+                <th>
+                  <app-th-sort field="status" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Status
+                  </app-th-sort>
+                </th>
+                <th>
+                  <app-th-sort field="category" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Leitura
+                  </app-th-sort>
+                </th>
+                <th class="text-right">
+                  <app-th-sort field="impressions" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Impressões
+                  </app-th-sort>
+                </th>
+                <th class="text-right">
+                  <app-th-sort field="clicks" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Cliques
+                  </app-th-sort>
+                </th>
+                <th class="text-right">
+                  <app-th-sort field="ctr" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    CTR
+                  </app-th-sort>
+                </th>
+                <th class="text-right">
+                  <app-th-sort field="cpc" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    CPC
+                  </app-th-sort>
+                </th>
+                <th class="text-right">
+                  <app-th-sort field="cost" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Custo
+                  </app-th-sort>
+                </th>
+                <th class="text-right">
+                  <app-th-sort field="conversions" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Conversões
+                  </app-th-sort>
+                </th>
+                <th class="text-right">
+                  <app-th-sort field="cpa" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                    Custo/conv.
+                  </app-th-sort>
+                </th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (c of rows(); track c.id) {
+                <tr class="hover:bg-base-200/60">
+                  <td class="max-w-72">
+                    <div class="font-medium break-words">{{ c.name }}</div>
+                  </td>
+                  <td><span class="badge badge-soft badge-sm">{{ channel(c.channel) }}</span></td>
+                  <td>
+                    <span class="inline-flex items-center gap-2 text-xs">
+                      <span class="status" [class.status-success]="c.status === 'ENABLED'" [class.status-warning]="c.status === 'PAUSED'"></span>
+                      {{ statusLabel(c.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (categoryOf(c.id); as cat) {
+                      <span [class]="'badge badge-soft badge-sm whitespace-nowrap ' + badge[cat]" [attr.title]="info[cat].tip">{{ info[cat].label }}</span>
+                    }
+                  </td>
+                  <td class="text-right tabular">{{ c.impressions | number: '1.0-0' }}</td>
+                  <td class="text-right tabular">{{ c.clicks | number: '1.0-0' }}</td>
+                  <td class="text-right tabular text-base-content/70">{{ ratioCtr(c) | percent: '1.1-1' }}</td>
+                  <td class="text-right tabular">{{ ratioCpc(c) | currency: 'BRL' : 'symbol' : '1.2-2' }}</td>
+                  <td class="text-right tabular font-semibold">
+                    {{ c.cost | currency: 'BRL' : 'symbol' : '1.2-2' }}
+                    @if (delta(c.cost, c.previous?.cost); as d) {
+                      <div class="text-xs font-normal text-base-content/60">{{ d }} vs. anterior</div>
+                    }
+                  </td>
+                  <td class="text-right tabular">
+                    {{ c.conversions | number: '1.0-1' }}
+                    @if (delta(c.conversions, c.previous?.conversions); as d) {
+                      <div class="text-xs text-base-content/60">{{ d }} vs. anterior</div>
+                    }
+                  </td>
+                  <td class="text-right tabular">
+                    @if (c.conversions > 0) {
+                      {{ c.cost / c.conversions | currency: 'BRL' : 'symbol' : '1.2-2' }}
+                    } @else {
+                      <span class="text-base-content/40">—</span>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="11" class="py-12 text-center text-base-content/60">
+                    Nenhuma campanha encontrada com os filtros atuais.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
     </app-data-state>
   `,
@@ -194,6 +268,17 @@ export class CampaignsPage {
     };
   });
 
+  protected readonly query = signal('');
+  protected readonly statusFilter = signal<'ALL' | 'ENABLED' | 'PAUSED'>('ALL');
+  protected readonly channelFilter = signal('ALL');
+  protected readonly sortKey = signal<string>('cost');
+  protected readonly sortDir = signal<SortDirection>('desc');
+
+  protected readonly channels = computed(() => {
+    const list = this.ws.campaigns.value() ?? [];
+    return [...new Set(list.map((c) => c.channel))];
+  });
+
   protected readonly exportData = computed<ExportData>(() => ({
     name: 'campanhas',
     rows: this.rows().map((c) => {
@@ -213,17 +298,86 @@ export class CampaignsPage {
     }),
   }));
 
-  protected readonly rows = computed<Row[]>(() => {
+  protected readonly allRows = computed<Row[]>(() => {
     const prev = new Map((this.ws.previousCampaigns.value() ?? []).map((c) => [c.id, c]));
-    return (this.ws.campaigns.value() ?? [])
-      .map((c) => ({ ...c, previous: prev.get(c.id) }))
-      .sort((a, b) => b.cost - a.cost);
+    return (this.ws.campaigns.value() ?? []).map((c) => ({ ...c, previous: prev.get(c.id) }));
+  });
+
+  protected readonly rows = computed<Row[]>(() => {
+    const q = this.query().toLowerCase().trim();
+    const st = this.statusFilter();
+    const ch = this.channelFilter();
+    const key = this.sortKey();
+    const dir = this.sortDir();
+
+    const filtered = this.allRows().filter((c) => {
+      if (st !== 'ALL' && c.status !== st) return false;
+      if (ch !== 'ALL' && c.channel !== ch) return false;
+      if (q && !c.name.toLowerCase().includes(q)) return false;
+      return true;
+    });
+
+    return filtered.sort((a, b) => {
+      let cmp = 0;
+      switch (key) {
+        case 'name':
+          cmp = a.name.localeCompare(b.name, 'pt-BR');
+          break;
+        case 'channel':
+          cmp = this.channel(a.channel).localeCompare(this.channel(b.channel), 'pt-BR');
+          break;
+        case 'status':
+          cmp = this.statusLabel(a.status).localeCompare(this.statusLabel(b.status), 'pt-BR');
+          break;
+        case 'category': {
+          const catA = this.categoryOf(a.id) ?? '';
+          const catB = this.categoryOf(b.id) ?? '';
+          cmp = catA.localeCompare(catB);
+          break;
+        }
+        case 'impressions':
+          cmp = a.impressions - b.impressions;
+          break;
+        case 'clicks':
+          cmp = a.clicks - b.clicks;
+          break;
+        case 'ctr':
+          cmp = this.ratioCtr(a) - this.ratioCtr(b);
+          break;
+        case 'cpc':
+          cmp = this.ratioCpc(a) - this.ratioCpc(b);
+          break;
+        case 'conversions':
+          cmp = a.conversions - b.conversions;
+          break;
+        case 'cpa': {
+          const cpaA = a.conversions > 0 ? a.cost / a.conversions : Infinity;
+          const cpaB = b.conversions > 0 ? b.cost / b.conversions : Infinity;
+          cmp = cpaA - cpaB;
+          break;
+        }
+        case 'cost':
+        default:
+          cmp = a.cost - b.cost;
+          break;
+      }
+      return dir === 'asc' ? cmp : -cmp;
+    });
   });
 
   constructor() {
     this.insights.needCore();
     this.ws.campaigns.need();
     this.ws.previousCampaigns.need();
+  }
+
+  protected onSort(e: { field: string; direction: SortDirection }): void {
+    this.sortKey.set(e.field);
+    this.sortDir.set(e.direction);
+  }
+
+  protected val(event: Event): any {
+    return (event.target as HTMLInputElement | HTMLSelectElement).value;
   }
 
   protected channel = (c: ChannelType): string => CHANNEL_LABEL[c] ?? c;

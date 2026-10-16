@@ -77,18 +77,18 @@ export const INSUFFICIENT_LABEL: Record<InsufficientReason, string> = {
 
 export const TERM_CATEGORY_LABEL: Record<TermCategory, string> = {
   QUALIFIED: 'Qualificado',
-  UNQUALIFIED: 'Sem intenção de compra',
+  UNQUALIFIED: 'Não Qualificada',
   BRAND: 'Marca',
   COMPETITOR: 'Concorrente',
   GENERAL: 'Geral',
 };
 
 export const TERM_CATEGORY_CLASS: Record<TermCategory, string> = {
-  QUALIFIED: 'badge badge-soft badge-success',
-  UNQUALIFIED: 'badge badge-soft badge-error',
-  BRAND: 'badge badge-soft badge-secondary',
-  COMPETITOR: 'badge badge-soft badge-info',
-  GENERAL: 'badge badge-soft',
+  QUALIFIED: 'badge badge-soft badge-success badge-xs',
+  UNQUALIFIED: 'badge badge-soft badge-error badge-xs',
+  BRAND: 'badge badge-soft badge-secondary badge-xs',
+  COMPETITOR: 'badge badge-soft badge-info badge-xs',
+  GENERAL: 'badge badge-soft badge-xs',
 };
 
 export const KEYWORD_CATEGORY_LABEL: Record<KeywordCategory, string> = {
@@ -99,10 +99,10 @@ export const KEYWORD_CATEGORY_LABEL: Record<KeywordCategory, string> = {
 };
 
 export const KEYWORD_CATEGORY_CLASS: Record<KeywordCategory, string> = {
-  BRAND: 'badge badge-soft badge-secondary',
-  QUALIFIED: 'badge badge-soft badge-success',
-  RISK: 'badge badge-soft badge-error',
-  GENERAL: 'badge badge-soft',
+  BRAND: 'badge badge-soft badge-secondary badge-xs',
+  QUALIFIED: 'badge badge-soft badge-success badge-xs',
+  RISK: 'badge badge-soft badge-error badge-xs',
+  GENERAL: 'badge badge-soft badge-xs',
 };
 
 export const MATCH_LABEL: Record<MatchType, string> = {

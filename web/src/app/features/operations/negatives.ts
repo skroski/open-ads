@@ -12,6 +12,8 @@ import { Icon } from '../../shared/icon';
 import { MATCH_CLASS, MATCH_LABEL, formatMatch } from '../../shared/labels';
 import { ExportData, PageHeader } from '../../shared/page-header';
 
+import { ThSort, SortDirection } from '../../shared/th-sort';
+
 const HINT: Record<MatchType, string> = {
   EXACT: 'Bloqueia só a busca idêntica.',
   PHRASE: 'Bloqueia buscas que contenham a expressão, na mesma ordem.',
@@ -21,7 +23,7 @@ const HINT: Record<MatchType, string> = {
 @Component({
   selector: 'app-negatives-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DataState, FormField, FormRoot, Icon, PageHeader],
+  imports: [DataState, FormField, FormRoot, Icon, PageHeader, ThSort],
   template: `
     <app-page-header
       group="Operação no Google Ads"
@@ -138,7 +140,7 @@ const HINT: Record<MatchType, string> = {
                       <th>Vale em</th>
                       <th>Falta em</th>
                       <th class="text-right">Gasto vazado</th>
-                      <th><span class="sr-only">Ação</span></th>
+                      <th class="table-sticky-actions"><span class="sr-only">Ação</span></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -161,7 +163,7 @@ const HINT: Record<MatchType, string> = {
                         <td class="tabular text-right" [class.text-warning]="g.totalLeak > 0">
                           {{ g.totalLeak > 0 ? money(g.totalLeak) : '—' }}
                         </td>
-                        <td class="text-right">
+                        <td class="table-sticky-actions text-right">
                           <button
                             type="button"
                             class="btn btn-xs"
@@ -226,11 +228,23 @@ const HINT: Record<MatchType, string> = {
               <table class="table table-sm">
                 <thead>
                   <tr>
-                    <th>Palavra</th>
-                    <th>Correspondência</th>
+                    <th>
+                      <app-th-sort field="text" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                        Palavra
+                      </app-th-sort>
+                    </th>
+                    <th>
+                      <app-th-sort field="matchType" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                        Correspondência
+                      </app-th-sort>
+                    </th>
                     <th>Como aparece</th>
-                    <th>Onde vale</th>
-                    <th><span class="sr-only">Copiar</span></th>
+                    <th>
+                      <app-th-sort field="campaign" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                        Onde vale
+                      </app-th-sort>
+                    </th>
+                    <th class="table-sticky-actions"><span class="sr-only">Copiar</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -243,7 +257,7 @@ const HINT: Record<MatchType, string> = {
                         <div class="truncate" [attr.title]="n.campaignName">{{ n.campaignName }}</div>
                         <div class="text-xs">{{ scopeOf(n) }}</div>
                       </td>
-                      <td>
+                      <td class="table-sticky-actions">
                         <button
                           type="button"
                           class="btn btn-ghost btn-xs"
@@ -340,10 +354,21 @@ export class NegativesPage {
 
   protected readonly hint = computed(() => HINT[this.value().matchType]);
 
+  protected readonly sortKey = signal<string>('text');
+  protected readonly sortDir = signal<SortDirection>('asc');
+
+  protected onSort(e: { field: string; direction: SortDirection }): void {
+    this.sortKey.set(e.field);
+    this.sortDir.set(e.direction);
+  }
+
   protected readonly filtered = computed(() => {
     const q = this.query().toLowerCase().trim();
     const m = this.matchFilter();
-    return this.all().filter(
+    const key = this.sortKey();
+    const dir = this.sortDir();
+
+    const list = this.all().filter(
       (n) =>
         (m === 'ALL' || n.matchType === m) &&
         (!q ||
@@ -352,6 +377,23 @@ export class NegativesPage {
           (n.adGroupName ?? '').toLowerCase().includes(q) ||
           (n.listName ?? '').toLowerCase().includes(q)),
     );
+
+    return list.sort((a, b) => {
+      let cmp = 0;
+      switch (key) {
+        case 'matchType':
+          cmp = (MATCH_LABEL[a.matchType] ?? '').localeCompare(MATCH_LABEL[b.matchType] ?? '', 'pt-BR');
+          break;
+        case 'campaign':
+          cmp = a.campaignName.localeCompare(b.campaignName, 'pt-BR') || (a.adGroupName ?? '').localeCompare(b.adGroupName ?? '', 'pt-BR');
+          break;
+        case 'text':
+        default:
+          cmp = a.text.localeCompare(b.text, 'pt-BR');
+          break;
+      }
+      return dir === 'asc' ? cmp : -cmp;
+    });
   });
 
   constructor() {

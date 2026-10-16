@@ -1,18 +1,19 @@
 import { CurrencyPipe, DecimalPipe, PercentPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Workspace } from '../../core/workspace';
 import { deviceLabel } from '../../data/ads-normalize';
 import { cpc, ctr } from '../../domain/metrics';
-import { Perf } from '../../domain/models';
+import { NetworkRow, Perf } from '../../domain/models';
 import { DataState } from '../../shared/data-state';
 import { ExportData, PageHeader } from '../../shared/page-header';
 import { EChart, VERDICT_COLOR } from '../../shared/echart';
+import { ThSort, SortDirection } from '../../shared/th-sort';
 import type { EChartsCoreOption } from 'echarts/core';
 
 @Component({
   selector: 'app-devices-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, PercentPipe, DataState, EChart, PageHeader],
+  imports: [CurrencyPipe, DecimalPipe, PercentPipe, DataState, EChart, PageHeader, ThSort],
   template: `
     <app-page-header
       group="Operação no Google Ads"
@@ -30,21 +31,61 @@ import type { EChartsCoreOption } from 'echarts/core';
       >
         <section class="card card-border bg-base-100">
           <div class="card-body gap-4">
-            <h2 class="card-title text-base">Por rede</h2>
-            <p class="text-sm text-base-content/70">Quando a fatia do custo é maior que a das conversões, a rede devolve menos do que consome.</p>
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 class="card-title text-base">Por rede</h2>
+                <p class="text-sm text-base-content/70">Quando a fatia do custo é maior que a das conversões, a rede devolve menos do que consome.</p>
+              </div>
+              <input
+                type="search"
+                class="input input-sm w-full sm:w-56"
+                placeholder="Filtrar redes…"
+                aria-label="Filtrar redes"
+                [value]="queryNetworks()"
+                (input)="queryNetworks.set(val($event))"
+              />
+            </div>
             <app-echart [option]="shareChart(networkShares())" [height]="220" label="Fatia do custo e das conversões por rede" />
             <div class="overflow-x-auto">
               <table class="table">
                 <thead>
                   <tr>
-                    <th>Rede</th>
-                    <th class="text-right">Impressões</th>
-                    <th class="text-right">Cliques</th>
-                    <th class="text-right">CTR</th>
-                    <th class="text-right">Custo</th>
+                    <th>
+                      <app-th-sort field="label" [current]="sortKeyNetworks()" [direction]="sortDirNetworks()" (sort)="onSortNetworks($event)">
+                        Rede
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right">
+                      <app-th-sort field="impressions" align="right" [current]="sortKeyNetworks()" [direction]="sortDirNetworks()" (sort)="onSortNetworks($event)">
+                        Impressões
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right">
+                      <app-th-sort field="clicks" align="right" [current]="sortKeyNetworks()" [direction]="sortDirNetworks()" (sort)="onSortNetworks($event)">
+                        Cliques
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right">
+                      <app-th-sort field="ctr" align="right" [current]="sortKeyNetworks()" [direction]="sortDirNetworks()" (sort)="onSortNetworks($event)">
+                        CTR
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right">
+                      <app-th-sort field="cost" align="right" [current]="sortKeyNetworks()" [direction]="sortDirNetworks()" (sort)="onSortNetworks($event)">
+                        Custo
+                      </app-th-sort>
+                    </th>
                     <th class="text-right">% do custo</th>
-                    <th class="text-right">Conversões</th>
-                    <th class="text-right">Custo/conv.</th>
+                    <th class="text-right">
+                      <app-th-sort field="conversions" align="right" [current]="sortKeyNetworks()" [direction]="sortDirNetworks()" (sort)="onSortNetworks($event)">
+                        Conversões
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right">
+                      <app-th-sort field="cpa" align="right" [current]="sortKeyNetworks()" [direction]="sortDirNetworks()" (sort)="onSortNetworks($event)">
+                        Custo/conv.
+                      </app-th-sort>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -67,7 +108,7 @@ import type { EChartsCoreOption } from 'echarts/core';
                     </tr>
                   } @empty {
                     <tr>
-                      <td colspan="8" class="py-8 text-center text-base-content/60">Sem dados no período.</td>
+                      <td colspan="8" class="py-8 text-center text-base-content/60">Nenhuma rede encontrada.</td>
                     </tr>
                   }
                 </tbody>
@@ -85,21 +126,65 @@ import type { EChartsCoreOption } from 'echarts/core';
       >
         <section class="card card-border bg-base-100">
           <div class="card-body gap-4">
-            <h2 class="card-title text-base">Por dispositivo</h2>
-            <p class="text-sm text-base-content/70">Mesma leitura: compare a fatia do custo com a fatia das conversões de cada aparelho.</p>
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 class="card-title text-base">Por dispositivo</h2>
+                <p class="text-sm text-base-content/70">Mesma leitura: compare a fatia do custo com a fatia das conversões de cada aparelho.</p>
+              </div>
+              <input
+                type="search"
+                class="input input-sm w-full sm:w-56"
+                placeholder="Filtrar dispositivos…"
+                aria-label="Filtrar dispositivos"
+                [value]="queryDevices()"
+                (input)="queryDevices.set(val($event))"
+              />
+            </div>
             <app-echart [option]="shareChart(deviceShares())" [height]="220" label="Fatia do custo e das conversões por dispositivo" />
             <div class="overflow-x-auto">
               <table class="table">
                 <thead>
                   <tr>
-                    <th>Dispositivo</th>
-                    <th class="text-right">Impressões</th>
-                    <th class="text-right">Cliques</th>
-                    <th class="text-right">CTR</th>
-                    <th class="text-right">CPC</th>
-                    <th class="text-right">Custo</th>
-                    <th class="text-right">Conversões</th>
-                    <th class="text-right">Custo/conv.</th>
+                    <th>
+                      <app-th-sort field="device" [current]="sortKeyDevices()" [direction]="sortDirDevices()" (sort)="onSortDevices($event)">
+                        Dispositivo
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right">
+                      <app-th-sort field="impressions" align="right" [current]="sortKeyDevices()" [direction]="sortDirDevices()" (sort)="onSortDevices($event)">
+                        Impressões
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right">
+                      <app-th-sort field="clicks" align="right" [current]="sortKeyDevices()" [direction]="sortDirDevices()" (sort)="onSortDevices($event)">
+                        Cliques
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right">
+                      <app-th-sort field="ctr" align="right" [current]="sortKeyDevices()" [direction]="sortDirDevices()" (sort)="onSortDevices($event)">
+                        CTR
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right">
+                      <app-th-sort field="cpc" align="right" [current]="sortKeyDevices()" [direction]="sortDirDevices()" (sort)="onSortDevices($event)">
+                        CPC
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right">
+                      <app-th-sort field="cost" align="right" [current]="sortKeyDevices()" [direction]="sortDirDevices()" (sort)="onSortDevices($event)">
+                        Custo
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right">
+                      <app-th-sort field="conversions" align="right" [current]="sortKeyDevices()" [direction]="sortDirDevices()" (sort)="onSortDevices($event)">
+                        Conversões
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right">
+                      <app-th-sort field="cpa" align="right" [current]="sortKeyDevices()" [direction]="sortDirDevices()" (sort)="onSortDevices($event)">
+                        Custo/conv.
+                      </app-th-sort>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -122,7 +207,7 @@ import type { EChartsCoreOption } from 'echarts/core';
                     </tr>
                   } @empty {
                     <tr>
-                      <td colspan="8" class="py-8 text-center text-base-content/60">Sem dados no período.</td>
+                      <td colspan="8" class="py-8 text-center text-base-content/60">Nenhum dispositivo encontrado.</td>
                     </tr>
                   }
                 </tbody>
@@ -137,13 +222,98 @@ import type { EChartsCoreOption } from 'echarts/core';
 export class DevicesPage {
   protected readonly ws = inject(Workspace);
 
-  protected readonly networks = computed(() =>
-    [...(this.ws.networks.value() ?? [])].sort((a, b) => b.cost - a.cost),
-  );
-  protected readonly devices = computed(() =>
-    [...(this.ws.devices.value() ?? [])].sort((a, b) => b.cost - a.cost),
-  );
-  protected readonly networkCost = computed(() => this.networks().reduce((s, n) => s + n.cost, 0));
+  protected readonly queryNetworks = signal('');
+  protected readonly sortKeyNetworks = signal<string>('cost');
+  protected readonly sortDirNetworks = signal<SortDirection>('desc');
+
+  protected readonly queryDevices = signal('');
+  protected readonly sortKeyDevices = signal<string>('cost');
+  protected readonly sortDirDevices = signal<SortDirection>('desc');
+
+  protected readonly networks = computed(() => {
+    const q = this.queryNetworks().toLowerCase().trim();
+    const key = this.sortKeyNetworks();
+    const dir = this.sortDirNetworks();
+
+    const list = (this.ws.networks.value() ?? []).filter((n) => !q || n.label.toLowerCase().includes(q));
+
+    return list.sort((a, b) => {
+      let cmp = 0;
+      switch (key) {
+        case 'label':
+          cmp = a.label.localeCompare(b.label, 'pt-BR');
+          break;
+        case 'impressions':
+          cmp = a.impressions - b.impressions;
+          break;
+        case 'clicks':
+          cmp = a.clicks - b.clicks;
+          break;
+        case 'ctr':
+          cmp = this.ratioCtr(a) - this.ratioCtr(b);
+          break;
+        case 'conversions':
+          cmp = a.conversions - b.conversions;
+          break;
+        case 'cpa': {
+          const cpaA = a.conversions > 0 ? a.cost / a.conversions : Infinity;
+          const cpaB = b.conversions > 0 ? b.cost / b.conversions : Infinity;
+          cmp = cpaA - cpaB;
+          break;
+        }
+        case 'cost':
+        default:
+          cmp = a.cost - b.cost;
+          break;
+      }
+      return dir === 'asc' ? cmp : -cmp;
+    });
+  });
+
+  protected readonly devices = computed(() => {
+    const q = this.queryDevices().toLowerCase().trim();
+    const key = this.sortKeyDevices();
+    const dir = this.sortDirDevices();
+
+    const list = (this.ws.devices.value() ?? []).filter((d) => !q || this.label(d.device).toLowerCase().includes(q));
+
+    return list.sort((a, b) => {
+      let cmp = 0;
+      switch (key) {
+        case 'device':
+          cmp = this.label(a.device).localeCompare(this.label(b.device), 'pt-BR');
+          break;
+        case 'impressions':
+          cmp = a.impressions - b.impressions;
+          break;
+        case 'clicks':
+          cmp = a.clicks - b.clicks;
+          break;
+        case 'ctr':
+          cmp = this.ratioCtr(a) - this.ratioCtr(b);
+          break;
+        case 'cpc':
+          cmp = this.ratioCpc(a) - this.ratioCpc(b);
+          break;
+        case 'conversions':
+          cmp = a.conversions - b.conversions;
+          break;
+        case 'cpa': {
+          const cpaA = a.conversions > 0 ? a.cost / a.conversions : Infinity;
+          const cpaB = b.conversions > 0 ? b.cost / b.conversions : Infinity;
+          cmp = cpaA - cpaB;
+          break;
+        }
+        case 'cost':
+        default:
+          cmp = a.cost - b.cost;
+          break;
+      }
+      return dir === 'asc' ? cmp : -cmp;
+    });
+  });
+
+  protected readonly networkCost = computed(() => (this.ws.networks.value() ?? []).reduce((s, n) => s + n.cost, 0));
 
   protected readonly networkShares = computed(() =>
     this.networks().map((n) => ({ label: n.label, cost: n.cost, conversions: n.conversions })),
@@ -181,6 +351,20 @@ export class DevicesPage {
   constructor() {
     this.ws.networks.need();
     this.ws.devices.need();
+  }
+
+  protected onSortNetworks(e: { field: string; direction: SortDirection }): void {
+    this.sortKeyNetworks.set(e.field);
+    this.sortDirNetworks.set(e.direction);
+  }
+
+  protected onSortDevices(e: { field: string; direction: SortDirection }): void {
+    this.sortKeyDevices.set(e.field);
+    this.sortDirDevices.set(e.direction);
+  }
+
+  protected val(event: Event): string {
+    return (event.target as HTMLInputElement).value;
   }
 
   protected label = deviceLabel;

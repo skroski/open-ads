@@ -18,13 +18,15 @@ import { KEYWORD_CATEGORY_CLASS, KEYWORD_CATEGORY_LABEL, MATCH_CLASS, MATCH_LABE
 import { AppModal } from '../../shared/modal';
 import { ExportData, PageHeader } from '../../shared/page-header';
 
+import { ThSort, SortDirection } from '../../shared/th-sort';
+
 const BRAND_BID_CAP = 0.1;
 const PAGE_SIZE = 100;
 
 @Component({
   selector: 'app-keywords-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, PercentPipe, AppModal, DataState, FormField, FormRoot, Icon, PageHeader],
+  imports: [CurrencyPipe, DecimalPipe, PercentPipe, AppModal, DataState, FormField, FormRoot, Icon, PageHeader, ThSort],
   template: `
     <app-page-header
       group="Operação no Google Ads"
@@ -370,65 +372,96 @@ const PAGE_SIZE = 100;
               </span>
             </div>
 
-            <div class="overflow-x-auto">
-              <table class="table table-sm">
+            <div class="overflow-x-auto rounded-box border border-base-300 bg-base-100 shadow-xs">
+              <table class="table table-sm table-zebra-subtle table-bordered-subtle">
                 <thead>
-                  <tr>
-                    <th>Palavra</th>
-                    <th>Classificação</th>
-                    <th>Campanha / grupo</th>
-                    <th class="text-right">Impressões</th>
-                    <th class="text-right">Cliques</th>
-                    <th class="text-right">CTR</th>
-                    <th class="text-right">Custo</th>
-                    <th class="text-right">Conv.</th>
-                    <th class="text-right">IQ</th>
-                    <th>Teto de CPC</th>
-                    <th>Status</th>
-                    <th><span class="sr-only">Ações</span></th>
+                  <tr class="bg-base-200/50 text-xs">
+                    <th class="min-w-64 max-w-md px-3">
+                      <app-th-sort field="text" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                        Palavra
+                      </app-th-sort>
+                    </th>
+                    <th class="w-32 px-2">
+                      <app-th-sort field="category" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                        Classificação
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right w-24 px-3">
+                      <app-th-sort field="impressions" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                        Impressões
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right w-20 px-3">
+                      <app-th-sort field="clicks" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                        Cliques
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right w-20 px-3">
+                      <app-th-sort field="ctr" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                        CTR
+                      </app-th-sort>
+                    </th>
+                    <th>
+                      <app-th-sort field="bid" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                        Teto de CPC
+                      </app-th-sort>
+                    </th>
+                    <th class="min-w-48 max-w-64 px-3">
+                      <app-th-sort field="campaign" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                        Campanha / grupo
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right w-24 px-3">
+                      <app-th-sort field="cost" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                        Custo
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right w-20 px-3">
+                      <app-th-sort field="conversions" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                        Conv.
+                      </app-th-sort>
+                    </th>
+                    <th class="text-right w-16 px-2">
+                      <app-th-sort field="quality" align="right" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                        IQ
+                      </app-th-sort>
+                    </th>
+                    <th class="w-24 px-2">
+                      <app-th-sort field="status" [current]="sortKey()" [direction]="sortDir()" (sort)="onSort($event)">
+                        Status
+                      </app-th-sort>
+                    </th>
+                    <th class="table-sticky-actions px-3"><span class="sr-only">Ações</span></th>
                   </tr>
                 </thead>
                 <tbody>
                   @for (kw of visible(); track kw.resourceName) {
-                    <tr class="hover:bg-base-200/60">
-                      <td class="max-w-64">
-                        <div class="font-medium break-words">{{ fmt(kw) }}</div>
+                    <tr>
+                      <td class="min-w-64 max-w-md px-3">
+                        <div class="font-medium break-words leading-snug">{{ fmt(kw) }}</div>
                         <span [class]="matchClass(kw.matchType)">{{ matchLabel(kw.matchType) }}</span>
                       </td>
-                      <td>
+                      <td class="w-32 px-2">
                         <span [class]="catClass(kw.category)" [attr.title]="kw.categoryReason">{{ catLabel(kw.category) }}</span>
                       </td>
-                      <td class="max-w-56">
-                        <div class="truncate" [attr.title]="kw.campaignName">{{ kw.campaignName }}</div>
-                        <div class="truncate text-xs text-base-content/60" [attr.title]="kw.adGroupName">{{ kw.adGroupName }}</div>
-                      </td>
-                      <td class="text-right tabular">{{ kw.impressions | number: '1.0-0' }}</td>
-                      <td class="text-right tabular">{{ kw.clicks | number: '1.0-0' }}</td>
-                      <td class="text-right tabular text-base-content/70">
+                      <td class="text-right tabular px-3">{{ kw.impressions | number: '1.0-0' }}</td>
+                      <td class="text-right tabular px-3">{{ kw.clicks | number: '1.0-0' }}</td>
+                      <td class="text-right tabular text-base-content/70 px-3">
                         {{ (kw.impressions > 0 ? kw.clicks / kw.impressions : 0) | percent: '1.1-1' }}
                       </td>
-                      <td class="text-right tabular font-semibold">{{ kw.cost | currency: 'BRL' : 'symbol' : '1.2-2' }}</td>
-                      <td class="text-right tabular">{{ kw.conversions | number: '1.0-1' }}</td>
-                      <td class="text-right">
-                        @if (kw.quality?.score; as qs) {
-                          <span [class]="qsClass(qs)" [attr.title]="qsDetail(kw.quality!)">{{ qs }}/10</span>
-                        } @else {
-                          <span class="text-xs text-base-content/50" title="O Google ainda não tem volume para dar nota">—</span>
-                        }
-                      </td>
-                      <td class="whitespace-nowrap">
+                      <td class="whitespace-nowrap px-3">
                         @if (kw.bid) {
-                          <span class="badge badge-soft badge-secondary tabular">{{ kw.bid | currency: 'BRL' : 'symbol' : '1.2-2' }}</span>
+                          <span class="badge badge-soft badge-secondary badge-xs tabular">{{ kw.bid | currency: 'BRL' : 'symbol' : '1.2-2' }}</span>
                         } @else {
                           <span class="text-xs text-base-content/50">Do grupo</span>
                         }
-                        <button type="button" class="btn btn-ghost btn-xs btn-square" aria-label="Editar teto de CPC" title="Editar teto de CPC" (click)="openBid(kw)">
+                        <button type="button" class="btn btn-ghost btn-xs btn-square ml-1" aria-label="Editar teto de CPC" title="Editar teto de CPC" (click)="openBid(kw)">
                           <app-icon name="pencil" size="xs" />
                         </button>
                         @if (kw.category === 'BRAND' && (!kw.bid || kw.bid > brandCap)) {
                           <button
                             type="button"
-                            class="btn btn-xs"
+                            class="btn btn-xs ml-1"
                             [disabled]="actions.busyResource() === kw.resourceName"
                             title="Limitar o CPC desta palavra de marca a R$ 0,10"
                             (click)="capBrand(kw)"
@@ -437,13 +470,28 @@ const PAGE_SIZE = 100;
                           </button>
                         }
                       </td>
-                      <td>
-                        <span class="inline-flex items-center gap-2 text-xs">
+                      <td class="min-w-48 max-w-64 px-3">
+                        <div class="truncate font-medium text-base-content/85" [attr.title]="kw.campaignName">{{ kw.campaignName }}</div>
+                        <div class="truncate text-xs text-base-content/60" [attr.title]="kw.adGroupName">{{ kw.adGroupName }}</div>
+                      </td>
+                      <td class="text-right tabular font-semibold px-3">{{ kw.cost | currency: 'BRL' : 'symbol' : '1.2-2' }}</td>
+                      <td class="text-right tabular px-3" [class]="kw.conversions > 0 ? 'text-success font-medium' : 'text-base-content/50'">
+                        {{ kw.conversions | number: '1.0-1' }}
+                      </td>
+                      <td class="text-right px-2">
+                        @if (kw.quality?.score; as qs) {
+                          <span [class]="qsClass(qs)" [attr.title]="qsDetail(kw.quality!)">{{ qs }}/10</span>
+                        } @else {
+                          <span class="text-xs text-base-content/50" title="O Google ainda não tem volume para dar nota">—</span>
+                        }
+                      </td>
+                      <td class="w-24 px-2">
+                        <span class="inline-flex items-center gap-1.5 text-xs">
                           <span class="status" [class.status-success]="kw.status === 'ENABLED'" [class.status-neutral]="kw.status !== 'ENABLED'"></span>
                           {{ kw.status === 'ENABLED' ? 'Ativa' : 'Pausada' }}
                         </span>
                       </td>
-                      <td class="whitespace-nowrap">
+                      <td class="table-sticky-actions whitespace-nowrap px-3">
                         <button
                           type="button"
                           class="btn btn-xs"
@@ -704,18 +752,71 @@ export class KeywordsPage {
     };
   });
 
+  protected readonly sortKey = signal<string>('cost');
+  protected readonly sortDir = signal<SortDirection>('desc');
+
+  protected onSort(e: { field: string; direction: SortDirection }): void {
+    this.sortKey.set(e.field);
+    this.sortDir.set(e.direction);
+  }
+
   protected readonly filtered = computed(() => {
     const q = this.query().toLowerCase().trim();
     const cat = this.category();
     const st = this.status();
-    return this.keywords()
-      .filter(
-        (k) =>
-          (cat === 'ALL' || k.category === cat) &&
-          (st === 'ALL' || k.status === st) &&
-          (!q || k.text.toLowerCase().includes(q) || k.campaignName.toLowerCase().includes(q)),
-      )
-      .sort((a, b) => b.cost - a.cost || a.text.localeCompare(b.text, 'pt-BR'));
+    const key = this.sortKey();
+    const dir = this.sortDir();
+
+    const list = this.keywords().filter(
+      (k) =>
+        (cat === 'ALL' || k.category === cat) &&
+        (st === 'ALL' || k.status === st) &&
+        (!q || k.text.toLowerCase().includes(q) || k.campaignName.toLowerCase().includes(q) || k.adGroupName.toLowerCase().includes(q)),
+    );
+
+    return list.sort((a, b) => {
+      let cmp = 0;
+      switch (key) {
+        case 'text':
+          cmp = a.text.localeCompare(b.text, 'pt-BR');
+          break;
+        case 'category':
+          cmp = (this.catLabel(a.category) ?? '').localeCompare(this.catLabel(b.category) ?? '', 'pt-BR');
+          break;
+        case 'campaign':
+          cmp = a.campaignName.localeCompare(b.campaignName, 'pt-BR') || a.adGroupName.localeCompare(b.adGroupName, 'pt-BR');
+          break;
+        case 'impressions':
+          cmp = a.impressions - b.impressions;
+          break;
+        case 'clicks':
+          cmp = a.clicks - b.clicks;
+          break;
+        case 'ctr': {
+          const ctrA = a.impressions > 0 ? a.clicks / a.impressions : 0;
+          const ctrB = b.impressions > 0 ? b.clicks / b.impressions : 0;
+          cmp = ctrA - ctrB;
+          break;
+        }
+        case 'conversions':
+          cmp = a.conversions - b.conversions;
+          break;
+        case 'quality':
+          cmp = (a.quality?.score ?? -1) - (b.quality?.score ?? -1);
+          break;
+        case 'bid':
+          cmp = (a.bid ?? -1) - (b.bid ?? -1);
+          break;
+        case 'status':
+          cmp = a.status.localeCompare(b.status);
+          break;
+        case 'cost':
+        default:
+          cmp = a.cost - b.cost;
+          break;
+      }
+      return dir === 'asc' ? cmp : -cmp;
+    });
   });
 
   protected readonly visible = computed(() => this.filtered().slice(0, this.shown()));
