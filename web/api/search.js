@@ -1,6 +1,8 @@
 // Vercel Serverless Function: POST /api/search
 // Consulta a Google Ads API usando as credenciais configuradas nas variáveis de ambiente da Vercel.
 
+import { checkAccess } from './_lib/access.js';
+
 const API_VERSION = 'v25';
 
 const DEFAULT_QUERY = `
@@ -77,9 +79,8 @@ function sendJson(res, status, body) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  const denied = req.method === 'OPTIONS' ? null : checkAccess(req.headers);
+  if (denied) return sendJson(res, denied.status, { error: denied.error });
 
   if (req.method === 'OPTIONS') {
     return sendJson(res, 200, { ok: true });

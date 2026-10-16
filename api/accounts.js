@@ -1,6 +1,8 @@
 // Vercel Serverless Function: POST /api/accounts
 // Lista contas acessíveis via customer_client
 
+import { checkAccess } from './_lib/access.js';
+
 const API_VERSION = 'v25';
 
 let cachedToken = null;
@@ -28,9 +30,8 @@ async function getAccessToken(env) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-customer-id, x-login-customer-id');
+  const denied = req.method === 'OPTIONS' ? null : checkAccess(req.headers);
+  if (denied) return res.status(denied.status).json({ error: denied.error });
 
   if (req.method === 'OPTIONS') {
     return res.status(200).json({ ok: true });

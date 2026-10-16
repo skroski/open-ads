@@ -97,6 +97,7 @@ O guia completo, com o caminho de cada clique no Google e uma tabela de erros, e
 | `npm run doctor` | Diagnóstico de Node, dependências, chaves, portas e conexão com o Google, sem mostrar valores |
 | `npm run token` | Gera de novo só o refresh token (se ele expirar ou for revogado) |
 | `npm --prefix web test` / `npm run test:api` | Testes |
+| `npm run check` | Tudo que o CI roda: sincronia de `web/api`, testes e build |
 | `npm --prefix web run build` | Build de produção |
 
 ## Contas de clientes e MCC
@@ -134,7 +135,7 @@ web/src/app/
 web/src/styles.css   temas, tokens de espaço e tipografia
 ```
 
-Testes: `npm --prefix web test` (painel) e `npm run test:api` (API).
+Testes: `npm --prefix web test` (painel) e `npm run test:api` (API). O GitHub Actions (`.github/workflows/ci.yml`) roda testes, build, a conferência de `web/api` e uma varredura de segredos em cada PR.
 
 ## Personalizar
 
@@ -148,7 +149,8 @@ Limitações conhecidas: valores em reais (BRL) e textos em português; o Planej
 
 - As chaves ficam só em `server/.env`, que está no `.gitignore`.
 - O painel lê dados. Só altera o Google Ads (negativas, pausar ou ajustar lances de palavras-chave) quando você clica e confirma.
-- **Não há login.** Se publicar na internet, ative a proteção de acesso da hospedagem (veja INSTALL.md).
+- **Não há login.** Se publicar na internet, defina `PANEL_ACCESS_TOKEN` (a API passa a exigir o código; sem ele, a Vercel bloqueia as ações que escrevem no Google Ads) e ative a proteção de acesso da hospedagem (veja INSTALL.md).
+- As alterações no Google Ads são validadas no servidor (tipos, conta, limite de 500 operações e teto de lance) antes de chegar ao Google.
 
 ## Perguntas frequentes
 

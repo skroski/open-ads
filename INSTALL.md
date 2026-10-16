@@ -152,7 +152,7 @@ No topo do painel, clique no nome da conta para abrir **Contas de clientes**.
 
 O painel foi feito para rodar **no seu computador**. Se publicar na Vercel:
 
-> ⚠️ **Não há tela de login.** Qualquer pessoa com o endereço consegue ver os dados das contas e **adicionar palavras negativas**. Ative a proteção da Vercel (**Settings → Deployment Protection → Vercel Authentication**) antes de compartilhar o link.
+> ⚠️ **Não há tela de login.** Qualquer pessoa com o endereço consegue ver os dados das contas. Defina `PANEL_ACCESS_TOKEN` (um código longo e só seu, criado por você) nas variáveis de ambiente: a API passa a exigir esse código, que o painel pede na primeira visita. **Sem ele, a Vercel bloqueia as ações que alteram o Google Ads** (negativas, pausar, lances). Ative também a proteção da Vercel (**Settings → Deployment Protection → Vercel Authentication**) antes de compartilhar o link.
 
 1. Envie o projeto para um repositório **privado** no GitHub.
 2. Na Vercel, importe o repositório. As configurações de build já estão em `vercel.json`.

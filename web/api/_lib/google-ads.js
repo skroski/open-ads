@@ -2,6 +2,7 @@
 // quais domínios a conta realmente anuncia.
 
 import { getAccessToken } from './google-auth.js';
+import { HttpError } from './http.js';
 
 const API_VERSION = 'v25';
 
@@ -30,4 +31,25 @@ export async function runGaql(query, customerId, loginCustomerId) {
   const text = await res.text();
   if (!res.ok) throw new Error(`Google Ads API respondeu ${res.status}`);
   return JSON.parse(text).flatMap((b) => b.results ?? []);
+}
+
+/** Chamada de escrita (…:mutate). `path` é o serviço, ex.: "campaignCriteria". */
+export async function mutateAds(path, payload, customerId, loginCustomerId) {
+  const token = await getAccessToken('ads');
+  if (!token) throw new HttpError(503, 'Google Ads não configurado no servidor.');
+  const id = String(customerId || process.env.GOOGLE_ADS_CUSTOMER_ID || '').replace(/\D/g, '');
+  const login = String(loginCustomerId || process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID || '').replace(/\D/g, '');
+  const res = await fetch(`https://googleads.googleapis.com/${API_VERSION}/customers/${id}/${path}:mutate`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(process.env.GOOGLE_ADS_DEVELOPER_TOKEN ? { 'developer-token': process.env.GOOGLE_ADS_DEVELOPER_TOKEN } : {}),
+      ...(login ? { 'login-customer-id': login } : {}),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new HttpError(502, `Google Ads API erro: ${JSON.stringify(data)}`);
+  return data;
 }

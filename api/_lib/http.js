@@ -5,6 +5,8 @@
 // (na Vercel) ou passam pelo proxy do Angular (em desenvolvimento). Navegadores de
 // outros sites não conseguem ler as respostas.
 
+import { checkAccess } from './access.js';
+
 export class HttpError extends Error {
   constructor(status, message) {
     super(message);
@@ -48,7 +50,7 @@ export async function readJsonBody(req) {
 }
 
 /** Roda o handler tratando método e erros de forma uniforme. */
-export function endpoint(handler) {
+export function endpoint(handler, { write = false } = {}) {
   return async function wrapped(req, res) {
     try {
       if (req.method === 'OPTIONS') {
@@ -58,6 +60,8 @@ export function endpoint(handler) {
       if (req.method !== 'POST') {
         return sendJson(res, 405, { error: 'Método não permitido. Use POST.' });
       }
+      const denied = checkAccess(req.headers, { write });
+      if (denied) return sendJson(res, denied.status, { error: denied.error });
       const body = await readJsonBody(req);
       const result = await handler({ body, headers: req.headers ?? {} });
       return sendJson(res, 200, result);
