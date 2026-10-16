@@ -81,7 +81,7 @@ O guia completo, com o caminho de cada clique no Google e uma tabela de erros, e
    - crie um projeto e ative a [Google Ads API](https://console.cloud.google.com/flows/enableapi?apiid=googleads.googleapis.com);
    - em [Google Ads API → Visão geral](https://console.cloud.google.com/google/ads-apis/overview), peça o acesso **Explorer**.
 4. Na **tela de consentimento OAuth**: tipo Externo, seu e-mail como usuário de teste e **Publicar app**. Em modo teste, a autorização expira em 7 dias.
-5. Em **Credenciais**, crie um **ID do cliente OAuth** do tipo **App para computador** e baixe o JSON.
+5. Em **Credenciais**, crie um **ID do cliente OAuth** do tipo **App para computador** (ou se usar **Aplicativo da Web**, preencha o redirecionamento com `http://localhost:8787/oauth2callback`) e baixe o JSON.
 6. Rode `npm run setup`, arraste o JSON para o terminal, autorize no navegador e escolha a conta.
 7. Rode `npm start` e abra **http://localhost:4200**.
 
@@ -145,12 +145,14 @@ Testes: `npm --prefix web test` (painel) e `npm run test:api` (API). O GitHub Ac
 
 Limitações conhecidas: valores em reais (BRL) e textos em português; o Planejador de Palavras-chave exige acesso Basic na API.
 
-## Segurança
+## Segurança: se quer segurança, precisa aplicar
 
-- As chaves ficam só em `server/.env`, que está no `.gitignore`.
-- O painel lê dados. Só altera o Google Ads (negativas, pausar ou ajustar lances de palavras-chave) quando você clica e confirma.
-- **Não há login.** Se publicar na internet, defina `PANEL_ACCESS_TOKEN` (a API passa a exigir o código; sem ele, a Vercel bloqueia as ações que escrevem no Google Ads) e ative a proteção de acesso da hospedagem (veja INSTALL.md).
-- As alterações no Google Ads são validadas no servidor (tipos, conta, limite de 500 operações e teto de lance) antes de chegar ao Google.
+- **Ambiente local vs rede:** a aplicação está projetada inicialmente para uso no seu próprio computador (`localhost`) ou em rede privada confiável. Estamos inserindo camadas de segurança progressivamente.
+- **Se quer segurança, precisa aplicar:**
+  - **No seu computador (`localhost`):** o uso é isolado na máquina e as chaves ficam somente em `server/.env` (mantido no `.gitignore`).
+  - **Na rede local (LAN ou Wi-Fi compartilhado):** defina obrigatoriamente um `PANEL_ACCESS_TOKEN` no `server/.env` para restringir a leitura e as ações no painel a quem tiver o código.
+  - **Na internet (Vercel ou VPS):** como não há tela de login multiusuário pública, é indispensável usar proteção na borda (Vercel Authentication, Cloudflare Access ou VPN) junto com o `PANEL_ACCESS_TOKEN`.
+- **Ações e alterações:** o painel só lê dados; alterações no Google Ads (negativas, pausar ou ajustar lances) exigem que você clique e confirme na interface, passando por validações rigorosas no servidor (tipos, conta, limite de 500 operações e teto de lance).
 
 ## Perguntas frequentes
 
