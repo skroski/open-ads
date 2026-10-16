@@ -14,7 +14,9 @@
     "server": "node --env-file=server/.env server/index.mjs",
     "web": "cd web && npm start",
     "sync:api": "node scripts/sync-api.mjs",
-    "test:api": "node --test api/_lib/guards.test.js api/_lib/explain.test.js"
+    "test:api": "node --test \"api/_lib/*.test.js\"",
+    "check:api": "node scripts/sync-api.mjs --check",
+    "check": "npm run check:api && npm run test:api && npm --prefix web test -- --watch=false && npm --prefix web run build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0"

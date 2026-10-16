@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancela execuções antigas da mesma branch/PR.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    name: API (testes e sincronia)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: web/api igual a api/
+        run: npm run check:api
+      - name: Testes da API
+        run: npm run test:api
+
+  web:
+    name: Painel (testes e build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - name: Testes
+        run: npm test -- --watch=false
+        working-directory: web
+      - name: Build de produção
+        run: npm run build
+        working-directory: web
+
+  secrets:
+    name: Segredos fora do Git
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Arquivos que nunca devem ser versionados
+        run: |
+          bad=$(git ls-files | grep -E '(^|/)\.env($|\.)|client_secret.*\.json|\.pem$|\.key$' | grep -v '\.env\.example$' || true)
+          if [ -n "$bad" ]; then echo "Arquivos sensíveis versionados:"; echo "$bad"; exit 1; fi
+      - name: Padrões de chaves no código
+        run: |
+          pattern='GOCSPX-[A-Za-z0-9_-]{20,}|1//[0-9A-Za-z_-]{40,}|sk-ant-[A-Za-z0-9_-]{20,}|AIza[0-9A-Za-z_-]{35}'
+          if git grep -nIE "$pattern" -- . ':!package-lock.json' ':!web/package-lock.json'; then
+            echo "Possível chave encontrada acima. Remova do código e gere uma nova."; exit 1
+          fi
+
+  audit:
+    name: Auditoria de dependências
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true   # informa vulnerabilidades sem travar o PR
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm audit --omit=dev --audit-level=high
+        working-directory: web
