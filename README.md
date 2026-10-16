@@ -1,8 +1,10 @@
 # Painel Ads
 
+[![License: GPL-2.0-or-later](https://img.shields.io/badge/License-GPL_v2_or_later-blue.svg)](LICENSE)
+
 Painel de análise de Google Ads que separa **desperdício real** de **gasto que dá resultado**. Roda no seu computador, lê suas contas pela API oficial do Google e mostra de onde vem cada número.
 
-> Criado por **Daniel Ribeiro Skroski**. Uso e melhoria livres, com crédito obrigatório e sem revenda. Veja [Licença](#licença).
+> Criado por **Daniel Ribeiro Skroski**. Software livre sob a licença GPL-2.0-or-later. Veja [Licença](#licença).
 
 ## O que ele faz
 
@@ -166,14 +168,14 @@ Limitações conhecidas: valores em reais (BRL) e textos em português; o Planej
 
 ## Licença
 
-Código-fonte disponível sob **Apache License 2.0 com a condição Commons Clause**. Veja [LICENSE](LICENSE) e [NOTICE](NOTICE).
+Código-fonte disponível sob **GNU General Public License v2.0 ou posterior** (`GPL-2.0-or-later`). Veja o arquivo [LICENSE](LICENSE) e o aviso em [NOTICE](NOTICE).
 
-- ✅ Pode usar, estudar, modificar e melhorar.
-- ✅ Pode redistribuir, mantendo `LICENSE`, `NOTICE` e o crédito ao autor (inclusive o "Criado por" na interface).
-- ❌ Não pode vender o software, nem oferecer a terceiros, mediante pagamento, um produto ou serviço cujo valor venha total ou substancialmente dele. Isso inclui cobrar por hospedagem, consultoria ou suporte relacionados ao software.
+- ✅ **Liberdade de uso e modificação:** você pode usar, estudar, rodar, alterar e adaptar o software para qualquer finalidade, pessoal ou comercial.
+- ✅ **Redistribuição e cópias:** você pode redistribuir cópias exatas ou modificadas do projeto.
+- ✅ **Comercialização permitida:** é permitido cobrar por hospedagem, instalação, suporte técnico, consultoria, treinamentos e customizações no software, conforme expressamente garantido pela GPL. Não há restrição de concorrência ou proibição de venda.
+- ⚖️ **Copyleft (código derivado):** ao distribuir versões derivadas ou modificadas do software aos destinatários, você deve disponibilizar o código-fonte correspondente completo sob os mesmos termos da GPLv2 ou posterior.
+- ℹ️ **Uso como serviço (SaaS/web):** por se tratar da GPLv2 (e não da AGPL), o mero acesso à aplicação ou seu uso como serviço remoto via rede/internet não impõe, por si só, a obrigação de disponibilizar o código-fonte aos usuários do serviço, salvo se houver distribuição efetiva de binários ou scripts executados do lado do cliente.
+- 📌 **Atribuição:** preserve o arquivo `NOTICE`, os avisos de copyright e a atribuição ao autor original exigida.
+- 📜 **Versões anteriores:** a atualização de licenciamento deste repositório vigora a partir desta alteração e não revoga licenças concedidas sob commits/versões anteriores aos respectivos destinatários da época.
 
-Em caso de dúvida, vale o texto do [LICENSE](LICENSE).
-
-Como a Commons Clause restringe a venda, este projeto é **source-available**, e não "open source" no sentido da OSI. Para outro tipo de uso comercial, fale com o autor.
-
-Bibliotecas de terceiros mantêm as próprias licenças (Angular e daisyUI: MIT; ECharts: Apache 2.0; fontes Google Fonts: OFL).
+Bibliotecas de terceiros incluídas ou consumidas pelo projeto mantêm suas respectivas licenças (Angular e daisyUI: MIT; ECharts: Apache 2.0; fontes Google Fonts: SIL Open Font License).
