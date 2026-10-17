@@ -18,6 +18,7 @@ export interface OpenHelpJourney {
 }
 
 export interface VoiceProvider {
+  prepare(audioSrc: string): void;
   speak(text: string, language: string, audioSrc: string): Promise<void>;
   stop(): void;
   setMuted(muted: boolean): void;
@@ -28,20 +29,36 @@ export interface VoiceProvider {
 export class PreRenderedVoiceProvider implements VoiceProvider {
   private muted = false;
   private audio?: HTMLAudioElement;
+  private audioSrc?: string;
+
+  /**
+   * Inicia a reprodução no próprio gesto do botão. Isso preserva a permissão de
+   * áudio em navegadores que bloqueiam `play()` depois de esperas assíncronas.
+   */
+  prepare(audioSrc: string): void {
+    if (this.muted || typeof Audio === 'undefined' || this.audioSrc === audioSrc) return;
+    void this.play(audioSrc);
+  }
 
   async speak(_text: string, _language: string, audioSrc: string): Promise<void> {
     if (this.muted || typeof Audio === 'undefined') return;
+    if (this.audioSrc === audioSrc) return;
+    await this.play(audioSrc);
+  }
+
+  private async play(audioSrc: string): Promise<void> {
     this.stop();
     const audio = new Audio(audioSrc);
     this.audio = audio;
+    this.audioSrc = audioSrc;
     try {
       await audio.play();
     } catch {
       // A ajuda segue disponível visualmente quando um arquivo estiver indisponível.
-      if (this.audio === audio) this.audio = undefined;
+      if (this.audio === audio) this.stop();
     } finally {
       audio.onended = () => {
-        if (this.audio === audio) this.audio = undefined;
+        if (this.audio === audio) this.stop();
       };
     }
   }
@@ -50,6 +67,7 @@ export class PreRenderedVoiceProvider implements VoiceProvider {
     this.audio?.pause();
     if (this.audio) this.audio.currentTime = 0;
     this.audio = undefined;
+    this.audioSrc = undefined;
   }
 
   setMuted(muted: boolean): void {
@@ -90,18 +108,21 @@ export class OpenHelpEngine {
     this.running = true;
     this.origin = origin;
     this.index = 0;
+    this.prepareCurrentNarration();
     await this.showCurrent();
   }
 
   async next(): Promise<void> {
     this.voice.stop();
     this.index += 1;
+    this.prepareCurrentNarration();
     await this.showCurrent();
   }
 
   async back(): Promise<void> {
     this.voice.stop();
     this.index = Math.max(0, this.index - 1);
+    this.prepareCurrentNarration();
     await this.showCurrent();
   }
 
@@ -281,6 +302,12 @@ export class OpenHelpEngine {
 
   private speak(step: OpenHelpStep): Promise<void> {
     return this.voice.speak(step.narration, this.journey.language, this.audioSrc(step));
+  }
+
+  private prepareCurrentNarration(): void {
+    if (this.muted) return;
+    const step = this.journey.steps[this.index];
+    if (step) this.voice.prepare(this.audioSrc(step));
   }
 
   private audioSrc(step: OpenHelpStep): string {
