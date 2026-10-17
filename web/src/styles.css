@@ -267,11 +267,11 @@
   filter: brightness(0.94);
 }
 
-/* Barra lateral grafite. */
+/* Barra lateral: clara no tema claro, escura no tema escuro. */
 .ads-sidebar {
-  background: #363d3f;
-  color: #d9dcde;
-  border-color: rgb(255 255 255 / 0.1);
+  background: var(--color-base-100);
+  color: var(--color-base-content);
+  border-color: var(--color-base-300);
 }
 .ads-sidebar .menu-title {
   font-family: var(--font-display);
@@ -279,15 +279,15 @@
   font-size: 0.75rem;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: #9ca1a5;
+  color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
 }
 .ads-sidebar .menu li > a {
-  color: #d9dcde;
+  color: color-mix(in srgb, var(--color-base-content) 85%, transparent);
   border-radius: 0.25rem;
 }
 .ads-sidebar .menu li > a:hover {
-  background: rgb(255 255 255 / 0.08);
-  color: #fff;
+  background: color-mix(in srgb, var(--color-base-content) 8%, transparent);
+  color: var(--color-base-content);
 }
 .ads-sidebar .menu li > a.menu-active {
   background: linear-gradient(180deg, #f6bf04 0%, #f1a10b 62%, #e08c07 100%);

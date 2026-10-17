@@ -47,6 +47,7 @@ export const ICONS = {
   'chevron-up': ['M19 15l-7-7-7 7'],
   'chevrons-up-down': ['M8 9l4-4 4 4', 'M8 15l4 4 4-4'],
   'chevron-right': ['M9 5l7 7-7 7'],
+  'chevron-left': ['M15 19l-7-7 7-7'],
   'trend-up': ['M3 17l6-6 4 4 8-8M15 7h6v6'],
   'trend-down': ['M3 7l6 6 4-4 8 8M15 17h6v-6'],
   chart: ['M4 20V10M10 20V4M16 20v-8M22 20H2'],
