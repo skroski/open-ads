@@ -24,7 +24,7 @@ export interface VoiceProvider {
   destroy(): void;
 }
 
-/** Toca um MP3 entregue pelo app; nunca chama um provedor nem recebe credenciais. */
+/** Toca exclusivamente o MP3 entregue pelo app; nunca chama um provedor nem recebe credenciais. */
 export class PreRenderedVoiceProvider implements VoiceProvider {
   private muted = false;
   private audio?: HTMLAudioElement;
@@ -36,6 +36,9 @@ export class PreRenderedVoiceProvider implements VoiceProvider {
     this.audio = audio;
     try {
       await audio.play();
+    } catch {
+      // A ajuda segue disponível visualmente quando um arquivo estiver indisponível.
+      if (this.audio === audio) this.audio = undefined;
     } finally {
       audio.onended = () => {
         if (this.audio === audio) this.audio = undefined;
@@ -56,70 +59,6 @@ export class PreRenderedVoiceProvider implements VoiceProvider {
 
   destroy(): void {
     this.stop();
-  }
-}
-
-/** Fallback gratuito para quando os MP3s ainda não foram publicados ou não tocam. */
-export class BrowserVoiceProvider implements VoiceProvider {
-  private muted = false;
-
-  async speak(text: string, language: string): Promise<void> {
-    if (this.muted || typeof window === 'undefined' || !('speechSynthesis' in window) || !text.trim()) return;
-    this.stop();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = language;
-    utterance.rate = 0.96;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    const voices = window.speechSynthesis.getVoices();
-    utterance.voice =
-      voices.find((voice) => voice.lang.toLowerCase() === language.toLowerCase()) ??
-      voices.find((voice) => voice.lang.toLowerCase().startsWith('pt')) ??
-      null;
-    window.speechSynthesis.speak(utterance);
-  }
-
-  stop(): void {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
-  }
-
-  setMuted(muted: boolean): void {
-    this.muted = muted;
-    if (muted) this.stop();
-  }
-
-  destroy(): void {
-    this.stop();
-  }
-}
-
-export class FallbackVoiceProvider implements VoiceProvider {
-  constructor(
-    private readonly primary: VoiceProvider,
-    private readonly fallback: VoiceProvider,
-  ) {}
-
-  async speak(text: string, language: string, audioSrc: string): Promise<void> {
-    try {
-      await this.primary.speak(text, language, audioSrc);
-    } catch {
-      await this.fallback.speak(text, language, audioSrc);
-    }
-  }
-
-  stop(): void {
-    this.primary.stop();
-    this.fallback.stop();
-  }
-
-  setMuted(muted: boolean): void {
-    this.primary.setMuted(muted);
-    this.fallback.setMuted(muted);
-  }
-
-  destroy(): void {
-    this.primary.destroy();
-    this.fallback.destroy();
   }
 }
 

@@ -15,7 +15,7 @@ import { AppModal } from './shared/modal';
 import { ThemeToggle } from './shared/theme-toggle';
 import { Toasts } from './shared/toasts';
 import { ONBOARDING_JOURNEY } from './help/onboarding-journey';
-import { BrowserVoiceProvider, FallbackVoiceProvider, OpenHelpEngine, PreRenderedVoiceProvider } from './help/open-help';
+import { OpenHelpEngine, PreRenderedVoiceProvider } from './help/open-help';
 
 interface NavItem {
   path: string;
@@ -89,7 +89,7 @@ export class App {
   protected readonly donationModalOpen = signal(false);
   private readonly help = new OpenHelpEngine(
     ONBOARDING_JOURNEY,
-    new FallbackVoiceProvider(new PreRenderedVoiceProvider(), new BrowserVoiceProvider()),
+    new PreRenderedVoiceProvider(),
     (message) => this.toast.warning(message),
   );
 

@@ -105,7 +105,7 @@ O guia completo, com o caminho de cada clique no Google e uma tabela de erros, e
 
 ## Ajuda guiada e narração
 
-O botão **Ajuda** do cabeçalho apresenta uma jornada curta de primeira análise. Ela continua disponível sem áudio; se um MP3 estiver ausente ou não puder tocar, o navegador tenta narrar o mesmo texto com a voz local.
+O botão **Ajuda** do cabeçalho apresenta uma jornada curta de primeira análise narrada exclusivamente pelos MP3 gerados no Fish Audio. Se um arquivo estiver ausente ou não puder tocar, a ajuda continua disponível visualmente e permanece silenciosa — ela nunca usa a voz local do navegador.
 
 Para gerar a narração fixa no Fish Audio, mantenha as configurações de voz somente no `server/.env` local e rode `npm run help:audio`. O comando cria os arquivos em `web/public/open-help/v<versão>/`; revise-os antes de publicar. A chave não é enviada ao navegador, não entra no build e não é necessária em produção para tocar os arquivos gerados.
 
