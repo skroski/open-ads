@@ -33,7 +33,7 @@ import { PageHeader } from '../../shared/page-header';
       </div>
 
       <iframe
-        class="block h-[calc(100vh-14rem)] min-h-[42rem] w-full border-0"
+        class="block h-[calc(100vh-15rem)] min-h-[32rem] w-full border-0"
         title="Guia narrado de instalação do Open Ads"
         src="/guia-instalacao.html"
       ></iframe>
