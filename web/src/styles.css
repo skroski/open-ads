@@ -283,7 +283,7 @@
 }
 .ads-sidebar .menu li > a {
   color: color-mix(in srgb, var(--color-base-content) 85%, transparent);
-  border-radius: 0.25rem;
+  border-radius: 0.375rem;
 }
 .ads-sidebar .menu li > a:hover {
   background: color-mix(in srgb, var(--color-base-content) 8%, transparent);
@@ -293,6 +293,57 @@
   background: linear-gradient(180deg, #f6bf04 0%, #f1a10b 62%, #e08c07 100%);
   color: #2b2b2b;
   font-weight: 500;
+}
+
+/* Modo retraído: ícones centralizados em tiles quadrados suaves, proporcionais e com alinhamento refinado */
+.ads-sidebar[data-collapsed="true"] {
+  width: 72px;
+}
+.ads-sidebar[data-collapsed="true"] .tooltip {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+}
+.ads-sidebar[data-collapsed="true"] .tooltip:hover,
+.ads-sidebar[data-collapsed="true"] li:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+.ads-sidebar[data-collapsed="true"] .retracted-item {
+  width: 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-width: 42px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 0.625rem !important; /* cantos arredondados modernos */
+  margin: 0 auto !important;
+  box-sizing: border-box;
+  background: transparent;
+  color: color-mix(in srgb, var(--color-base-content) 75%, transparent);
+  transition: all 0.15s ease-in-out;
+}
+.ads-sidebar[data-collapsed="true"] .retracted-item:hover {
+  background: color-mix(in srgb, var(--color-base-content) 10%, transparent) !important;
+  color: var(--color-base-content) !important;
+}
+.ads-sidebar[data-collapsed="true"] .retracted-item.retracted-active {
+  background: linear-gradient(180deg, #f6bf04 0%, #f1a10b 62%, #e08c07 100%) !important;
+  color: #1f1f1f !important;
+  font-weight: 500;
+  box-shadow: 0 2px 8px color-mix(in srgb, #f1a10b 40%, transparent);
+}
+.ads-sidebar[data-collapsed="true"] .nav-group-divider {
+  width: 2rem;
+  height: 1px;
+  margin: 0.5rem auto;
+  background-color: var(--color-base-300);
+  opacity: 0.8;
 }
 
 /* Números alinhados em colunas e tabelas. */

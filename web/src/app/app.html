@@ -2,7 +2,7 @@
   <input #drawerToggle id="app-drawer" type="checkbox" class="drawer-toggle" />
 
   <div class="drawer-content flex min-w-0 flex-col bg-base-200">
-    <header class="navbar sticky top-0 z-30 min-h-[60px] gap-2 border-b border-base-300 bg-base-100 px-3 sm:px-4">
+    <header class="navbar sticky top-0 z-30 h-16 min-h-16 gap-2 border-b border-base-300 bg-base-100 px-3 sm:px-4">
       <div class="flex-none lg:hidden">
         <label for="app-drawer" class="btn btn-square btn-sm" aria-label="Abrir menu de navegação">
           <app-icon name="menu" />
@@ -137,11 +137,12 @@
     <label for="app-drawer" aria-label="Fechar menu" class="drawer-overlay"></label>
     <aside
       class="ads-sidebar flex min-h-full flex-col border-r transition-[width] duration-200"
+      [attr.data-collapsed]="sidebarCollapsed()"
       [class.w-72]="!sidebarCollapsed()"
       [class.w-[72px]]="sidebarCollapsed()"
     >
       <div
-        class="flex h-[60px] flex-none items-center border-b border-base-300 transition-all"
+        class="flex h-16 min-h-16 flex-none items-center border-b border-base-300 transition-all"
         [class.px-4]="!sidebarCollapsed()"
         [class.justify-between]="!sidebarCollapsed()"
         [class.px-2]="sidebarCollapsed()"
@@ -163,35 +164,44 @@
         } @else {
           <button
             type="button"
-            class="btn btn-ghost btn-square p-0 size-10 flex items-center justify-center rounded-lg hover:bg-base-200"
+            class="group flex size-11 items-center justify-center rounded-xl hover:bg-base-200 transition-all cursor-pointer"
             (click)="toggleSidebarCollapse()"
             aria-label="Expandir menu lateral"
-            title="Expandir menu lateral"
+            title="Clique para expandir o menu lateral"
           >
-            <app-logo variant="symbol" customClass="size-8 object-contain" />
+            <app-logo variant="symbol" customClass="size-8.5 object-contain transition-transform group-hover:scale-105" />
           </button>
         }
       </div>
 
-      <nav class="grow overflow-y-auto px-2 pb-4" aria-label="Navegação principal" data-open-help="navegacao">
+      <nav
+        class="grow overflow-y-auto pb-4"
+        [class.px-2]="!sidebarCollapsed()"
+        [class.px-0]="sidebarCollapsed()"
+        [class.py-3]="sidebarCollapsed()"
+        aria-label="Navegação principal"
+        data-open-help="navegacao"
+      >
         @for (group of groups; track group.title; let firstGroup = $first) {
           @if (sidebarCollapsed()) {
             @if (!firstGroup) {
-              <div class="divider my-1 opacity-20"></div>
+              <div class="nav-group-divider" aria-hidden="true"></div>
             }
-            <ul class="menu w-full p-0 gap-1 items-center">
+            <ul class="flex flex-col items-center gap-1.5 w-full p-0 m-0 list-none">
               @for (item of group.items; track item.path) {
                 <li class="w-full flex justify-center">
-                  <a
-                    [routerLink]="item.path"
-                    routerLinkActive="menu-active"
-                    (click)="closeDrawer()"
-                    class="justify-center px-2 py-2 tooltip tooltip-right"
-                    [attr.data-tip]="item.label"
-                    [attr.aria-label]="item.label"
-                  >
-                    <app-icon [name]="item.icon" size="sm" />
-                  </a>
+                  <div class="tooltip tooltip-right flex justify-center" [attr.data-tip]="item.label">
+                    <a
+                      [routerLink]="item.path"
+                      routerLinkActive="retracted-active"
+                      (click)="closeDrawer()"
+                      class="retracted-item"
+                      [attr.title]="item.label"
+                      [attr.aria-label]="item.label"
+                    >
+                      <app-icon [name]="item.icon" size="md" />
+                    </a>
+                  </div>
                 </li>
               }
             </ul>
@@ -231,22 +241,24 @@
             <span>Apoiar via PIX</span>
           </button>
         } @else {
-          <button
-            type="button"
-            class="btn btn-xs btn-square btn-outline border-base-300 text-base-content/80 hover:bg-base-200 tooltip tooltip-right"
-            (click)="donationModalOpen.set(true)"
-            data-tip="Apoiar via PIX"
-            aria-label="Apoiar via PIX"
-          >
-            <app-icon name="heart" size="xs" class="text-error" />
-          </button>
-          <div
-            class="text-[10px] text-base-content/50 text-center font-mono cursor-default"
+          <div class="tooltip tooltip-right" data-tip="Apoiar via PIX">
+            <button
+              type="button"
+              class="btn btn-ghost btn-square size-10.5 rounded-xl hover:bg-base-200 text-error flex items-center justify-center transition-all cursor-pointer"
+              (click)="donationModalOpen.set(true)"
+              title="Apoiar via PIX"
+              aria-label="Apoiar via PIX"
+            >
+              <app-icon name="heart" size="md" />
+            </button>
+          </div>
+          <span
+            class="text-[10px] font-mono font-medium tracking-wider text-base-content/40 hover:text-base-content/75 transition-colors cursor-default select-none pt-0.5"
             [title]="'Criado por ' + author.name"
             [attr.aria-label]="'Criado por ' + author.name"
           >
             DS
-          </div>
+          </span>
         }
       </div>
     </aside>
