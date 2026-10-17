@@ -5,7 +5,7 @@ import { Backup } from '../../core/backup';
 import { LocalDb } from '../../core/local-db';
 import { ToastService } from '../../core/toast.service';
 import { Workspace } from '../../core/workspace';
-import { BRAND } from '../../brand';
+import { BRAND, DONATION } from '../../brand';
 import { parseTermList } from '../../domain/classify';
 import { AuditRules, ServiceHours } from '../../domain/models';
 import { Icon } from '../../shared/icon';
@@ -243,6 +243,34 @@ function rulesToText(r: AuditRules): { brand: string; unqualified: string; quali
           </div>
         </div>
       </section>
+
+      <!-- Apoie o projeto -->
+      <section class="card card-border bg-base-100">
+        <div class="card-body gap-4">
+          <div>
+            <h2 class="card-title text-base">
+              <app-icon name="heart" class="text-error" size="sm" /> Apoie o desenvolvimento do OpenAds
+            </h2>
+            <p class="text-sm text-base-content/70">
+              O OpenAds é 100% gratuito e open source (GPL-2.0). Nunca haverá obrigação ou cobrança de qualquer tipo.
+              Se este sistema te ajudou a identificar desperdícios e economizar dinheiro no Google Ads, qualquer contribuição ajuda a manter e melhorar o projeto ainda mais.
+            </p>
+          </div>
+
+          <div class="rounded-box border border-base-300 bg-base-200/50 p-4 max-w-md">
+            <div class="text-xs font-semibold uppercase tracking-wider text-base-content/60">Chave PIX ({{ donation.pixType }})</div>
+            <div class="mt-2 flex items-center justify-between gap-3">
+              <code class="font-mono text-base font-bold text-base-content selection:bg-primary/20">{{ donation.pixKey }}</code>
+              <button type="button" class="btn btn-sm btn-primary" (click)="copyPix()">
+                <app-icon name="copy" size="xs" /> Copiar chave
+              </button>
+            </div>
+            <p class="mt-2 text-xs text-base-content/60">
+              Muito obrigado pela colaboração voluntária! ❤️
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   `,
 })
@@ -252,7 +280,17 @@ export class SettingsPage {
   private readonly ws = inject(Workspace);
   protected readonly backup = inject(Backup);
   protected readonly brand = BRAND;
+  protected readonly donation = DONATION;
   protected readonly db = inject(LocalDb);
+
+  protected async copyPix(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.donation.pixKey);
+      this.toast.success('Chave PIX copiada! Muito obrigado pelo apoio.');
+    } catch {
+      this.toast.warning('Não foi possível copiar automaticamente.');
+    }
+  }
 
   // ── Regras de classificação
   private readonly rulesValue = linkedSignal(() => rulesToText(this.cfg.rules()));

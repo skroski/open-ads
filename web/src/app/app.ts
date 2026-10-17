@@ -1,14 +1,16 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { AUTHOR, BRAND } from './brand';
+import { AUTHOR, BRAND, DONATION } from './brand';
 import { AccountStore } from './core/account.store';
 import { LocalDb } from './core/local-db';
+import { ToastService } from './core/toast.service';
 import { Workspace } from './core/workspace';
 import { DATE_RANGE_OPTIONS, DateRangeOption, DateWindow } from './domain/dates';
 import { AccountModal } from './shared/account-modal';
 import { BatchNegativeModal } from './shared/batch-negative-modal';
 import { Icon } from './shared/icon';
 import { IconName } from './shared/icons';
+import { AppModal } from './shared/modal';
 import { ThemeToggle } from './shared/theme-toggle';
 import { Toasts } from './shared/toasts';
 
@@ -63,6 +65,7 @@ const NAV_GROUPS: NavGroup[] = [
     ThemeToggle,
     Toasts,
     AccountModal,
+    AppModal,
     BatchNegativeModal,
   ],
   templateUrl: './app.html',
@@ -70,13 +73,16 @@ const NAV_GROUPS: NavGroup[] = [
 export class App {
   protected readonly brand = BRAND;
   protected readonly author = AUTHOR;
+  protected readonly donation = DONATION;
   protected readonly account = inject(AccountStore);
   protected readonly ws = inject(Workspace);
   protected readonly db = inject(LocalDb);
+  private readonly toast = inject(ToastService);
 
   protected readonly groups = NAV_GROUPS;
   protected readonly ranges = DATE_RANGE_OPTIONS;
   protected readonly accountModalOpen = signal(false);
+  protected readonly donationModalOpen = signal(false);
 
   private readonly drawer = viewChild.required<ElementRef<HTMLInputElement>>('drawerToggle');
   private readonly periodMenu = viewChild<ElementRef<HTMLDetailsElement>>('periodMenu');
@@ -122,5 +128,14 @@ export class App {
       return txt.replace(/\./g, '').replace(/ de /g, ' ');
     };
     return w.from === w.to ? fmt(w.to, true) : `${fmt(w.from, false)} – ${fmt(w.to, true)}`;
+  }
+
+  protected async copyPix(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.donation.pixKey);
+      this.toast.success('Chave PIX copiada! Muito obrigado pelo apoio.');
+    } catch {
+      this.toast.warning('Não foi possível copiar automaticamente.');
+    }
   }
 }

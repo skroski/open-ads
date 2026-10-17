@@ -138,9 +138,20 @@
           </ul>
         }
       </nav>
-      <p class="flex-none border-t border-white/10 px-6 py-3 text-xs text-white/50">
-        Criado por {{ author.name }}
-      </p>
+      <div class="flex-none border-t border-white/10 px-6 py-3 flex flex-col gap-2">
+        <div class="flex items-center justify-between text-xs text-white/50">
+          <span>Criado por {{ author.name }}</span>
+        </div>
+        <button
+          type="button"
+          class="btn btn-xs btn-outline border-white/20 text-white/80 hover:bg-white/10 hover:text-white justify-start gap-1.5 w-full"
+          (click)="donationModalOpen.set(true)"
+          title="Colaborar voluntariamente com o projeto via PIX"
+        >
+          <app-icon name="heart" size="xs" class="text-error" />
+          <span>Apoiar via PIX</span>
+        </button>
+      </div>
     </aside>
   </div>
 </div>
@@ -150,3 +161,33 @@
 }
 <app-batch-negative-modal />
 <app-toasts />
+
+<app-modal [(open)]="donationModalOpen" size="sm">
+  <div class="flex items-center gap-2 text-lg font-semibold text-base-content">
+    <app-icon name="heart" class="text-error" /> Apoiar o OpenAds
+  </div>
+  <p class="mt-2 text-sm text-base-content/80">
+    Este sistema é e sempre será <strong>100% gratuito e de código aberto</strong>. Nunca haverá obrigação ou cobrança de qualquer tipo.
+  </p>
+  <p class="mt-2 text-sm text-base-content/70">
+    Se o painel te ajudou a economizar e cortar desperdícios no Google Ads, qualquer valor ajuda para melhorar ainda mais!
+  </p>
+
+  <div class="mt-4 rounded-box border border-base-300 bg-base-200/60 p-3">
+    <div class="text-xs font-semibold uppercase tracking-wider text-base-content/60">Chave PIX ({{ donation.pixType }})</div>
+    <div class="mt-1 flex items-center justify-between gap-2">
+      <code class="font-mono text-sm font-bold text-base-content selection:bg-primary/20">{{ donation.pixKey }}</code>
+      <button type="button" class="btn btn-sm btn-primary" (click)="copyPix()">
+        <app-icon name="copy" size="xs" /> Copiar chave
+      </button>
+    </div>
+  </div>
+
+  <p class="mt-3 text-xs text-base-content/60 text-center">
+    Muito obrigado pelo carinho e apoio ao projeto! ❤️
+  </p>
+
+  <div class="modal-action">
+    <button type="button" class="btn btn-ghost" (click)="donationModalOpen.set(false)">Fechar</button>
+  </div>
+</app-modal>

@@ -33,6 +33,7 @@ Painel de análise de Google Ads que separa **desperdício real** de **gasto que
 - [Personalizar (white label)](#personalizar)
 - [Segurança](#segurança)
 - [Perguntas frequentes](#perguntas-frequentes)
+- [Apoie o projeto](#apoie-o-projeto)
 - [Licença](#licença)
 
 ## Requisitos
@@ -169,6 +170,15 @@ Limitações conhecidas: valores em reais (BRL) e textos em português; o Planej
 **Posso colocar na internet?** Pode, na Vercel (veja o INSTALL.md), mas o painel não tem login. Ative a proteção de acesso da Vercel antes de compartilhar o endereço.
 
 **Posso usar com a minha marca?** Sim: troque nome, logo em texto e cores (veja [Personalizar](#personalizar)). Mantenha o crédito ao autor, como pede a licença.
+
+## Apoie o projeto
+
+O OpenAds é e sempre será **100% gratuito e de código aberto**. Não há e nunca haverá qualquer obrigação de pagamento: é Open mesmo.
+
+Se este painel te ajudou a identificar desperdícios e economizar dinheiro com suas campanhas no Google Ads, você pode colaborar voluntariamente com qualquer valor para apoiar a evolução contínua da ferramenta:
+
+- **Chave PIX (Telefone):** `41999865410`
+- **Mensagem:** *Qualquer valor ajuda para melhorar ainda mais. Muito obrigado pelo apoio!*
 
 ## Licença
 

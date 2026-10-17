@@ -40,3 +40,12 @@ export const BRAND: Brand = {
 export const AUTHOR = {
   name: 'Daniel Skroski',
 };
+
+/** Apoio e doações voluntárias ao projeto OpenAds. */
+export const DONATION = {
+  pixKey: '41999865410',
+  pixType: 'Telefone',
+  message:
+    'Qualquer valor, se este sistema te ajudou a economizar, ajuda para melhorar ainda mais. Nunca vai ser obrigação: o projeto é e sempre será 100% open source e gratuito!',
+};
+
