@@ -69,7 +69,7 @@ const INTENTS: SearchIntent[] = ['INFORMATIONAL', 'COMMERCIAL', 'TRANSACTIONAL',
     Sparkline,
   ],
   template: `
-    <app-page-header
+    <app-page-header data-open-help="conteudo-introducao"
       group="Inteligência"
       title="Conteúdo"
       subtitle="Histórico do que foi publicado e atualizado, e o que vale produzir a seguir com base em buscas reais, dúvidas do atendimento e desempenho das páginas."
@@ -87,7 +87,7 @@ const INTENTS: SearchIntent[] = ['INFORMATIONAL', 'COMMERCIAL', 'TRANSACTIONAL',
         </div>
       }
 
-      <div class="stats">
+      <div class="stats" data-open-help="conteudo-indicadores">
         <app-kpi label="Temas identificados" [value]="opportunities().length + ''" tip="Assuntos com demanda real (buscas pagas, orgânicas ou dúvidas do atendimento) que pedem conteúdo." note="com evidência neste período" />
         <app-kpi label="Temas sem página" [value]="contentKpis().publish + ''" tip="Assuntos procurados que não têm página que os responda." note="pedem conteúdo novo" />
         <app-kpi label="Cliques pagos nesses temas" [value]="contentKpis().clicks + ''" tip="Cliques do Google Ads em buscas de temas sem página: você pagou para levar essas pessoas a páginas que não respondem a pergunta." note="no período" />
@@ -118,7 +118,7 @@ const INTENTS: SearchIntent[] = ['INFORMATIONAL', 'COMMERCIAL', 'TRANSACTIONAL',
       </div>
 
       <!-- Oportunidades -->
-      <section class="card card-border bg-base-100">
+      <section class="card card-border bg-base-100" data-open-help="conteudo-oportunidades">
         <div class="card-body gap-4">
           <div>
             <h2 class="card-title text-base"><app-icon name="light-bulb" size="sm" /> O que publicar, melhorar e distribuir</h2>
@@ -165,7 +165,7 @@ const INTENTS: SearchIntent[] = ['INFORMATIONAL', 'COMMERCIAL', 'TRANSACTIONAL',
       </section>
 
       <!-- Dúvidas do atendimento -->
-      <section class="card card-border bg-base-100">
+      <section class="card card-border bg-base-100" data-open-help="conteudo-duvidas">
         <div class="card-body gap-4">
           <div>
             <h2 class="card-title text-base"><app-icon name="chat" size="sm" /> Dúvidas do atendimento</h2>

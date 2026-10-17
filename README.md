@@ -105,11 +105,11 @@ O guia completo, com o caminho de cada clique no Google e uma tabela de erros, e
 
 ## Ajuda guiada e narração
 
-O botão **Ajuda** do cabeçalho apresenta uma jornada curta de primeira análise narrada exclusivamente pelos MP3 gerados no Fish Audio. Se um arquivo estiver ausente ou não puder tocar, a ajuda continua disponível visualmente e permanece silenciosa — ela nunca usa a voz local do navegador.
+O botão **Ajuda** do cabeçalho abre a jornada detalhada do módulo atual: Visão geral, Funil, Desperdícios, Intenção e páginas, Conteúdo, Plano de ação, Histórico, Termos, Negativas, Palavras-chave, Campanhas, Dispositivos ou Configurações. Cada jornada tem quatro etapas com texto completo e é narrada exclusivamente pelos MP3 gerados no Fish Audio. Se um arquivo estiver ausente ou não puder tocar, a ajuda continua disponível visualmente e permanece silenciosa — ela nunca usa a voz local do navegador.
 
-Para gerar a narração fixa no Fish Audio, mantenha as configurações de voz somente no `server/.env` local e rode `npm run help:audio`. O comando cria os arquivos em `web/public/open-help/v<versão>/`; revise-os antes de publicar. A chave não é enviada ao navegador, não entra no build e não é necessária em produção para tocar os arquivos gerados.
+Para gerar a narração fixa no Fish Audio, mantenha as configurações de voz somente no `server/.env` local e rode `npm run help:audio`. O comando cria todos os arquivos em `web/public/open-help/v<versão>/`; revise-os antes de publicar. A chave não é enviada ao navegador, não entra no build e não é necessária em produção para tocar os arquivos gerados.
 
-Para alterar a jornada, edite [onboarding-journey.json](web/src/app/help/onboarding-journey.json), aumente a versão e gere os áudios novamente. Para regenerar só uma etapa, use `npm run help:audio -- --step=conta --force`; para todas, `npm run help:audio -- --force`.
+Para alterar uma jornada, edite [onboarding-journey.json](web/src/app/help/onboarding-journey.json), aumente a versão das jornadas alteradas e gere os áudios novamente. Para regenerar só uma etapa, use `npm run help:audio -- --step=funil-metas --force`; para todas, `npm run help:audio -- --force`.
 
 ## Contas de clientes e MCC
 

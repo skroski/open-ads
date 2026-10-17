@@ -28,7 +28,7 @@ const PAGE_SIZE = 100;
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CurrencyPipe, DecimalPipe, PercentPipe, AppModal, DataState, FormField, FormRoot, Icon, PageHeader, ThSort],
   template: `
-    <app-page-header
+    <app-page-header data-open-help="palavras-introducao"
       group="Operação no Google Ads"
       title="Palavras-chave"
       subtitle="Pause, limite o teto de CPC ou exclua palavras direto na conta. Cada mudança é registrada no histórico para medir o efeito depois."
@@ -42,7 +42,7 @@ const PAGE_SIZE = 100;
       (retry)="ws.keywordsBase.reload()"
     >
       <div class="flex flex-col gap-block">
-        <div class="stats stats-vertical w-full border border-base-300 bg-base-100 md:stats-horizontal">
+        <div class="stats stats-vertical w-full border border-base-300 bg-base-100 md:stats-horizontal" data-open-help="palavras-indicadores">
           <div class="stat">
             <div class="stat-title">Palavras de marca ativas</div>
             <div class="stat-value">{{ summary().brand.count }}</div>
@@ -69,7 +69,7 @@ const PAGE_SIZE = 100;
           </div>
         </div>
 
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="palavras-pagina">
           <div class="card-body gap-4">
             <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
              <div>
@@ -336,7 +336,7 @@ const PAGE_SIZE = 100;
           </div>
         </section>
 
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="palavras-tabela">
           <div class="card-body gap-4">
             <div class="flex flex-wrap gap-2">
               <input

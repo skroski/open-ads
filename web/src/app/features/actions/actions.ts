@@ -65,7 +65,7 @@ type Tab = RecommendationStatus;
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CurrencyPipe, AppModal, BarList, ConfidenceBadge, DataState, Diagnosis, EvidenceList, Icon, Kpi, PageHeader],
   template: `
-    <app-page-header
+    <app-page-header data-open-help="acoes-introducao"
       group="Inteligência"
       title="Plano de ação"
       subtitle="O que fazer, por quê, com que evidência e como saber se funcionou. Tudo o que o painel concluiu, ordenado por impacto e confiança."
@@ -79,7 +79,7 @@ type Tab = RecommendationStatus;
       (retry)="ws.reloadAll()"
     >
       <div class="flex flex-col gap-block">
-        <div class="stats">
+        <div class="stats" data-open-help="acoes-indicadores">
           <app-kpi label="Ações pendentes" [value]="count('OPEN') + ''" tip="Recomendações abertas, ainda não aceitas nem descartadas." note="aguardando decisão" />
           <app-kpi
             label="Impacto estimado"
@@ -93,7 +93,7 @@ type Tab = RecommendationStatus;
 
         <app-diagnosis [kind]="diagnosis().tone" [title]="diagnosis().title">{{ diagnosis().text }}</app-diagnosis>
 
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="acoes-impacto">
           <div class="card-body gap-4">
             <div>
               <h2 class="text-base font-semibold">Impacto pendente por frente</h2>
@@ -103,7 +103,7 @@ type Tab = RecommendationStatus;
           </div>
         </section>
 
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3" data-open-help="acoes-filtros">
           <div role="tablist" class="tabs tabs-box">
             @for (t of tabs; track t.value) {
               <button

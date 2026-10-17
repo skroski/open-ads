@@ -73,10 +73,16 @@ export class OpenHelpEngine {
   private cleanup = () => undefined;
 
   constructor(
-    private readonly journey: OpenHelpJourney,
+    private journey: OpenHelpJourney,
     private readonly voice: VoiceProvider,
     private readonly onError: (message: string) => void,
   ) {}
+
+  setJourney(journey: OpenHelpJourney): void {
+    this.stop(false);
+    this.journey = journey;
+    this.index = 0;
+  }
 
   async start(origin: HTMLElement): Promise<void> {
     if (typeof document === 'undefined') return;
@@ -150,16 +156,19 @@ export class OpenHelpEngine {
       this.onError('A ajuda não encontrou esta parte da tela. Atualize a página e tente novamente.');
       return;
     }
+    target.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+    await nextFrame();
+    if (!this.running) return;
     this.render(target, step);
     if (!this.muted) void this.speak(step);
   }
 
   private async findTarget(selector: string, waitForTarget: boolean): Promise<HTMLElement | undefined> {
-    const immediate = visibleTarget(selector);
+    const immediate = availableTarget(selector);
     if (immediate || !waitForTarget) return immediate;
     return new Promise((resolve) => {
       const observer = new MutationObserver(() => {
-        const found = visibleTarget(selector);
+        const found = availableTarget(selector);
         if (found) finish(found);
       });
       const timeout = window.setTimeout(() => finish(undefined), 4_000);
@@ -300,11 +309,13 @@ function actionButton(label: string, className: string, action: () => void): HTM
   return button;
 }
 
-function visibleTarget(selector: string): HTMLElement | undefined {
+function availableTarget(selector: string): HTMLElement | undefined {
   const target = document.querySelector<HTMLElement>(selector);
   if (!target) return undefined;
   const style = window.getComputedStyle(target);
-  const rect = target.getBoundingClientRect();
-  const isInViewport = rect.bottom > 0 && rect.right > 0 && rect.top < window.innerHeight && rect.left < window.innerWidth;
-  return style.display !== 'none' && style.visibility !== 'hidden' && target.getClientRects().length && isInViewport ? target : undefined;
+  return style.display !== 'none' && style.visibility !== 'hidden' && target.getClientRects().length ? target : undefined;
+}
+
+function nextFrame(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
 }

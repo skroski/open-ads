@@ -79,7 +79,7 @@ interface Group {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Diagnosis, EChart, Kpi, DecimalPipe, PercentPipe, AppModal, ConfidenceBadge, DataState, FormField, FormRoot, Icon, PageHeader],
   template: `
-    <app-page-header
+    <app-page-header data-open-help="historico-introducao"
       group="Inteligência"
       lead="Histórico"
       title="e aprendizado"
@@ -88,7 +88,7 @@ interface Group {
     />
 
     <div class="flex flex-col gap-block">
-      <div class="stats">
+      <div class="stats" data-open-help="historico-indicadores">
         <app-kpi label="Mudanças registradas" [value]="changes().length + ''" tip="Inclui as feitas pelo painel, as lidas do Google Ads (últimos 30 dias) e as registradas à mão." note="inclui o que veio do Google Ads" />
         <app-kpi label="Melhoraram" [value]="summary().improved + ''" tip="Mudanças em que a taxa de conversão melhorou de forma estatisticamente relevante, comparando 14 dias antes e depois." [note]="summary().evaluated + ' com dados para avaliar'" />
         <app-kpi label="Regressões" [value]="summary().regressions + ''" tip="Pioraram depois da mudança, de forma estatisticamente relevante." note="pioraram depois da mudança" />
@@ -98,7 +98,7 @@ interface Group {
       <app-diagnosis [kind]="diagnosis().tone" [title]="diagnosis().title">{{ diagnosis().text }}</app-diagnosis>
 
       @if (effectChart(); as chart) {
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="historico-efeitos">
           <div class="card-body gap-4">
             <h2 class="text-base font-semibold">Efeito de cada decisão no custo por conversão</h2>
             <p class="text-sm text-base-content/70">
@@ -128,7 +128,7 @@ interface Group {
         </div>
       }
 
-      <div role="tablist" class="tabs tabs-border">
+      <div role="tablist" class="tabs tabs-border" data-open-help="historico-registros">
         <button type="button" role="tab" class="tab" [class.tab-active]="tab() === 'changes'" [attr.aria-selected]="tab() === 'changes'" (click)="tab.set('changes')">
           Mudanças
         </button>

@@ -49,7 +49,7 @@ const MAPPING_STAGES: ReadonlyArray<{ value: FunnelStage | 'IGNORE'; label: stri
     PageHeader,
   ],
   template: `
-    <app-page-header
+    <app-page-header data-open-help="funil-introducao"
       group="Inteligência"
       title="Qualidade do funil"
       subtitle="Separe clique, interação, contato, lead qualificado, proposta e venda. Só o que vem do CRM vira receita e ROI."
@@ -64,7 +64,7 @@ const MAPPING_STAGES: ReadonlyArray<{ value: FunnelStage | 'IGNORE'; label: stri
       >
         @if (f(); as funnel) {
           <!-- Funil -->
-          <section class="card card-border bg-base-100">
+          <section class="card card-border bg-base-100" data-open-help="funil-etapas">
             <div class="card-body gap-6">
               <div>
                 <h2 class="card-title text-base">Funil do período</h2>
@@ -204,7 +204,7 @@ const MAPPING_STAGES: ReadonlyArray<{ value: FunnelStage | 'IGNORE'; label: stri
           </section>
 
           <!-- Meta do negócio -->
-          <section class="card card-border bg-base-100">
+          <section class="card card-border bg-base-100" data-open-help="funil-metas">
             <div class="card-body gap-4">
               <div>
                 <h2 class="card-title text-base"><app-icon name="target" size="sm" /> O que é um bom resultado para o seu negócio</h2>
@@ -285,7 +285,7 @@ const MAPPING_STAGES: ReadonlyArray<{ value: FunnelStage | 'IGNORE'; label: stri
           </section>
 
           <!-- Mapeamento das conversões -->
-          <section class="card card-border bg-base-100">
+          <section class="card card-border bg-base-100" data-open-help="funil-conversoes">
             <div class="card-body gap-4">
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>

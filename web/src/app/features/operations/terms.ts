@@ -20,7 +20,7 @@ const PAGE_SIZE = 150;
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CurrencyPipe, DecimalPipe, PercentPipe, DataState, Icon, PageHeader, ThSort],
   template: `
-    <app-page-header
+    <app-page-header data-open-help="termos-introducao"
       group="Operação no Google Ads"
       title="Termos de pesquisa"
       subtitle="O que as pessoas realmente digitaram antes de clicar no seu anúncio. Selecione vários termos para negativar de uma vez."
@@ -53,7 +53,7 @@ const PAGE_SIZE = 150;
           </div>
         }
 
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="termos-filtros">
           <div class="card-body gap-4">
             <div class="flex items-center justify-between text-sm">
               <h2 class="font-semibold">Filtros</h2>
@@ -115,11 +115,11 @@ const PAGE_SIZE = 150;
           </div>
         }
 
-        <div class="overflow-x-auto rounded-box border border-base-300 bg-base-100 shadow-xs">
+        <div class="overflow-x-auto rounded-box border border-base-300 bg-base-100 shadow-xs" data-open-help="termos-tabela">
           <table class="table table-sm table-zebra-subtle table-bordered-subtle">
             <thead>
               <tr class="bg-base-200/50 text-xs">
-                <th class="w-10 text-center px-2">
+                <th class="w-10 text-center px-2" data-open-help="termos-selecao">
                   <input
                     type="checkbox"
                     class="checkbox checkbox-xs"

@@ -79,7 +79,7 @@ function forTotals(dimension: WasteDimension, rows: readonly WasteRow[]): WasteR
     VerdictBadge,
   ],
   template: `
-    <app-page-header
+    <app-page-header data-open-help="desperdicios-introducao"
       group="Inteligência"
       title="Desperdícios"
       subtitle="Separe o que é desperdício real do que rende. Cada conclusão mostra a evidência; só é desperdício quando o acaso não explica e outro sinal concorda."
@@ -104,7 +104,7 @@ function forTotals(dimension: WasteDimension, rows: readonly WasteRow[]): WasteR
         (retry)="ws.reloadAll()"
       >
         <!-- Recorte e categoria -->
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="desperdicios-recorte">
           <div class="card-body gap-4">
             <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <label class="flex flex-wrap items-center gap-2 text-sm">
@@ -134,7 +134,7 @@ function forTotals(dimension: WasteDimension, rows: readonly WasteRow[]): WasteR
         </section>
 
         <!-- Indicadores do recorte escolhido -->
-        <div class="stats">
+        <div class="stats" data-open-help="desperdicios-indicadores">
           <app-kpi
             label="Investimento analisado"
             [value]="money(totalCost())"
@@ -182,7 +182,7 @@ function forTotals(dimension: WasteDimension, rows: readonly WasteRow[]): WasteR
         </div>
 
         <!-- Desperdício real × o que rende -->
-        <div class="grid gap-block lg:grid-cols-2">
+        <div class="grid gap-block lg:grid-cols-2" data-open-help="desperdicios-prioridades">
           <section class="card card-border bg-base-100">
             <div class="card-body gap-4">
               <div>

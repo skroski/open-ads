@@ -30,7 +30,7 @@ interface Row extends CampaignRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CurrencyPipe, DecimalPipe, PercentPipe, DataState, EChart, Kpi, PageHeader, ThSort],
   template: `
-    <app-page-header
+    <app-page-header data-open-help="campanhas-introducao"
       group="Operação no Google Ads"
       title="Campanhas"
       subtitle="Desempenho de cada campanha no período, comparado com o período imediatamente anterior."
@@ -43,7 +43,7 @@ interface Row extends CampaignRow {
       [hasData]="!!ws.campaigns.value()"
       (retry)="ws.campaigns.reload()"
     >
-      <div class="stats">
+      <div class="stats" data-open-help="campanhas-indicadores">
         <app-kpi label="Investimento" [value]="money(totals().cost)" [delta]="change(totals().cost, totals().prevCost)" goodWhen="neutral" tip="Custo de todas as campanhas no período." />
         <app-kpi label="Cliques" [value]="totals().clicks.toLocaleString('pt-BR')" [delta]="change(totals().clicks, totals().prevClicks)" tip="Cliques pagos no período." />
         <app-kpi label="Conversões" [value]="totals().conversions.toLocaleString('pt-BR', { maximumFractionDigits: 1 })" [delta]="change(totals().conversions, totals().prevConversions)" tip="Conversões contadas pelo Google Ads (o que cada uma significa depende da configuração do funil)." />
@@ -58,7 +58,7 @@ interface Row extends CampaignRow {
       </div>
 
       @if (chart(); as option) {
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="campanhas-grafico">
           <div class="card-body gap-4">
             <h2 class="text-base font-semibold">Custo por campanha: período atual × anterior</h2>
             <p class="text-sm text-base-content/70">O anterior tem a mesma duração e termina no dia antes do início do atual.</p>
@@ -67,7 +67,7 @@ interface Row extends CampaignRow {
         </section>
       }
 
-      <div class="flex flex-col gap-3">
+      <div class="flex flex-col gap-3" data-open-help="campanhas-tabela">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex flex-wrap items-center gap-2">
             <input

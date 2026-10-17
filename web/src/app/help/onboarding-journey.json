@@ -1,40 +1,122 @@
 {
-  "id": "primeira-analise",
-  "version": 1,
   "language": "pt-BR",
-  "steps": [
+  "journeys": [
     {
-      "id": "conta",
-      "title": "Escolha a conta certa",
-      "body": "Comece selecionando a conta do Google Ads que será analisada. Cada conta mantém suas próprias metas, regras e histórico neste navegador.",
-      "narration": "Primeiro, escolha a conta do Google Ads que você quer analisar.",
-      "target": "[data-open-help=conta]",
-      "placement": "bottom"
+      "id": "visao-geral", "route": "visao-geral", "version": 2,
+      "steps": [
+        { "id": "visao-geral-introducao", "title": "Comece pelo diagnóstico", "body": "A Visão geral reúne o caminho do investimento até o resultado. Use-a para entender o período antes de decidir onde investigar em profundidade.", "narration": "Esta é a leitura inicial da conta. Comece pelo diagnóstico e só depois aprofunde o que pede atenção.", "target": "[data-open-help=visao-geral-introducao]", "placement": "bottom" },
+        { "id": "visao-geral-resultados", "title": "Leia os resultados na ordem certa", "body": "Compare investimento, cliques, contatos, qualificados e vendas. Quando um valor estiver indisponível, o painel mostra a limitação em vez de estimar dados que não possui.", "narration": "Leia investimento, volume e resultado em sequência. Um traço indica ausência de dado, não zero.", "target": "[data-open-help=visao-geral-resultados]", "placement": "bottom" },
+        { "id": "visao-geral-prioridades", "title": "Transforme sinais em prioridades", "body": "Aqui aparecem os achados com maior impacto e confiança. Abra o Plano de ação para ver a evidência, a sugestão e como acompanhar cada decisão.", "narration": "Use estas prioridades para decidir o que investigar primeiro. A evidência completa fica no Plano de ação.", "target": "[data-open-help=visao-geral-prioridades]", "placement": "top" },
+        { "id": "visao-geral-saude", "title": "Confirme a qualidade da medição", "body": "Antes de pausar ou aumentar investimento, confira os avisos de saúde dos dados. Falhas de conversão, CRM ou período ainda imaturo podem tornar qualquer conclusão prematura.", "narration": "Antes de agir, confira a saúde da medição. Dados incompletos pedem investigação, não corte automático.", "target": "[data-open-help=visao-geral-saude]", "placement": "top" }
+      ]
     },
     {
-      "id": "periodo",
-      "title": "Defina o período",
-      "body": "Escolha a janela de análise. O painel sempre compara com o período anterior de mesma duração para tornar as mudanças visíveis.",
-      "narration": "Agora defina o período. A comparação usa a mesma duração anterior.",
-      "target": "[data-open-help=periodo]",
-      "placement": "bottom"
+      "id": "funil", "route": "funil", "version": 2,
+      "steps": [
+        { "id": "funil-introducao", "title": "Conecte clique a receita", "body": "Esta tela separa cada estágio da jornada: clique, contato, qualificação, proposta e venda. Receita e ROI só são calculados quando o CRM fornece os dados necessários.", "narration": "Aqui você conecta o clique ao resultado comercial. Receita e ROI dependem dos dados que chegam do CRM.", "target": "[data-open-help=funil-introducao]", "placement": "bottom" },
+        { "id": "funil-etapas", "title": "Encontre onde o funil perde força", "body": "Compare quantidade, fonte, custo por estágio e passagem entre etapas. Uma queda mostra onde investigar campanha, página, formulário, atendimento ou qualificação.", "narration": "Compare volume, custo e passagem entre etapas. A maior perda aponta onde investigar primeiro.", "target": "[data-open-help=funil-etapas]", "placement": "bottom" },
+        { "id": "funil-metas", "title": "Defina o que é um bom resultado", "body": "Cadastre o estágio que realmente importa, o custo máximo, CAC, ROI, margem e ciclo de venda. Essas metas tornam os alertas e vereditos adequados à realidade do negócio.", "narration": "Configure metas reais do negócio. Elas orientam custos, ROI, alertas e conclusões do painel.", "target": "[data-open-help=funil-metas]", "placement": "top" },
+        { "id": "funil-conversoes", "title": "Valide as conversões do Ads", "body": "Confira o que cada conversão do Google Ads significa e relacione-a ao estágio correto. Uma conversão mal classificada pode inflar volume sem representar contato, venda ou receita.", "narration": "Revise o significado das conversões do Google Ads. Nem toda conversão representa um resultado comercial.", "target": "[data-open-help=funil-conversoes]", "placement": "top" }
+      ]
     },
     {
-      "id": "navegacao",
-      "title": "Siga pela visão geral",
-      "body": "A Visão geral reúne o diagnóstico. Depois, navegue por Funil, Desperdícios e Plano de ação para investigar e priorizar o que fazer.",
-      "narration": "A Visão geral mostra o diagnóstico. Use o menu para investigar e transformar achados em ações.",
-      "target": "[data-open-help=navegacao]",
-      "placement": "right",
-      "optional": true
+      "id": "desperdicios", "route": "desperdicios", "version": 2,
+      "steps": [
+        { "id": "desperdicios-introducao", "title": "Separe perda de oportunidade", "body": "Desperdício só é apontado quando há evidência suficiente. Esta tela distingue gasto sem resultado, custo acima da meta, falta de dados e itens que estão dentro da meta.", "narration": "Esta tela separa desperdício comprovado de itens caros, promissores ou ainda sem dados suficientes.", "target": "[data-open-help=desperdicios-introducao]", "placement": "bottom" },
+        { "id": "desperdicios-recorte", "title": "Escolha o recorte da investigação", "body": "Alterne entre campanhas, termos, horários, regiões e outros recortes. Os mesmos cliques podem aparecer em leituras diferentes, por isso não some os totais entre recortes.", "narration": "Escolha o recorte que quer investigar. Cada recorte explica o gasto por uma perspectiva diferente.", "target": "[data-open-help=desperdicios-recorte]", "placement": "bottom" },
+        { "id": "desperdicios-indicadores", "title": "Leia os vereditos com contexto", "body": "Os indicadores mostram quanto foi analisado e como o custo foi classificado. Itens caros ou sem conclusão pedem revisão; eles não devem ser tratados como corte automático.", "narration": "Use estes indicadores para separar desperdício confirmado de casos que ainda precisam de revisão.", "target": "[data-open-help=desperdicios-indicadores]", "placement": "bottom" },
+        { "id": "desperdicios-prioridades", "title": "Priorize pelo maior impacto", "body": "As listas ordenam as maiores fontes de desperdício e o que rende dentro da meta. Abra a evidência antes de executar uma mudança e acompanhe o efeito depois no Histórico.", "narration": "Comece pelos itens de maior impacto, confira a evidência e acompanhe o efeito de cada mudança.", "target": "[data-open-help=desperdicios-prioridades]", "placement": "top" }
+      ]
     },
     {
-      "id": "tema",
-      "title": "Ajuste a leitura",
-      "body": "Alterne entre tema claro e escuro sempre que preferir. Seus dados e análises não mudam com essa escolha.",
-      "narration": "Você também pode alternar entre os temas claro e escuro para deixar a leitura mais confortável.",
-      "target": "[data-open-help=tema]",
-      "placement": "bottom"
+      "id": "intencao", "route": "intencao", "version": 2,
+      "steps": [
+        { "id": "intencao-introducao", "title": "Alinhe busca, anúncio e página", "body": "Esta tela verifica se a intenção da busca encontra uma página preparada para respondê-la. Trocas de destino viram hipóteses mensuráveis, não mudanças baseadas em suposição.", "narration": "Aqui você alinha o que a pessoa busca, o anúncio e a página de destino antes de mudar URLs.", "target": "[data-open-help=intencao-introducao]", "placement": "bottom" },
+        { "id": "intencao-paginas", "title": "Audite as páginas que recebem tráfego", "body": "Veja custo, cliques, conversões e a leitura de cada página. A auditoria ajuda a encontrar formulário, contato e etiquetas de medição antes de concluir que o problema é o anúncio.", "narration": "Audite as páginas que recebem tráfego pago. Verifique contato, formulário e medição antes de mudar a campanha.", "target": "[data-open-help=intencao-paginas]", "placement": "bottom" },
+        { "id": "intencao-assuntos", "title": "Relacione assunto à página ideal", "body": "As buscas são agrupadas por assunto para revelar quando uma intenção comercial chega a uma página pouco aderente. Use a sugestão como ponto de partida para avaliar a experiência real.", "narration": "Compare o assunto buscado com a página ideal. Falta de aderência costuma encarecer o clique.", "target": "[data-open-help=intencao-assuntos]", "placement": "top" },
+        { "id": "intencao-hipoteses", "title": "Teste uma mudança de cada vez", "body": "Registre a hipótese, o motivo e a métrica que deve melhorar. Depois marque o resultado para o painel aprender com a decisão em vez de misturar alterações sem comparação.", "narration": "Registre uma hipótese e a métrica esperada. Testar uma mudança por vez torna o aprendizado confiável.", "target": "[data-open-help=intencao-hipoteses]", "placement": "top" }
+      ]
+    },
+    {
+      "id": "conteudo", "route": "conteudo", "version": 2,
+      "steps": [
+        { "id": "conteudo-introducao", "title": "Produza com base em demanda real", "body": "Conteúdo é priorizado a partir de buscas, dúvidas e desempenho de páginas. O painel diferencia oportunidade de publicação, atualização e distribuição, sempre mostrando sua evidência.", "narration": "Esta tela transforma demanda real em prioridades de conteúdo, com evidência antes da produção.", "target": "[data-open-help=conteudo-introducao]", "placement": "bottom" },
+        { "id": "conteudo-indicadores", "title": "Meça a lacuna de conteúdo", "body": "Os indicadores mostram temas identificados, assuntos sem página e o investimento pago em buscas ainda sem boa resposta. Use-os para entender a dimensão da oportunidade, não como previsão garantida.", "narration": "Veja onde existe demanda sem resposta e quanto do investimento pago está exposto a essa lacuna.", "target": "[data-open-help=conteudo-indicadores]", "placement": "bottom" },
+        { "id": "conteudo-oportunidades", "title": "Escolha a próxima ação editorial", "body": "Cada oportunidade indica se vale publicar, atualizar ou distribuir, além da intenção, evidência e confiança. Registre uma ideia para manter o planejamento e o histórico da decisão.", "narration": "Priorize por evidência e intenção. Registre a ideia para acompanhar depois o que foi produzido.", "target": "[data-open-help=conteudo-oportunidades]", "placement": "top" },
+        { "id": "conteudo-duvidas", "title": "Inclua a voz do atendimento", "body": "Dúvidas recorrentes podem revelar conteúdo que a busca não mostra. Cadastre perguntas reais do atendimento e use-as junto às buscas para melhorar páginas, materiais e respostas.", "narration": "Inclua dúvidas reais do atendimento. Elas mostram conteúdo útil que a pesquisa de palavras pode não revelar.", "target": "[data-open-help=conteudo-duvidas]", "placement": "top" }
+      ]
+    },
+    {
+      "id": "acoes", "route": "acoes", "version": 2,
+      "steps": [
+        { "id": "acoes-introducao", "title": "Decida com evidência", "body": "O Plano de ação reúne recomendações do painel por impacto e confiança. Cada uma explica o problema, a ação sugerida, a evidência disponível e como saber se houve efeito.", "narration": "Aqui as conclusões viram decisões. Cada recomendação traz impacto, evidência e uma forma de acompanhar o efeito.", "target": "[data-open-help=acoes-introducao]", "placement": "bottom" },
+        { "id": "acoes-indicadores", "title": "Entenda o volume de trabalho", "body": "Veja ações pendentes, estimativa de impacto, itens em andamento e concluídos. O impacto é uma estimativa baseada no período, não uma promessa de economia ou receita.", "narration": "Use os indicadores para dimensionar a fila. Impacto estimado é uma projeção, não garantia.", "target": "[data-open-help=acoes-indicadores]", "placement": "bottom" },
+        { "id": "acoes-impacto", "title": "Compare as frentes de impacto", "body": "O gráfico organiza o impacto pendente por frente, como medição, campanha, desperdício ou conteúdo. Comece pelo maior impacto somente depois de conferir a confiança e a evidência.", "narration": "Compare as frentes de impacto, mas confirme evidência e confiança antes de priorizar uma ação.", "target": "[data-open-help=acoes-impacto]", "placement": "bottom" },
+        { "id": "acoes-filtros", "title": "Avance uma decisão por vez", "body": "Filtre a fila por status e categoria, abra os detalhes e aceite, descarte ou marque como feita. O painel guarda a decisão para que o Histórico possa avaliar o resultado depois.", "narration": "Filtre a fila, leia os detalhes e registre a decisão. O histórico vai medir o que aconteceu depois.", "target": "[data-open-help=acoes-filtros]", "placement": "top" }
+      ]
+    },
+    {
+      "id": "historico", "route": "historico", "version": 2,
+      "steps": [
+        { "id": "historico-introducao", "title": "Transforme mudanças em aprendizado", "body": "O Histórico registra alterações feitas pelo painel, pelo Google Ads e manualmente. Ele compara o antes e o depois para apontar melhora, regressão ou ausência de efeito claro.", "narration": "Esta tela conecta cada mudança ao que aconteceu depois, para transformar operação em aprendizado.", "target": "[data-open-help=historico-introducao]", "placement": "bottom" },
+        { "id": "historico-indicadores", "title": "Leia o resumo com cautela", "body": "Mudanças registradas, melhorias, regressões e aprendizados dependem de dados suficientes para avaliação. Uma associação não elimina outros fatores que também podem ter mudado no período.", "narration": "O resumo mostra o histórico disponível. Resultados precisam de dados suficientes e podem ter outros fatores envolvidos.", "target": "[data-open-help=historico-indicadores]", "placement": "bottom" },
+        { "id": "historico-efeitos", "title": "Compare antes e depois", "body": "O gráfico compara custo por conversão antes e depois de cada decisão. Valores negativos representam redução de custo; alertas de regressão pedem revisão antes de repetir uma ação.", "narration": "Compare o antes e o depois. Queda no custo por conversão é boa, mas confira possíveis fatores de confusão.", "target": "[data-open-help=historico-efeitos]", "placement": "bottom" },
+        { "id": "historico-registros", "title": "Registre também o que foi feito fora", "body": "Use Mudanças para importar ou registrar decisões e Aprendizados para documentar hipóteses confirmadas, refutadas ou inconclusivas. Isso preserva contexto para a próxima análise.", "narration": "Registre mudanças feitas dentro ou fora do painel. O contexto salvo evita repetir erros e ajuda na próxima análise.", "target": "[data-open-help=historico-registros]", "placement": "top" }
+      ]
+    },
+    {
+      "id": "termos", "route": "termos", "version": 2,
+      "steps": [
+        { "id": "termos-introducao", "title": "Veja o que foi realmente buscado", "body": "Termos de pesquisa mostram as consultas que acionaram anúncios. A cobertura informa qual parcela do investimento está visível; termos de baixo volume podem não ser fornecidos pelo Google.", "narration": "Aqui você vê as buscas reais que acionaram anúncios. A cobertura mostra o que o Google disponibilizou para análise.", "target": "[data-open-help=termos-introducao]", "placement": "bottom" },
+        { "id": "termos-filtros", "title": "Encontre o recorte que importa", "body": "Filtre por texto, categoria, campanha, conversões e ordenação. Comece por maior custo sem conversão ou por termos não qualificados, mas leia a intenção antes de negativar.", "narration": "Use filtros para encontrar termos de maior custo, sem conversão ou fora da intenção antes de decidir.", "target": "[data-open-help=termos-filtros]", "placement": "bottom" },
+        { "id": "termos-tabela", "title": "Leia intenção e desempenho juntos", "body": "A tabela combina classificação, campanha, custo, conversões e custo por conversão. Um termo caro sem conversão é sinal de investigação, não uma prova isolada para bloqueio.", "narration": "Leia classificação e desempenho juntos. Um termo caro sem conversão pede contexto antes do bloqueio.", "target": "[data-open-help=termos-tabela]", "placement": "top" },
+        { "id": "termos-selecao", "title": "Negativar exige revisão", "body": "Selecione termos somente depois de revisar a busca, a campanha e a correspondência. A ação abre uma confirmação para evitar bloquear procura útil por engano.", "narration": "Selecione e negative só depois da revisão. Bloquear uma busca útil pode cortar demanda qualificada.", "target": "[data-open-help=termos-selecao]", "placement": "top" }
+      ]
+    },
+    {
+      "id": "negativas", "route": "negativas", "version": 2,
+      "steps": [
+        { "id": "negativas-introducao", "title": "Controle o que não deve acionar anúncios", "body": "Palavras negativas bloqueiam buscas indesejadas. Esta tela permite criar uma negativa com correspondência explícita e também encontrar bloqueios presentes em uma campanha, mas ausentes em outra.", "narration": "Aqui você controla as buscas que não devem acionar anúncios e verifica a cobertura dos bloqueios.", "target": "[data-open-help=negativas-introducao]", "placement": "bottom" },
+        { "id": "negativas-criar", "title": "Escolha a correspondência com cuidado", "body": "Informe o termo, a correspondência e a campanha. Exata bloqueia a busca idêntica, frase exige a expressão na mesma ordem e ampla bloqueia combinações das palavras.", "narration": "Escolha termo, correspondência e campanha com cuidado. Cada tipo de correspondência bloqueia buscas de forma diferente.", "target": "[data-open-help=negativas-criar]", "placement": "bottom" },
+        { "id": "negativas-cobertura", "title": "Encontre vazamentos entre campanhas", "body": "A cobertura compara negativas entre campanhas de Pesquisa e estima gasto onde uma busca já está bloqueada em outra. Algumas exceções são intencionais, por isso revise antes de aplicar.", "narration": "Verifique vazamentos entre campanhas. Uma negativa ausente pode ser erro, mas também pode ser uma separação intencional.", "target": "[data-open-help=negativas-cobertura]", "placement": "top" },
+        { "id": "negativas-lista", "title": "Revise o que já está bloqueado", "body": "A lista da conta permite pesquisar e conferir abrangência antes de remover ou replicar uma negativa. Mantenha bloqueios de marca e segmentações deliberadas sob revisão humana.", "narration": "Revise as negativas existentes antes de remover ou replicar. Nem todo bloqueio diferente entre campanhas é um problema.", "target": "[data-open-help=negativas-lista]", "placement": "top" }
+      ]
+    },
+    {
+      "id": "palavras", "route": "palavras", "version": 2,
+      "steps": [
+        { "id": "palavras-introducao", "title": "Gerencie palavras com contexto", "body": "A tela de palavras-chave reúne qualidade, aderência à página e desempenho. Pausar, limitar CPC ou excluir são ações na conta e devem partir de evidência, não apenas de uma métrica.", "narration": "Aqui você avalia palavras-chave com qualidade, página e desempenho antes de alterar a conta.", "target": "[data-open-help=palavras-introducao]", "placement": "bottom" },
+        { "id": "palavras-indicadores", "title": "Observe marca, risco e cobertura", "body": "Os indicadores destacam palavras de marca, risco de desperdício e proporção ativa. Eles ajudam a localizar grupos de investigação, mas não substituem a leitura da palavra e da campanha.", "narration": "Use os indicadores para localizar grupos de investigação. A decisão exige ler a palavra no contexto da campanha.", "target": "[data-open-help=palavras-indicadores]", "placement": "bottom" },
+        { "id": "palavras-pagina", "title": "Cheque a aderência da página", "body": "A comparação entre palavra-chave e página de destino ajuda a explicar clique caro e baixa qualidade. Leia as páginas quando houver auditoria disponível antes de alterar correspondências ou lances.", "narration": "Cheque se a página responde à palavra. Baixa aderência pode encarecer o clique e reduzir qualidade.", "target": "[data-open-help=palavras-pagina]", "placement": "top" },
+        { "id": "palavras-tabela", "title": "Aja somente após a revisão", "body": "A tabela principal oferece filtros, desempenho e ações por palavra. Mudanças são registradas no Histórico para que o efeito seja avaliado depois, em vez de depender de memória.", "narration": "Use a tabela para revisar e agir. Cada mudança fica no Histórico para avaliação posterior.", "target": "[data-open-help=palavras-tabela]", "placement": "top" }
+      ]
+    },
+    {
+      "id": "campanhas", "route": "campanhas", "version": 2,
+      "steps": [
+        { "id": "campanhas-introducao", "title": "Compare campanhas no mesmo contexto", "body": "A tela mostra desempenho por campanha no período e compara com a janela anterior de mesma duração. Essa comparação revela mudanças, mas não prova sozinha qual foi a causa.", "narration": "Aqui você compara campanhas no período atual e anterior. Mudanças são sinais para investigar, não provas isoladas.", "target": "[data-open-help=campanhas-introducao]", "placement": "bottom" },
+        { "id": "campanhas-indicadores", "title": "Leia volume e eficiência", "body": "Investimento, cliques, conversões e custo por conversão resumem a conta. Compare a direção de cada indicador antes de concluir que uma variação é positiva ou negativa.", "narration": "Leia investimento, volume, conversões e custo juntos. Um número isolado raramente conta a história toda.", "target": "[data-open-help=campanhas-indicadores]", "placement": "bottom" },
+        { "id": "campanhas-grafico", "title": "Visualize a mudança de investimento", "body": "O gráfico destaca campanhas cujo gasto variou entre períodos. Use-o para escolher onde investigar, depois confira o canal, status, conversões e contexto na tabela abaixo.", "narration": "Use o gráfico para localizar variações de investimento e confirme o contexto na tabela da campanha.", "target": "[data-open-help=campanhas-grafico]", "placement": "bottom" },
+        { "id": "campanhas-tabela", "title": "Filtre antes de comparar", "body": "Pesquise por nome e filtre por status ou canal para comparar grupos coerentes. A tabela mantém métricas e variação frente ao período anterior por campanha.", "narration": "Filtre por campanha, status ou canal para fazer comparações coerentes antes de decidir.", "target": "[data-open-help=campanhas-tabela]", "placement": "top" }
+      ]
+    },
+    {
+      "id": "dispositivos", "route": "dispositivos", "version": 2,
+      "steps": [
+        { "id": "dispositivos-introducao", "title": "Veja onde o orçamento aparece", "body": "Dispositivos e redes mostram como o investimento se distribui entre ambientes e aparelhos. Compare participação no custo e nas conversões antes de considerar um ajuste de segmentação.", "narration": "Esta tela mostra onde o orçamento aparece. Compare participação de custo e conversões antes de ajustar segmentação.", "target": "[data-open-help=dispositivos-introducao]", "placement": "bottom" },
+        { "id": "dispositivos-redes", "title": "Compare o retorno por rede", "body": "Na visão por rede, custo maior que a parcela de conversões pode indicar menor retorno relativo. Use o filtro e as métricas de volume para verificar se há dados suficientes para concluir.", "narration": "Compare custo e conversões por rede. Desequilíbrio é um sinal; confirme volume e contexto antes de agir.", "target": "[data-open-help=dispositivos-redes]", "placement": "bottom" },
+        { "id": "dispositivos-aparelhos", "title": "Confira o comportamento por aparelho", "body": "A visão por dispositivo permite comparar impressões, cliques, CTR, CPC, custo e conversões. Diferenças podem refletir intenção, página, horário ou experiência mobile, não só o dispositivo.", "narration": "Compare aparelhos por custo e resultado. Uma diferença pode vir da experiência da página, não apenas do dispositivo.", "target": "[data-open-help=dispositivos-aparelhos]", "placement": "top" },
+        { "id": "dispositivos-tabelas", "title": "Use a tabela para investigar", "body": "Ordene as colunas para localizar exceções e valide o tamanho da amostra. Ajustes de dispositivo ou rede devem ser acompanhados no Histórico para confirmar o efeito.", "narration": "Ordene as tabelas para encontrar exceções e acompanhe qualquer ajuste no Histórico.", "target": "[data-open-help=dispositivos-tabelas]", "placement": "top" }
+      ]
+    },
+    {
+      "id": "configuracoes", "route": "configuracoes", "version": 2,
+      "steps": [
+        { "id": "configuracoes-introducao", "title": "Ajuste as regras da sua operação", "body": "As configurações são salvas por conta e moldam como o painel classifica buscas, calcula conclusões e cruza informações. Revise-as antes de interpretar alertas ou automatizar rotinas.", "narration": "Estas configurações adaptam o painel à sua operação. Revise-as antes de confiar nos alertas e conclusões.", "target": "[data-open-help=configuracoes-introducao]", "placement": "bottom" },
+        { "id": "configuracoes-regras", "title": "Defina a classificação dos termos", "body": "Cadastre palavras de marca, sem intenção, intenção comercial e concorrentes. A correspondência é por palavra inteira, e essas regras explicam como termos e palavras-chave são classificados.", "narration": "Configure as regras que classificam termos. Elas orientam leituras de marca, intenção e desperdício.", "target": "[data-open-help=configuracoes-regras]", "placement": "bottom" },
+        { "id": "configuracoes-area", "title": "Informe área e horário reais", "body": "Defina onde a empresa atende e, se necessário, seu horário humano. Esses dados ajudam a avaliar cliques fora de cobertura ou em momentos sem atendimento, sem confundir campanha e operação.", "narration": "Informe área e horário reais. Eles ajudam a separar problema de campanha de limitação operacional.", "target": "[data-open-help=configuracoes-area]", "placement": "top" },
+        { "id": "configuracoes-integracoes", "title": "Conecte as fontes de contexto", "body": "GA4, Search Console e domínios autorizados permitem cruzar anúncios, site e conteúdo. Adicione apenas propriedades e domínios que você controla e depois revise a qualidade dos dados.", "narration": "Configure fontes de contexto como GA4, Search Console e domínios do site para ampliar a leitura do painel.", "target": "[data-open-help=configuracoes-integracoes]", "placement": "top" }
+      ]
     }
   ]
 }
