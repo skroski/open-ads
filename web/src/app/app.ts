@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import { AUTHOR, BRAND, DONATION } from './brand';
 import { AccountStore } from './core/account.store';
 import { LocalDb } from './core/local-db';
@@ -13,6 +14,8 @@ import { IconName } from './shared/icons';
 import { AppModal } from './shared/modal';
 import { ThemeToggle } from './shared/theme-toggle';
 import { Toasts } from './shared/toasts';
+import { ONBOARDING_JOURNEY } from './help/onboarding-journey';
+import { BrowserVoiceProvider, FallbackVoiceProvider, OpenHelpEngine, PreRenderedVoiceProvider } from './help/open-help';
 
 interface NavItem {
   path: string;
@@ -78,11 +81,17 @@ export class App {
   protected readonly ws = inject(Workspace);
   protected readonly db = inject(LocalDb);
   private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
 
   protected readonly groups = NAV_GROUPS;
   protected readonly ranges = DATE_RANGE_OPTIONS;
   protected readonly accountModalOpen = signal(false);
   protected readonly donationModalOpen = signal(false);
+  private readonly help = new OpenHelpEngine(
+    ONBOARDING_JOURNEY,
+    new FallbackVoiceProvider(new PreRenderedVoiceProvider(), new BrowserVoiceProvider()),
+    (message) => this.toast.warning(message),
+  );
 
   private readonly drawer = viewChild.required<ElementRef<HTMLInputElement>>('drawerToggle');
   private readonly periodMenu = viewChild<ElementRef<HTMLDetailsElement>>('periodMenu');
@@ -102,11 +111,21 @@ export class App {
 
   constructor() {
     const timer = setInterval(() => this.now.set(Date.now()), 30_000);
-    inject(DestroyRef).onDestroy(() => clearInterval(timer));
+    const destroyRef = inject(DestroyRef);
+    destroyRef.onDestroy(() => {
+      clearInterval(timer);
+      this.help.destroy();
+    });
+    this.router.events.pipe(filter((event): event is NavigationStart => event instanceof NavigationStart)).subscribe(() => this.help.stop(false));
   }
 
   protected closeDrawer(): void {
     this.drawer().nativeElement.checked = false;
+  }
+
+  protected startHelp(event: MouseEvent): void {
+    this.closeDrawer();
+    void this.help.start(event.currentTarget as HTMLElement);
   }
 
   protected pickRange(value: DateRangeOption): void {
