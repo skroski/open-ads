@@ -35,7 +35,7 @@ function rulesToText(r: AuditRules): { brand: string; unqualified: string; quali
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormField, FormRoot, Icon, PageHeader],
   template: `
-    <app-page-header
+    <app-page-header data-open-help="configuracoes-introducao"
       group="Sistema"
       [refresh]="false"
       title="Configurações"
@@ -44,7 +44,7 @@ function rulesToText(r: AuditRules): { brand: string; unqualified: string; quali
 
     <div class="flex flex-col gap-block">
       <!-- Regras de auditoria -->
-      <section class="card card-border bg-base-100">
+      <section class="card card-border bg-base-100" data-open-help="configuracoes-regras">
         <div class="card-body gap-4">
           <div>
             <h2 class="card-title text-base"><app-icon name="tag" size="sm" /> Regras de classificação dos termos</h2>
@@ -79,7 +79,7 @@ function rulesToText(r: AuditRules): { brand: string; unqualified: string; quali
       </section>
 
       <!-- Área e horário de atendimento -->
-      <section class="card card-border bg-base-100">
+      <section class="card card-border bg-base-100" data-open-help="configuracoes-area">
         <div class="card-body gap-4">
           <div>
             <h2 class="card-title text-base"><app-icon name="map-pin" size="sm" /> Área e horário de atendimento</h2>
@@ -156,7 +156,7 @@ function rulesToText(r: AuditRules): { brand: string; unqualified: string; quali
       </section>
 
       <!-- Integrações -->
-      <section class="card card-border bg-base-100">
+      <section class="card card-border bg-base-100" data-open-help="configuracoes-integracoes">
         <div class="card-body gap-4">
           <div>
             <h2 class="card-title text-base"><app-icon name="plug" size="sm" /> Site e integrações</h2>

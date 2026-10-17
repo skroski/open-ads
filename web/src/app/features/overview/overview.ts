@@ -77,7 +77,7 @@ const CATEGORY_LABEL: Record<string, string> = {
     Sparkline,
   ],
   template: `
-    <app-page-header
+    <app-page-header data-open-help="visao-geral-introducao"
       group="Inteligência"
       title="Visão geral"
       [subtitle]="'Do clique à venda: ' + account.rangeLabel().toLowerCase() + '. Cada número diz de onde vem; o que não pôde ser medido aparece como indisponível.'"
@@ -126,7 +126,7 @@ const CATEGORY_LABEL: Record<string, string> = {
           }
 
           <!-- Números principais -->
-          <section aria-label="Resultados do período">
+          <section aria-label="Resultados do período" data-open-help="visao-geral-resultados">
             <div class="stats w-full">
               <div class="stat">
                 <div class="stat-title">Investimento</div>
@@ -298,7 +298,7 @@ const CATEGORY_LABEL: Record<string, string> = {
           </div>
 
           <!-- Onde olhar primeiro -->
-          <section class="card card-border bg-base-100">
+          <section class="card card-border bg-base-100" data-open-help="visao-geral-prioridades">
             <div class="card-body gap-4">
               <div class="flex items-start justify-between gap-3">
                 <div>
@@ -379,7 +379,7 @@ const CATEGORY_LABEL: Record<string, string> = {
             </section>
 
             <!-- Saúde dos dados -->
-            <section class="card card-border bg-base-100">
+            <section class="card card-border bg-base-100" data-open-help="visao-geral-saude">
               <div class="card-body gap-4">
                 <h2 class="card-title text-base">Saúde dos dados</h2>
                 <p class="text-sm text-base-content/70">

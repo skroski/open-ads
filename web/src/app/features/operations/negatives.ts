@@ -25,7 +25,7 @@ const HINT: Record<MatchType, string> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DataState, FormField, FormRoot, Icon, PageHeader, ThSort],
   template: `
-    <app-page-header
+    <app-page-header data-open-help="negativas-introducao"
       group="Operação no Google Ads"
       title="Palavras negativas"
       subtitle="Bloqueie buscas sem intenção de compra e veja o que já está bloqueado em cada campanha."
@@ -33,7 +33,7 @@ const HINT: Record<MatchType, string> = {
     />
 
     <div class="flex flex-col gap-block">
-      <section class="card card-border bg-base-100">
+      <section class="card card-border bg-base-100" data-open-help="negativas-criar">
         <div class="card-body gap-4">
           <h2 class="card-title text-base">
             <app-icon name="ban" size="sm" /> Negativar uma palavra agora
@@ -99,7 +99,7 @@ const HINT: Record<MatchType, string> = {
         [hasData]="!!ws.negatives.value()"
         (retry)="ws.negatives.reload()"
       >
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="negativas-cobertura">
           <div class="card-body gap-4">
             <div>
               <h2 class="card-title text-base">
@@ -192,7 +192,7 @@ const HINT: Record<MatchType, string> = {
         [hasData]="!!ws.negatives.value()"
         (retry)="ws.negatives.reload()"
       >
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="negativas-lista">
           <div class="card-body gap-4">
             <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>

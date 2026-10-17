@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const journeyPath = path.join(root, 'web', 'src', 'app', 'help', 'onboarding-journey.json');
-const journey = JSON.parse(await readFile(journeyPath, 'utf8'));
+const catalog = JSON.parse(await readFile(journeyPath, 'utf8'));
 const key = process.env.FISH_AUDIO_API_KEY;
 const referenceId = process.env.FISH_AUDIO_REFERENCE_ID;
 const model = process.env.FISH_AUDIO_MODEL || 's2.1-pro-free';
@@ -17,12 +17,13 @@ if (!key) throw new Error('FISH_AUDIO_API_KEY não está definida. Preencha-a no
 if (!referenceId) throw new Error('FISH_AUDIO_REFERENCE_ID não está definida. Escolha uma voz do Fish Audio no seu server/.env.');
 if (!['s2.1-pro-free', 's2.1-pro', 's2-pro'].includes(model)) throw new Error('FISH_AUDIO_MODEL inválido. Use s2.1-pro-free, s2.1-pro ou s2-pro.');
 
-const output = path.join(root, 'web', 'public', 'open-help', `v${journey.version}`);
-await mkdir(output, { recursive: true });
-const steps = journey.steps.filter((step) => !requestedStep || step.id === requestedStep);
-if (!steps.length) throw new Error(`Nenhuma etapa chamada "${requestedStep}" foi encontrada.`);
+const steps = catalog.journeys.flatMap((journey) => journey.steps.map((step) => ({ ...step, journey })));
+const selectedSteps = steps.filter((step) => !requestedStep || step.id === requestedStep);
+if (!selectedSteps.length) throw new Error(`Nenhuma etapa chamada "${requestedStep}" foi encontrada.`);
 
-for (const step of steps) {
+for (const step of selectedSteps) {
+  const output = path.join(root, 'web', 'public', 'open-help', `v${step.journey.version}`);
+  await mkdir(output, { recursive: true });
   const destination = path.join(output, `${step.id}.mp3`);
   try {
     await readFile(destination);
@@ -49,7 +50,7 @@ for (const step of steps) {
       body: JSON.stringify({
         text: step.narration,
         reference_id: referenceId,
-        language: journey.language,
+        language: catalog.language,
         format: 'mp3',
         sample_rate: 44100,
         mp3_bitrate: 128,
@@ -90,4 +91,4 @@ for (const step of steps) {
   }
 }
 
-console.log(`Áudio da ajuda v${journey.version} pronto. Revise os MP3s antes de publicar.`);
+console.log(`Áudios da ajuda prontos. Revise os MP3s antes de publicar.`);

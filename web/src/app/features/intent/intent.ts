@@ -70,7 +70,7 @@ const STATUS_CLASS: Record<HypothesisStatus, string> = {
     VerdictBadge,
   ],
   template: `
-    <app-page-header
+    <app-page-header data-open-help="intencao-introducao"
       group="Inteligência"
       title="Intenção e páginas"
       subtitle="O que a pessoa buscou, o que o anúncio prometeu e o que a página entrega. Mudanças de URL são tratadas como hipóteses: medimos antes e depois, nunca por suposição."
@@ -84,7 +84,7 @@ const STATUS_CLASS: Record<HypothesisStatus, string> = {
     >
       <div class="flex flex-col gap-block">
         <!-- Páginas de destino -->
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="intencao-paginas">
           <div class="card-body gap-4">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -192,7 +192,7 @@ const STATUS_CLASS: Record<HypothesisStatus, string> = {
         </section>
 
         <!-- Assuntos de busca -->
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="intencao-assuntos">
           <div class="card-body gap-4">
             <div>
               <h2 class="card-title text-base"><app-icon name="search" size="sm" /> Assuntos de busca e a página ideal</h2>
@@ -279,7 +279,7 @@ const STATUS_CLASS: Record<HypothesisStatus, string> = {
         </section>
 
         <!-- Hipóteses -->
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="intencao-hipoteses">
           <div class="card-body gap-4">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>

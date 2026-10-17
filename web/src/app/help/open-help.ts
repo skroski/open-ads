@@ -18,27 +18,47 @@ export interface OpenHelpJourney {
 }
 
 export interface VoiceProvider {
+  prepare(audioSrc: string): void;
   speak(text: string, language: string, audioSrc: string): Promise<void>;
   stop(): void;
   setMuted(muted: boolean): void;
   destroy(): void;
 }
 
-/** Toca um MP3 entregue pelo app; nunca chama um provedor nem recebe credenciais. */
+/** Toca exclusivamente o MP3 entregue pelo app; nunca chama um provedor nem recebe credenciais. */
 export class PreRenderedVoiceProvider implements VoiceProvider {
   private muted = false;
   private audio?: HTMLAudioElement;
+  private audioSrc?: string;
+
+  /**
+   * Inicia a reprodução no próprio gesto do botão. Isso preserva a permissão de
+   * áudio em navegadores que bloqueiam `play()` depois de esperas assíncronas.
+   */
+  prepare(audioSrc: string): void {
+    if (this.muted || typeof Audio === 'undefined' || this.audioSrc === audioSrc) return;
+    void this.play(audioSrc);
+  }
 
   async speak(_text: string, _language: string, audioSrc: string): Promise<void> {
     if (this.muted || typeof Audio === 'undefined') return;
+    if (this.audioSrc === audioSrc) return;
+    await this.play(audioSrc);
+  }
+
+  private async play(audioSrc: string): Promise<void> {
     this.stop();
     const audio = new Audio(audioSrc);
     this.audio = audio;
+    this.audioSrc = audioSrc;
     try {
       await audio.play();
+    } catch {
+      // A ajuda segue disponível visualmente quando um arquivo estiver indisponível.
+      if (this.audio === audio) this.stop();
     } finally {
       audio.onended = () => {
-        if (this.audio === audio) this.audio = undefined;
+        if (this.audio === audio) this.stop();
       };
     }
   }
@@ -47,6 +67,7 @@ export class PreRenderedVoiceProvider implements VoiceProvider {
     this.audio?.pause();
     if (this.audio) this.audio.currentTime = 0;
     this.audio = undefined;
+    this.audioSrc = undefined;
   }
 
   setMuted(muted: boolean): void {
@@ -56,70 +77,6 @@ export class PreRenderedVoiceProvider implements VoiceProvider {
 
   destroy(): void {
     this.stop();
-  }
-}
-
-/** Fallback gratuito para quando os MP3s ainda não foram publicados ou não tocam. */
-export class BrowserVoiceProvider implements VoiceProvider {
-  private muted = false;
-
-  async speak(text: string, language: string): Promise<void> {
-    if (this.muted || typeof window === 'undefined' || !('speechSynthesis' in window) || !text.trim()) return;
-    this.stop();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = language;
-    utterance.rate = 0.96;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    const voices = window.speechSynthesis.getVoices();
-    utterance.voice =
-      voices.find((voice) => voice.lang.toLowerCase() === language.toLowerCase()) ??
-      voices.find((voice) => voice.lang.toLowerCase().startsWith('pt')) ??
-      null;
-    window.speechSynthesis.speak(utterance);
-  }
-
-  stop(): void {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
-  }
-
-  setMuted(muted: boolean): void {
-    this.muted = muted;
-    if (muted) this.stop();
-  }
-
-  destroy(): void {
-    this.stop();
-  }
-}
-
-export class FallbackVoiceProvider implements VoiceProvider {
-  constructor(
-    private readonly primary: VoiceProvider,
-    private readonly fallback: VoiceProvider,
-  ) {}
-
-  async speak(text: string, language: string, audioSrc: string): Promise<void> {
-    try {
-      await this.primary.speak(text, language, audioSrc);
-    } catch {
-      await this.fallback.speak(text, language, audioSrc);
-    }
-  }
-
-  stop(): void {
-    this.primary.stop();
-    this.fallback.stop();
-  }
-
-  setMuted(muted: boolean): void {
-    this.primary.setMuted(muted);
-    this.fallback.setMuted(muted);
-  }
-
-  destroy(): void {
-    this.primary.destroy();
-    this.fallback.destroy();
   }
 }
 
@@ -134,10 +91,16 @@ export class OpenHelpEngine {
   private cleanup = () => undefined;
 
   constructor(
-    private readonly journey: OpenHelpJourney,
+    private journey: OpenHelpJourney,
     private readonly voice: VoiceProvider,
     private readonly onError: (message: string) => void,
   ) {}
+
+  setJourney(journey: OpenHelpJourney): void {
+    this.stop(false);
+    this.journey = journey;
+    this.index = 0;
+  }
 
   async start(origin: HTMLElement): Promise<void> {
     if (typeof document === 'undefined') return;
@@ -145,18 +108,21 @@ export class OpenHelpEngine {
     this.running = true;
     this.origin = origin;
     this.index = 0;
+    this.prepareCurrentNarration();
     await this.showCurrent();
   }
 
   async next(): Promise<void> {
     this.voice.stop();
     this.index += 1;
+    this.prepareCurrentNarration();
     await this.showCurrent();
   }
 
   async back(): Promise<void> {
     this.voice.stop();
     this.index = Math.max(0, this.index - 1);
+    this.prepareCurrentNarration();
     await this.showCurrent();
   }
 
@@ -211,16 +177,19 @@ export class OpenHelpEngine {
       this.onError('A ajuda não encontrou esta parte da tela. Atualize a página e tente novamente.');
       return;
     }
+    target.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+    await nextFrame();
+    if (!this.running) return;
     this.render(target, step);
     if (!this.muted) void this.speak(step);
   }
 
   private async findTarget(selector: string, waitForTarget: boolean): Promise<HTMLElement | undefined> {
-    const immediate = visibleTarget(selector);
+    const immediate = availableTarget(selector);
     if (immediate || !waitForTarget) return immediate;
     return new Promise((resolve) => {
       const observer = new MutationObserver(() => {
-        const found = visibleTarget(selector);
+        const found = availableTarget(selector);
         if (found) finish(found);
       });
       const timeout = window.setTimeout(() => finish(undefined), 4_000);
@@ -335,6 +304,12 @@ export class OpenHelpEngine {
     return this.voice.speak(step.narration, this.journey.language, this.audioSrc(step));
   }
 
+  private prepareCurrentNarration(): void {
+    if (this.muted) return;
+    const step = this.journey.steps[this.index];
+    if (step) this.voice.prepare(this.audioSrc(step));
+  }
+
   private audioSrc(step: OpenHelpStep): string {
     return `/open-help/v${this.journey.version}/${step.id}.mp3`;
   }
@@ -361,11 +336,13 @@ function actionButton(label: string, className: string, action: () => void): HTM
   return button;
 }
 
-function visibleTarget(selector: string): HTMLElement | undefined {
+function availableTarget(selector: string): HTMLElement | undefined {
   const target = document.querySelector<HTMLElement>(selector);
   if (!target) return undefined;
   const style = window.getComputedStyle(target);
-  const rect = target.getBoundingClientRect();
-  const isInViewport = rect.bottom > 0 && rect.right > 0 && rect.top < window.innerHeight && rect.left < window.innerWidth;
-  return style.display !== 'none' && style.visibility !== 'hidden' && target.getClientRects().length && isInViewport ? target : undefined;
+  return style.display !== 'none' && style.visibility !== 'hidden' && target.getClientRects().length ? target : undefined;
+}
+
+function nextFrame(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
 }

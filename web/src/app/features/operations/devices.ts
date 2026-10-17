@@ -15,7 +15,7 @@ import type { EChartsCoreOption } from 'echarts/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CurrencyPipe, DecimalPipe, PercentPipe, DataState, EChart, PageHeader, ThSort],
   template: `
-    <app-page-header
+    <app-page-header data-open-help="dispositivos-introducao"
       group="Operação no Google Ads"
       title="Dispositivos e redes"
       subtitle="Onde o investimento está sendo gasto e o que ele devolve em cada rede e aparelho."
@@ -29,7 +29,7 @@ import type { EChartsCoreOption } from 'echarts/core';
         [hasData]="!!ws.networks.value()"
         (retry)="ws.networks.reload()"
       >
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="dispositivos-redes">
           <div class="card-body gap-4">
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -124,7 +124,7 @@ import type { EChartsCoreOption } from 'echarts/core';
         [hasData]="!!ws.devices.value()"
         (retry)="ws.devices.reload()"
       >
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="dispositivos-aparelhos">
           <div class="card-body gap-4">
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -141,7 +141,7 @@ import type { EChartsCoreOption } from 'echarts/core';
               />
             </div>
             <app-echart [option]="shareChart(deviceShares())" [height]="220" label="Fatia do custo e das conversões por dispositivo" />
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" data-open-help="dispositivos-tabelas">
               <table class="table">
                 <thead>
                   <tr>
