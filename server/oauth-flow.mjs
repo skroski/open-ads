@@ -9,6 +9,7 @@ export const SCOPES = {
   ads: 'https://www.googleapis.com/auth/adwords',
   analytics: 'https://www.googleapis.com/auth/analytics.readonly',
   searchConsole: 'https://www.googleapis.com/auth/webmasters.readonly',
+  tagManager: 'https://www.googleapis.com/auth/tagmanager.readonly',
 };
 
 const PORT = 8787;

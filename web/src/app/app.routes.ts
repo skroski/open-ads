@@ -70,5 +70,16 @@ export const routes: Routes = [
     title: `Configurações · ${TITLE}`,
     loadComponent: () => import('./features/settings/settings').then((m) => m.SettingsPage),
   },
+  {
+    path: 'rastreamento',
+    title: `Rastreamento · ${TITLE}`,
+    loadComponent: () => import('./features/tracking/tracking').then((m) => m.TrackingPage),
+  },
+  {
+    path: 'ajuda-instalacao',
+    title: `Ajuda de instalação · ${TITLE}`,
+    loadComponent: () =>
+      import('./features/installation-help/installation-help').then((m) => m.InstallationHelpPage),
+  },
   { path: '**', redirectTo: 'visao-geral' },
 ];

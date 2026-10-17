@@ -1,7 +1,7 @@
 // Gera o GOOGLE_ADS_REFRESH_TOKEN com o cliente OAuth (tipo "App para computador")
 // e grava direto no server/.env — o valor não aparece no terminal.
 // Uso: npm run token   (ou: node --env-file=server/.env server/get-refresh-token.mjs)
-// Para pedir só o Google Ads (sem Analytics e Search Console): GOOGLE_SCOPES=adwords npm run token
+// Para pedir só o Google Ads (sem GA4, Search Console e Tag Manager): GOOGLE_SCOPES=adwords npm run token
 
 import { SCOPES, obtainRefreshToken } from './oauth-flow.mjs';
 import { updateEnv } from './env-file.mjs';
@@ -13,7 +13,9 @@ if (!GOOGLE_ADS_CLIENT_ID || !GOOGLE_ADS_CLIENT_SECRET) {
 }
 
 const scopes =
-  process.env.GOOGLE_SCOPES === 'adwords' ? [SCOPES.ads] : [SCOPES.ads, SCOPES.analytics, SCOPES.searchConsole];
+  process.env.GOOGLE_SCOPES === 'adwords'
+    ? [SCOPES.ads]
+    : [SCOPES.ads, SCOPES.analytics, SCOPES.searchConsole, SCOPES.tagManager];
 
 try {
   const token = await obtainRefreshToken({ clientId: GOOGLE_ADS_CLIENT_ID, clientSecret: GOOGLE_ADS_CLIENT_SECRET, scopes });

@@ -11,6 +11,7 @@ import {
   SourceStatus,
 } from '../domain/models';
 import { normalizeUrl } from '../domain/text';
+import type { ConsentStatus } from '../domain/tracking-health';
 
 /** Resposta padrão das funções /api de integração: ou está configurada e traz dados, ou explica o porquê. */
 interface Envelope<T> {
@@ -45,6 +46,70 @@ export interface AuditResponse {
   audit?: Omit<PageAudit, 'normalizedUrl'>;
 }
 
+export interface TagManagerAccount {
+  path: string;
+  id: string;
+  name: string;
+}
+
+export interface TagManagerContainer {
+  path: string;
+  id: string;
+  publicId: string;
+  name: string;
+  usageContext: string[];
+}
+
+export interface TagManagerWorkspace {
+  path: string;
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface TagManagerTag {
+  id: string;
+  name: string;
+  type: string;
+  paused: boolean;
+  firingTriggerIds: string[];
+  consentStatus: ConsentStatus;
+}
+
+export interface TagManagerEntity {
+  id: string;
+  name: string;
+  type: string;
+}
+
+export interface TagManagerSnapshot {
+  workspacePath: string;
+  tags: TagManagerTag[];
+  triggers: TagManagerEntity[];
+  variables: TagManagerEntity[];
+}
+
+export interface TagManagerData<T> {
+  status: SourceStatus;
+  data: T | null;
+}
+
+interface TagManagerEnvelope<T> {
+  configured: boolean;
+  reason?: string;
+  accounts?: TagManagerAccount[];
+  containers?: TagManagerContainer[];
+  workspaces?: TagManagerWorkspace[];
+  snapshot?: TagManagerSnapshot;
+}
+
+function unwrapTagManager<T>(env: TagManagerEnvelope<T>, key: keyof TagManagerEnvelope<T>): TagManagerData<T> {
+  return {
+    status: { configured: env.configured, reason: env.reason },
+    data: env.configured ? ((env[key] as T | undefined) ?? null) : null,
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class IntegrationsApi {
   private readonly http = inject(HttpClient);
@@ -63,6 +128,30 @@ export class IntegrationsApi {
     return this.http
       .post<Envelope<Ga4ChannelRow>>('/api/analytics', { report: 'channels', propertyId, from: w.from, to: w.to })
       .pipe(map(unwrap));
+  }
+
+  tagManagerAccounts(): Observable<TagManagerData<TagManagerAccount[]>> {
+    return this.http
+      .post<TagManagerEnvelope<TagManagerAccount[]>>('/api/tag-manager', { resource: 'accounts' })
+      .pipe(map((env) => unwrapTagManager(env, 'accounts')));
+  }
+
+  tagManagerContainers(accountPath: string): Observable<TagManagerData<TagManagerContainer[]>> {
+    return this.http
+      .post<TagManagerEnvelope<TagManagerContainer[]>>('/api/tag-manager', { resource: 'containers', parent: accountPath })
+      .pipe(map((env) => unwrapTagManager(env, 'containers')));
+  }
+
+  tagManagerWorkspaces(containerPath: string): Observable<TagManagerData<TagManagerWorkspace[]>> {
+    return this.http
+      .post<TagManagerEnvelope<TagManagerWorkspace[]>>('/api/tag-manager', { resource: 'workspaces', parent: containerPath })
+      .pipe(map((env) => unwrapTagManager(env, 'workspaces')));
+  }
+
+  tagManagerSnapshot(workspacePath: string): Observable<TagManagerData<TagManagerSnapshot>> {
+    return this.http
+      .post<TagManagerEnvelope<TagManagerSnapshot>>('/api/tag-manager', { resource: 'snapshot', parent: workspacePath })
+      .pipe(map((env) => unwrapTagManager(env, 'snapshot')));
   }
 
   searchConsolePages(site: string, w: DateWindow): Observable<SourceData<SearchConsolePageRow>> {

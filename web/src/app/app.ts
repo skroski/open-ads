@@ -53,7 +53,11 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     title: 'Sistema',
-    items: [{ path: 'configuracoes', label: 'Configurações', icon: 'cog' }],
+    items: [
+      { path: 'rastreamento', label: 'Rastreamento', icon: 'tag' },
+      { path: 'configuracoes', label: 'Configurações', icon: 'cog' },
+      { path: 'ajuda-instalacao', label: 'Ajuda de instalação', icon: 'question' },
+    ],
   },
 ];
 

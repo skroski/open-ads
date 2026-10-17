@@ -339,6 +339,9 @@ export interface BusinessConfig {
   domains: string[];
   ga4PropertyId: string;
   searchConsoleSite: string;
+  /** Caminhos relativos escolhidos na API do Google Tag Manager, por conta Ads. */
+  gtmContainerPath: string;
+  gtmWorkspacePath: string;
 }
 
 // ───────────────────────── Evidência, veredito e recomendação ─────────────────────────

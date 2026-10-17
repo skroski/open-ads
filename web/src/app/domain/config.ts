@@ -29,6 +29,8 @@ export function defaultBusinessConfig(): BusinessConfig {
     domains: [],
     ga4PropertyId: '',
     searchConsoleSite: '',
+    gtmContainerPath: '',
+    gtmWorkspacePath: '',
   };
 }
 

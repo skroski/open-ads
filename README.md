@@ -20,6 +20,9 @@ Painel de análise de Google Ads que separa **desperdício real** de **gasto que
 - **Palavras-chave:** Índice de Qualidade, aderência à página de destino e sugestões por campanha.
 - **Campanhas** e **Dispositivos e redes:** comparação com o período anterior.
 
+**Sistema**
+- **Rastreamento:** inventário somente de leitura de contas, contêineres, espaços de trabalho, tags, acionadores e variáveis do Google Tag Manager. A tela cruza a configuração sanitizada com as landing pages dos anúncios, separa fatos de hipóteses e registra um histórico local de mudanças. A fonte é escolhida por conta no navegador e não há criação, publicação ou alteração de tags.
+
 **Para agências:** várias contas de clientes, acesso direto ou por MCC, e importação de todos os clientes de um MCC de uma vez. Metas, regras e histórico ficam separados por conta.
 
 ## Sumário
@@ -48,7 +51,7 @@ Painel de análise de Google Ads que separa **desperdício real** de **gasto que
 
 O repositório traz a skill **`instalar-painel`**, que transforma o Claude Code, o Codex ou o Gemini CLI num instrutor de instalação. Ela:
 
-1. Faz as perguntas iniciais: seu sistema, se você já usou terminal, se a conta é sua, de cliente ou de um MCC, se quer GA4, Search Console e Vercel.
+1. Faz as perguntas iniciais: seu sistema, se você já usou terminal, se a conta é sua, de cliente ou de um MCC, se quer GA4, Search Console, Tag Manager e Vercel.
 2. Conduz as 8 etapas do [INSTALL.md](INSTALL.md), uma por vez, e confere cada uma antes de seguir.
 3. Mostra passo a passo como criar as chaves no Google Cloud (projeto, API, tela de consentimento e cliente OAuth).
 4. Explica os termos técnicos e resolve os erros mais comuns.
@@ -105,11 +108,13 @@ O guia completo, com o caminho de cada clique no Google e uma tabela de erros, e
 
 ## Ajuda guiada e narração
 
+Para instalar o Open Ads do zero, abra o [guia HTML passo a passo narrado](web/public/guia-instalacao.html). Dentro do painel, ele também fica em **Sistema → Ajuda de instalação**, logo abaixo de Configurações. O guia funciona de forma independente e acompanha o [INSTALL.md](INSTALL.md), com comandos copiáveis, links oficiais e áudio opcional.
+
 O botão **Ajuda** do cabeçalho abre a jornada detalhada do módulo atual: Visão geral, Funil, Desperdícios, Intenção e páginas, Conteúdo, Plano de ação, Histórico, Termos, Negativas, Palavras-chave, Campanhas, Dispositivos ou Configurações. Cada jornada tem quatro etapas com texto completo e é narrada exclusivamente pelos MP3 gerados no Fish Audio. Se um arquivo estiver ausente ou não puder tocar, a ajuda continua disponível visualmente e permanece silenciosa — ela nunca usa a voz local do navegador.
 
 Para gerar a narração fixa no Fish Audio, mantenha as configurações de voz somente no `server/.env` local e rode `npm run help:audio`. O comando cria todos os arquivos em `web/public/open-help/v<versão>/`; revise-os antes de publicar. A chave não é enviada ao navegador, não entra no build e não é necessária em produção para tocar os arquivos gerados.
 
-Para alterar uma jornada, edite [onboarding-journey.json](web/src/app/help/onboarding-journey.json), aumente a versão das jornadas alteradas e gere os áudios novamente. Para regenerar só uma etapa, use `npm run help:audio -- --step=funil-metas --force`; para todas, `npm run help:audio -- --force`.
+Para alterar uma jornada, edite [onboarding-journey.json](web/src/app/help/onboarding-journey.json), aumente a versão das jornadas alteradas e gere os áudios novamente. Para regenerar só uma etapa, use `npm run help:audio -- --step=funil-metas --force`; para todas, `npm run help:audio -- --force`. Para regenerar apenas o guia de instalação, use `npm run help:audio -- --guide=instalacao --force`.
 
 ## Contas de clientes e MCC
 
@@ -127,7 +132,7 @@ Clique no nome da conta, no topo do painel, para abrir **Contas de clientes**:
 | Estilo | Tailwind CSS 4 + daisyUI 5, com temas claro e escuro próprios |
 | Gráficos | Apache ECharts 6 (importação modular) |
 | API | Funções Node.js em `api/`: as mesmas rodam localmente (`server/index.mjs`) e na Vercel |
-| Dados | Google Ads API v25 (GAQL); opcionais: GA4 Data API, Search Console API e Anthropic |
+| Dados | Google Ads API v25 (GAQL); opcionais: GA4 Data API, Search Console API, Google Tag Manager API v2 e Anthropic |
 | Armazenamento | Navegador (localStorage + IndexedDB), por conta. Nenhum banco de dados externo. |
 
 Estrutura:

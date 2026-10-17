@@ -1,5 +1,7 @@
 # Instalação passo a passo
 
+> Prefere um roteiro navegável com narração opcional? Abra [web/public/guia-instalacao.html](web/public/guia-instalacao.html) no navegador.
+
 Este guia leva você do zero até o painel rodando no seu computador, mesmo sem experiência com programação.
 
 > **Leia antes de começar**
@@ -69,7 +71,7 @@ Leva de 1 a 3 minutos. ✅ Termina sem a palavra `ERR!`. Avisos (`WARN`) podem s
 1. Acesse **https://console.cloud.google.com** com a conta Google que acessa o Google Ads.
 2. No topo, clique no seletor de projetos → **Novo projeto** → dê um nome (ex.: `painel-ads`) → **Criar**. Confira se o projeto novo ficou selecionado no topo.
 3. **Ative a Google Ads API:** abra https://console.cloud.google.com/flows/enableapi?apiid=googleads.googleapis.com e clique em **Ativar**.
-4. *(Opcional, para as telas de conteúdo)* Ative também a **Google Analytics Data API** e a **Google Search Console API** em **APIs e serviços → Biblioteca**.
+4. *(Opcional, para as telas de conteúdo e rastreamento)* Ative também a **Google Analytics Data API**, a **Google Search Console API** e a **Google Tag Manager API** em **APIs e serviços → Biblioteca**.
 5. **Verifique o nível de acesso:** abra https://console.cloud.google.com/google/ads-apis/overview
    - Se aparecer **Test**, expanda **Upgrade access level** e peça o acesso **Explorer**. Normalmente a aprovação é automática.
    - O pedido costuma ser recusado se o projeto estiver em **Free Trial** ou com faturamento suspenso. Vincule uma conta de faturamento ativa em **Faturamento**.

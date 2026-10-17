@@ -6,25 +6,38 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const journeyPath = path.join(root, 'web', 'src', 'app', 'help', 'onboarding-journey.json');
+const installationGuidePath = path.join(root, 'docs', 'instalacao-guiada.json');
 const catalog = JSON.parse(await readFile(journeyPath, 'utf8'));
+const installationGuide = JSON.parse(await readFile(installationGuidePath, 'utf8'));
 const key = process.env.FISH_AUDIO_API_KEY;
 const referenceId = process.env.FISH_AUDIO_REFERENCE_ID;
 const model = process.env.FISH_AUDIO_MODEL || 's2.1-pro-free';
 const force = process.argv.includes('--force');
 const requestedStep = process.argv.find((arg) => arg.startsWith('--step='))?.slice('--step='.length);
+const requestedGuide = process.argv.find((arg) => arg.startsWith('--guide='))?.slice('--guide='.length);
 
 if (!key) throw new Error('FISH_AUDIO_API_KEY não está definida. Preencha-a no seu server/.env e tente novamente.');
 if (!referenceId) throw new Error('FISH_AUDIO_REFERENCE_ID não está definida. Escolha uma voz do Fish Audio no seu server/.env.');
 if (!['s2.1-pro-free', 's2.1-pro', 's2-pro'].includes(model)) throw new Error('FISH_AUDIO_MODEL inválido. Use s2.1-pro-free, s2.1-pro ou s2-pro.');
+if (requestedGuide && !['painel', 'instalacao'].includes(requestedGuide)) throw new Error('Guia inválido. Use painel ou instalacao.');
 
-const steps = catalog.journeys.flatMap((journey) => journey.steps.map((step) => ({ ...step, journey })));
+const panelSteps = catalog.journeys.flatMap((journey) => journey.steps.map((step) => ({
+  ...step,
+  language: catalog.language,
+  output: path.join(root, 'web', 'public', 'open-help', `v${journey.version}`),
+})));
+const installationSteps = installationGuide.steps.map((step) => ({
+  ...step,
+  language: installationGuide.language,
+  output: path.join(root, 'web', 'public', 'open-help', 'install', `v${installationGuide.version}`),
+}));
+const steps = requestedGuide === 'painel' ? panelSteps : requestedGuide === 'instalacao' ? installationSteps : [...panelSteps, ...installationSteps];
 const selectedSteps = steps.filter((step) => !requestedStep || step.id === requestedStep);
 if (!selectedSteps.length) throw new Error(`Nenhuma etapa chamada "${requestedStep}" foi encontrada.`);
 
 for (const step of selectedSteps) {
-  const output = path.join(root, 'web', 'public', 'open-help', `v${step.journey.version}`);
-  await mkdir(output, { recursive: true });
-  const destination = path.join(output, `${step.id}.mp3`);
+  await mkdir(step.output, { recursive: true });
+  const destination = path.join(step.output, `${step.id}.mp3`);
   try {
     await readFile(destination);
     if (!force) {
@@ -50,7 +63,7 @@ for (const step of selectedSteps) {
       body: JSON.stringify({
         text: step.narration,
         reference_id: referenceId,
-        language: catalog.language,
+        language: step.language,
         format: 'mp3',
         sample_rate: 44100,
         mp3_bitrate: 128,
