@@ -14,6 +14,7 @@
           type="button"
           class="btn h-auto min-h-[38px] max-w-full justify-start gap-2 border-base-300 bg-base-100 px-3 py-1 font-normal sm:max-w-72"
           (click)="accountModalOpen.set(true)"
+          data-open-help="conta"
           aria-label="Conta do Google Ads"
         >
           <app-icon name="building" size="sm" class="text-base-content/60" />
@@ -30,6 +31,7 @@
           <summary
             class="btn h-auto min-h-[38px] justify-start gap-2 border-base-300 bg-base-100 px-3 py-1 font-normal"
             aria-label="Período de análise"
+            data-open-help="periodo"
           >
             <app-icon name="calendar" size="sm" class="text-base-content/60" />
             <span class="flex flex-col items-start leading-tight">
@@ -68,7 +70,17 @@
             <span class="status status-success"></span> {{ f }}
           </span>
         }
-        <app-theme-toggle />
+        <span data-open-help="tema"><app-theme-toggle /></span>
+        <button
+          type="button"
+          class="btn btn-sm gap-1.5 border-base-300 bg-base-100"
+          aria-label="Abrir ajuda guiada"
+          title="Como usar o painel"
+          (click)="startHelp($event)"
+        >
+          <app-icon name="question" size="sm" />
+          <span class="hidden sm:inline">Ajuda</span>
+        </button>
       </div>
     </header>
 
@@ -123,7 +135,7 @@
         </span>
       </div>
 
-      <nav class="grow overflow-y-auto px-2 pb-4" aria-label="Navegação principal">
+      <nav class="grow overflow-y-auto px-2 pb-4" aria-label="Navegação principal" data-open-help="navegacao">
         @for (group of groups; track group.title) {
           <ul class="menu w-full gap-1">
             <li class="menu-title">{{ group.title }}</li>

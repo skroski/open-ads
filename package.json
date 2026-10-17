@@ -14,6 +14,7 @@
     "server": "node --env-file=server/.env server/index.mjs",
     "web": "cd web && npm start",
     "sync:api": "node scripts/sync-api.mjs",
+    "help:audio": "node --env-file=server/.env scripts/generate-help-audio.mjs",
     "test:api": "node --test \"api/_lib/*.test.js\"",
     "check:api": "node scripts/sync-api.mjs --check",
     "check": "npm run check:api && npm run test:api && npm --prefix web test -- --watch=false && npm --prefix web run build"

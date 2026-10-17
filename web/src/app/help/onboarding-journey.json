@@ -1,0 +1,40 @@
+{
+  "id": "primeira-analise",
+  "version": 1,
+  "language": "pt-BR",
+  "steps": [
+    {
+      "id": "conta",
+      "title": "Escolha a conta certa",
+      "body": "Comece selecionando a conta do Google Ads que será analisada. Cada conta mantém suas próprias metas, regras e histórico neste navegador.",
+      "narration": "Primeiro, escolha a conta do Google Ads que você quer analisar.",
+      "target": "[data-open-help=conta]",
+      "placement": "bottom"
+    },
+    {
+      "id": "periodo",
+      "title": "Defina o período",
+      "body": "Escolha a janela de análise. O painel sempre compara com o período anterior de mesma duração para tornar as mudanças visíveis.",
+      "narration": "Agora defina o período. A comparação usa a mesma duração anterior.",
+      "target": "[data-open-help=periodo]",
+      "placement": "bottom"
+    },
+    {
+      "id": "navegacao",
+      "title": "Siga pela visão geral",
+      "body": "A Visão geral reúne o diagnóstico. Depois, navegue por Funil, Desperdícios e Plano de ação para investigar e priorizar o que fazer.",
+      "narration": "A Visão geral mostra o diagnóstico. Use o menu para investigar e transformar achados em ações.",
+      "target": "[data-open-help=navegacao]",
+      "placement": "right",
+      "optional": true
+    },
+    {
+      "id": "tema",
+      "title": "Ajuste a leitura",
+      "body": "Alterne entre tema claro e escuro sempre que preferir. Seus dados e análises não mudam com essa escolha.",
+      "narration": "Você também pode alternar entre os temas claro e escuro para deixar a leitura mais confortável.",
+      "target": "[data-open-help=tema]",
+      "placement": "bottom"
+    }
+  ]
+}

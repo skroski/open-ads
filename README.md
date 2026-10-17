@@ -28,6 +28,7 @@ Painel de análise de Google Ads que separa **desperdício real** de **gasto que
 - [Instalação com ajuda de IA (recomendado)](#instalação-com-ajuda-de-ia-recomendado)
 - [Instalação manual](#instalação-manual)
 - [Comandos](#comandos)
+- [Ajuda guiada e narração](#ajuda-guiada-e-narração)
 - [Contas de clientes e MCC](#contas-de-clientes-e-mcc)
 - [Como foi construído](#como-foi-construído)
 - [Personalizar (white label)](#personalizar)
@@ -97,9 +98,18 @@ O guia completo, com o caminho de cada clique no Google e uma tabela de erros, e
 | `npm start` | Sobe a API (porta 3000) e o painel (http://localhost:4200) juntos |
 | `npm run doctor` | Diagnóstico de Node, dependências, chaves, portas e conexão com o Google, sem mostrar valores |
 | `npm run token` | Gera de novo só o refresh token (se ele expirar ou for revogado) |
+| `npm run help:audio` | Gera uma vez os MP3s da ajuda guiada com Fish Audio, quando a narração estiver configurada localmente |
 | `npm --prefix web test` / `npm run test:api` | Testes |
 | `npm run check` | Tudo que o CI roda: sincronia de `web/api`, testes e build |
 | `npm --prefix web run build` | Build de produção |
+
+## Ajuda guiada e narração
+
+O botão **Ajuda** do cabeçalho apresenta uma jornada curta de primeira análise. Ela continua disponível sem áudio; se um MP3 estiver ausente ou não puder tocar, o navegador tenta narrar o mesmo texto com a voz local.
+
+Para gerar a narração fixa no Fish Audio, mantenha as configurações de voz somente no `server/.env` local e rode `npm run help:audio`. O comando cria os arquivos em `web/public/open-help/v<versão>/`; revise-os antes de publicar. A chave não é enviada ao navegador, não entra no build e não é necessária em produção para tocar os arquivos gerados.
+
+Para alterar a jornada, edite [onboarding-journey.json](web/src/app/help/onboarding-journey.json), aumente a versão e gere os áudios novamente. Para regenerar só uma etapa, use `npm run help:audio -- --step=conta --force`; para todas, `npm run help:audio -- --force`.
 
 ## Contas de clientes e MCC
 
