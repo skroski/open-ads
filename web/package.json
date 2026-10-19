@@ -28,7 +28,7 @@
     "@angular/cli": "^22.2.2",
     "@angular/compiler-cli": "^22.2.0",
     "@tailwindcss/postcss": "^4.3.3",
-    "daisyui": "^5.7.47",
+    "daisyui": "^5.7.50",
     "jsdom": "^30.0.0",
     "postcss": "^8.5.29",
     "prettier": "^3.8.1",
