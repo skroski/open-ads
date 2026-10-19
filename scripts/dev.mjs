@@ -1,5 +1,6 @@
 // Sobe a API (porta 3000) e o painel (porta 4200) juntos. Ctrl+C encerra os dois.
-// Uso: npm start
+// Uso: npm start           (painel Angular, versão Oficial)
+//      npm run start:react (painel React com Vite, em web-react/)
 
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -11,15 +12,21 @@ if (!existsSync(path.join(root, 'server', '.env'))) {
   console.error('Ainda não há server/.env. Rode primeiro: npm run setup');
   process.exit(1);
 }
-if (!existsSync(path.join(root, 'web', 'node_modules'))) {
-  console.error('Dependências do painel não instaladas. Rode primeiro: npm run install:all');
+const react = process.argv.includes('react');
+const webDir = react ? 'web-react' : 'web';
+if (!existsSync(path.join(root, webDir, 'node_modules'))) {
+  console.error(
+    react
+      ? 'Dependências do painel React não instaladas. Rode primeiro: npm run install:react'
+      : 'Dependências do painel não instaladas. Rode primeiro: npm run install:all',
+  );
   process.exit(1);
 }
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const procs = [
   ['api', process.execPath, ['--env-file=server/.env', 'server/index.mjs']],
-  ['web', npm, ['--prefix', 'web', 'start'], { shell: process.platform === 'win32' }],
+  ['web', npm, ['--prefix', webDir, react ? 'run' : 'start', ...(react ? ['dev'] : [])], { shell: process.platform === 'win32' }],
 ].map(([name, cmd, args, opts]) => {
   const p = spawn(cmd, args, { cwd: root, env: process.env, ...opts });
   const prefix = (chunk) =>
