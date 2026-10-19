@@ -16,6 +16,17 @@ Este guia leva você do zero até o painel rodando no seu computador, mesmo sem 
 > - **Na sua rede local (LAN / Wi-Fi):** se for compartilhar com colegas de escritório ou acessar de outro dispositivo na mesma rede, defina obrigatoriamente um `PANEL_ACCESS_TOKEN` no `server/.env`.
 > - **Se for expor na internet (Vercel ou servidor próprio):** você é o responsável por proteger o acesso. É obrigatório configurar `PANEL_ACCESS_TOKEN` e ativar mecanismos de proteção na borda (como Vercel Authentication, Cloudflare Access ou VPN). Sem isso, qualquer pessoa com o link poderá visualizar os dados das contas.
 
+## Escolha a versão do painel
+
+> Esta Skill possui uma versão Oficial em Angular e uma versão compatível em React. A versão React utiliza Vite, TypeScript, Tailwind CSS e DaisyUI, mantendo o mesmo padrão visual e reaproveitando a maior quantidade possível de código TypeScript.
+
+| Opção | Papel | Tecnologias |
+|---|---|---|
+| **Angular** | **Versão Oficial**, completa neste repositório (pasta `web/`) | Angular 22, Tailwind CSS 4, daisyUI 5, ECharts 6 |
+| **React com Vite** | Versão alternativa compatível, independente (não é migração do Angular) | React, Vite, TypeScript, Tailwind CSS 4, daisyUI 5, ECharts 6 |
+
+Você deseja instalar a versão Oficial em Angular ou a versão React com Vite? Se não tiver preferência, use **Angular**. As Etapas 1, 2 e 4 a 7 são iguais nas duas versões; só mudam a **Etapa 3** (dependências) e a **Etapa 8** (abrir o painel). A API, o `server/.env` e o `npm run setup` são os mesmos. Nunca misture os comandos de uma versão na outra. Detalhes para quem desenvolve: [.claude/skills/instalar-painel/react.md](.claude/skills/instalar-painel/react.md).
+
 **Do que você precisa**
 
 | Item | Para quê |
@@ -63,6 +74,16 @@ npm run install:all
 ```
 
 Leva de 1 a 3 minutos. ✅ Termina sem a palavra `ERR!`. Avisos (`WARN`) podem ser ignorados.
+
+**Se escolheu React com Vite**, rode também (mantenha o comando acima: o TypeScript compartilhado e o `npm run doctor` dependem de `web/`):
+
+```bash
+npm run install:react
+```
+
+> A base React já vem no projeto, na pasta `web-react/`. Se preferir o React numa **pasta irmã** (`../openads-react`, ao lado de `open-ads/`), peça à IA para criá-la pelo passo a passo de `.claude/skills/instalar-painel/react.md`; nesse caso use `npm --prefix ../openads-react install`.
+>
+> **Estado atual:** na versão React já funcionam o menu, o tema claro/escuro, a escolha de conta e período e a tela **Visão geral**. As outras telas ainda estão sendo portadas e **não exibem dados**; a versão Oficial em Angular é a completa.
 
 ---
 
@@ -154,6 +175,16 @@ Quando aparecer `Local: http://localhost:4200`, abra **http://localhost:4200** n
 - Para parar, volte ao terminal e aperte `Ctrl + C`.
 - Para abrir de novo outro dia: entre na pasta, rode `npm start` e abra o mesmo endereço.
 
+**Se escolheu React com Vite**, use:
+
+```bash
+npm run start:react
+```
+
+(Com o React em pasta irmã, use dois terminais: `npm run server` e `npm --prefix ../openads-react run dev`.)
+
+O React usa a mesma porta 4200 (as URLs do OAuth não mudam), então não rode Angular e React ao mesmo tempo. Para ver os dois lado a lado, rode o React na porta 4201 (e, se o seu cliente OAuth for "Aplicativo da Web", acrescente `http://localhost:4201` nas origens autorizadas).
+
 ---
 
 ## Adicionar contas de clientes
@@ -175,7 +206,9 @@ No topo do painel, clique no nome da conta para abrir **Contas de clientes**.
 | `SERVICE_DISABLED` | A Google Ads API não foi ativada no projeto (Etapa 4, item 3). |
 | `redirect_uri_mismatch` | A URL de redirecionamento chamada não bate com o cliente OAuth cadastrado. Se criou como "Aplicativo da Web", certifique-se de cadastrar `http://localhost:8787/oauth2callback` e `http://127.0.0.1:8787/oauth2callback` em **URIs de redirecionamento autorizados** (com `http://`, porta `:8787` e `/oauth2callback`). Se preferir, crie um novo cliente como **App para computador** (Etapa 6). |
 | `Porta 3000 já está em uso` | Outro painel já está aberto. Feche o terminal antigo ou reinicie o computador. |
-| Tela em branco ou "Rota não encontrada" | Rode `npm start` (e não só `npm run web`), para a API subir junto. |
+| Tela em branco ou "Rota não encontrada" | **Angular:** rode `npm start` (e não só `npm run web`), para a API subir junto. **React:** use `npm run start:react` (ou, em pasta irmã, `npm run server` além do `npm --prefix <pasta-react> run dev`). |
+| `Porta 4200 já está em uso` | Angular e React usam a mesma porta: feche um antes de abrir o outro. |
+| React: `/api` devolve 404 ou HTML | O proxy `/api` do Vite não está configurado ou a API não subiu. Veja `.claude/skills/instalar-painel/react.md`. |
 | Planejador de Palavras-chave indisponível | Exige o acesso Basic (Etapa 4). O resto do painel funciona normalmente. |
 
 ## Publicar na internet (opcional, Vercel)

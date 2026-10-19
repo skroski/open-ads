@@ -6,10 +6,12 @@
   "type": "module",
   "scripts": {
     "start": "node scripts/dev.mjs",
+    "start:react": "node scripts/dev.mjs react",
     "setup": "node scripts/setup.mjs",
     "doctor": "node scripts/doctor.mjs",
     "token": "node --env-file=server/.env server/get-refresh-token.mjs",
     "install:all": "npm install && npm --prefix web install",
+    "install:react": "npm --prefix web-react install",
     "build": "test -d web && (cd web && npm install && npm run build) || npm run build",
     "server": "node --env-file=server/.env server/index.mjs",
     "web": "cd web && npm start",
@@ -17,7 +19,8 @@
     "help:audio": "node --env-file=server/.env scripts/generate-help-audio.mjs",
     "test:api": "node --test \"api/_lib/*.test.js\"",
     "check:api": "node scripts/sync-api.mjs --check",
-    "check": "npm run check:api && npm run test:api && npm --prefix web test -- --watch=false && npm --prefix web run build"
+    "check": "npm run check:api && npm run test:api && npm --prefix web test -- --watch=false && npm --prefix web run build",
+    "check:react": "npm --prefix web-react test && npm --prefix web-react run build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0"

@@ -1,0 +1,8 @@
+/*
+ * Mesma identidade visual do painel Angular: importa o CSS do Oficial (temas `light` e
+ * `dark` do daisyUI, tokens `@theme` e `@utility`). Não duplique cores aqui.
+ * Os `@source` do arquivo importado são relativos a ele; o daqui cobre os .tsx.
+ */
+@import "../../web/src/styles.css";
+@source "./";
+@source "../index.html";
