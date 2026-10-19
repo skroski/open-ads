@@ -1,0 +1,17 @@
+{
+  "id": "instalacao-open-ads",
+  "version": 1,
+  "language": "pt-BR",
+  "steps": [
+    { "id": "instalacao-boas-vindas", "narration": "Vamos instalar o Open Ads com segurança. Reserve até uma hora, siga a ordem das etapas e nunca compartilhe chaves ou o arquivo de credenciais do Google." },
+    { "id": "instalacao-node", "narration": "Primeiro, instale o Node.js LTS versão vinte e dois ou superior. Depois abra o terminal e confirme a versão com o comando node menos v." },
+    { "id": "instalacao-projeto", "narration": "Baixe ou clone o projeto e entre na pasta pelo terminal. Você pode digitar cd, um espaço, arrastar a pasta para o terminal e apertar Enter." },
+    { "id": "instalacao-dependencias", "narration": "Agora rode npm run install dois pontos all. Espere terminar sem erros. Avisos podem aparecer, mas a instalação não deve terminar com ERR." },
+    { "id": "instalacao-cloud", "narration": "No Google Cloud, crie ou selecione um projeto com a mesma conta que acessa o Google Ads. Ative a Google Ads API e solicite o nível Explorer se o projeto estiver em acesso Test." },
+    { "id": "instalacao-consentimento", "narration": "Configure a tela de consentimento como Externo, adicione seu e-mail como usuário de teste e publique o aplicativo. Publicar evita que a autorização expire a cada sete dias." },
+    { "id": "instalacao-oauth", "narration": "Crie um cliente OAuth do tipo aplicativo para computador. É a opção recomendada. Se usar aplicativo web, copie exatamente as URLs de redirecionamento mostradas neste guia." },
+    { "id": "instalacao-setup", "narration": "No terminal do projeto, rode npm run setup. Arraste o arquivo JSON para o próprio terminal quando solicitado. Não envie esse arquivo para chats, e-mails ou repositórios." },
+    { "id": "instalacao-iniciar", "narration": "Depois de ver Tudo pronto, rode npm run doctor para conferir os nomes das configurações sem revelar valores. Em seguida rode npm start e abra localhost na porta quatro mil duzentos." },
+    { "id": "instalacao-seguranca", "narration": "O uso recomendado é no seu computador, em localhost. Para rede local, defina um código de acesso. Para publicar na internet, use esse código e uma camada de autenticação na borda." }
+  ]
+}

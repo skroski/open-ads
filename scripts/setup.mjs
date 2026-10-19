@@ -164,8 +164,8 @@ try {
   step(2, 'Autorizar o acesso às suas contas');
   const reuse = current.GOOGLE_ADS_REFRESH_TOKEN && !(await yes('Já existe um refresh token. Gerar um novo?', false));
   if (!reuse) {
-    const extras = await yes('Também ler Google Analytics 4 e Search Console (somente leitura)?', true);
-    const scopes = extras ? [SCOPES.ads, SCOPES.analytics, SCOPES.searchConsole] : [SCOPES.ads];
+    const extras = await yes('Também ler GA4, Search Console e Tag Manager (somente leitura)?', true);
+    const scopes = extras ? [SCOPES.ads, SCOPES.analytics, SCOPES.searchConsole, SCOPES.tagManager] : [SCOPES.ads];
     console.log('Na tela do Google, entre com o login que acessa o Google Ads e marque todas as permissões.');
     console.log('Se aparecer "O Google não verificou este app", clique em Avançado → Acessar (é o seu próprio app).');
     env.GOOGLE_ADS_REFRESH_TOKEN = await obtainRefreshToken({

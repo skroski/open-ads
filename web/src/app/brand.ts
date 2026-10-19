@@ -2,10 +2,23 @@
  * Marca do painel (white label). Tudo o que identifica quem usa o painel fica aqui:
  * troque este arquivo para usar o painel com o seu nome, sem mexer nas telas.
  */
+export interface BrandLogos {
+  /** Símbolo para fundo claro (anel escuro) */
+  symbolDark: string;
+  /** Símbolo para fundo escuro (anel claro) */
+  symbolLight: string;
+  /** Logo expandido para fundo claro (texto escuro) */
+  expandedDark: string;
+  /** Logo expandido para fundo escuro (texto claro) */
+  expandedLight: string;
+}
+
 export interface Brand {
   /** Logo em texto: parte em destaque + parte leve (ex.: "painel" + "ads"). */
   logoStrong: string;
   logoLight: string;
+  /** Logos da marca (expandido e símbolo, versões para fundo claro e escuro). */
+  logos: BrandLogos;
   /**
    * Termos de marca usados quando a conta ainda não tem regras próprias.
    * Prefira cadastrar os termos de cada cliente em Configurações → Regras.
@@ -27,6 +40,12 @@ export interface Brand {
 export const BRAND: Brand = {
   logoStrong: 'Open',
   logoLight: 'Ads',
+  logos: {
+    symbolDark: '/brand/logo-symbol-dark.png',
+    symbolLight: '/brand/logo-symbol-light.png',
+    expandedDark: '/brand/logo-expanded-dark.png',
+    expandedLight: '/brand/logo-expanded-light.png',
+  },
   defaultBrandTerms: [],
   brandHints: [],
   examples: {

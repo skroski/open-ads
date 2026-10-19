@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { FormField, FormRoot, form, max, min } from '@angular/forms/signals';
+import { RouterLink } from '@angular/router';
 import { BusinessConfigStore } from '../../core/business-config.store';
 import { Backup } from '../../core/backup';
 import { LocalDb } from '../../core/local-db';
@@ -33,7 +34,7 @@ function rulesToText(r: AuditRules): { brand: string; unqualified: string; quali
 @Component({
   selector: 'app-settings-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormField, FormRoot, Icon, PageHeader],
+  imports: [FormField, FormRoot, Icon, PageHeader, RouterLink],
   template: `
     <app-page-header data-open-help="configuracoes-introducao"
       group="Sistema"
@@ -162,6 +163,7 @@ function rulesToText(r: AuditRules): { brand: string; unqualified: string; quali
             <h2 class="card-title text-base"><app-icon name="plug" size="sm" /> Site e integrações</h2>
             <p class="text-sm text-base-content/70">
               Identificadores usados para cruzar o Google Ads com o Google Analytics, o Search Console e o site.
+              O contêiner e o espaço de trabalho do Tag Manager são escolhidos na tela de Rastreamento.
               O acesso aos dados depende das credenciais do servidor; veja o README.
             </p>
           </div>
@@ -181,7 +183,10 @@ function rulesToText(r: AuditRules): { brand: string; unqualified: string; quali
                 Só páginas desses domínios (e as usadas nos seus anúncios) podem ser auditadas.
               </p>
             </fieldset>
-            <div class="md:col-span-2"><button type="submit" class="btn btn-sm">Salvar</button></div>
+            <div class="flex flex-wrap gap-2 md:col-span-2">
+              <button type="submit" class="btn btn-sm">Salvar</button>
+              <a routerLink="/rastreamento" class="btn btn-ghost btn-sm"><app-icon name="tag" size="sm" /> Abrir rastreamento</a>
+            </div>
           </form>
         </div>
       </section>

@@ -11,6 +11,7 @@ import { AccountModal } from './shared/account-modal';
 import { BatchNegativeModal } from './shared/batch-negative-modal';
 import { Icon } from './shared/icon';
 import { IconName } from './shared/icons';
+import { Logo } from './shared/logo';
 import { AppModal } from './shared/modal';
 import { ThemeToggle } from './shared/theme-toggle';
 import { Toasts } from './shared/toasts';
@@ -53,7 +54,11 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     title: 'Sistema',
-    items: [{ path: 'configuracoes', label: 'Configurações', icon: 'cog' }],
+    items: [
+      { path: 'rastreamento', label: 'Rastreamento', icon: 'tag' },
+      { path: 'configuracoes', label: 'Configurações', icon: 'cog' },
+      { path: 'ajuda-instalacao', label: 'Ajuda de instalação', icon: 'question' },
+    ],
   },
 ];
 
@@ -65,6 +70,7 @@ const NAV_GROUPS: NavGroup[] = [
     RouterLink,
     RouterLinkActive,
     Icon,
+    Logo,
     ThemeToggle,
     Toasts,
     AccountModal,
@@ -87,6 +93,7 @@ export class App {
   protected readonly ranges = DATE_RANGE_OPTIONS;
   protected readonly accountModalOpen = signal(false);
   protected readonly donationModalOpen = signal(false);
+  protected readonly sidebarCollapsed = signal<boolean>(this.readStoredSidebarCollapsed());
   private readonly help = new OpenHelpEngine(
     HELP_JOURNEYS[0],
     new PreRenderedVoiceProvider(),
@@ -156,6 +163,24 @@ export class App {
       this.toast.success('Chave PIX copiada! Muito obrigado pelo apoio.');
     } catch {
       this.toast.warning('Não foi possível copiar automaticamente.');
+    }
+  }
+
+  protected toggleSidebarCollapse(): void {
+    const next = !this.sidebarCollapsed();
+    this.sidebarCollapsed.set(next);
+    try {
+      localStorage.setItem('openads_sidebar_collapsed', String(next));
+    } catch {
+      /* armazenamento local desativado */
+    }
+  }
+
+  private readStoredSidebarCollapsed(): boolean {
+    try {
+      return localStorage.getItem('openads_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
     }
   }
 }

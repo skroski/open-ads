@@ -24,4 +24,15 @@ describe('App', () => {
     expect(text).toContain('Visão geral');
     expect(text).toContain('Operação no Google Ads');
   });
+
+  it('alterna o estado da barra lateral entre expandido e retraído', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const comp = fixture.componentInstance;
+    const initial = comp['sidebarCollapsed']();
+    comp['toggleSidebarCollapse']();
+    expect(comp['sidebarCollapsed']()).toBe(!initial);
+    comp['toggleSidebarCollapse']();
+    expect(comp['sidebarCollapsed']()).toBe(initial);
+  });
 });

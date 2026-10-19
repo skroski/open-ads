@@ -14,6 +14,9 @@ export function oauthClient() {
 export function refreshTokenFor(kind) {
   const e = process.env;
   if (kind === 'analytics') return e.GOOGLE_ANALYTICS_REFRESH_TOKEN || e.GOOGLE_ADS_REFRESH_TOKEN;
+  // O GTM pode usar uma conta diferente da que opera anúncios. Na ausência de um
+  // token dedicado, mantém a experiência simples e tenta o token principal.
+  if (kind === 'tagmanager') return e.GOOGLE_TAG_MANAGER_REFRESH_TOKEN || e.GOOGLE_ADS_REFRESH_TOKEN;
   if (kind === 'searchconsole') {
     return e.GOOGLE_SEARCH_CONSOLE_REFRESH_TOKEN || e.GOOGLE_ANALYTICS_REFRESH_TOKEN || e.GOOGLE_ADS_REFRESH_TOKEN;
   }

@@ -2,11 +2,27 @@
   <input #drawerToggle id="app-drawer" type="checkbox" class="drawer-toggle" />
 
   <div class="drawer-content flex min-w-0 flex-col bg-base-200">
-    <header class="navbar sticky top-0 z-30 min-h-[60px] gap-2 border-b border-base-300 bg-base-100 px-3 sm:px-4">
+    <header class="navbar sticky top-0 z-30 h-16 min-h-16 gap-2 border-b border-base-300 bg-base-100 px-3 sm:px-4">
       <div class="flex-none lg:hidden">
         <label for="app-drawer" class="btn btn-square btn-sm" aria-label="Abrir menu de navegação">
           <app-icon name="menu" />
         </label>
+      </div>
+
+      <div class="flex items-center gap-1.5 lg:hidden">
+        <app-logo variant="symbol" customClass="size-7 object-contain" />
+      </div>
+
+      <div class="hidden lg:flex flex-none">
+        <button
+          type="button"
+          class="btn btn-ghost btn-square btn-sm text-base-content/70 hover:text-base-content"
+          (click)="toggleSidebarCollapse()"
+          [attr.aria-label]="sidebarCollapsed() ? 'Expandir menu lateral' : 'Recolher menu lateral'"
+          [attr.title]="sidebarCollapsed() ? 'Expandir menu lateral' : 'Recolher menu lateral'"
+        >
+          <app-icon [name]="sidebarCollapsed() ? 'chevron-right' : 'chevron-left'" size="sm" />
+        </button>
       </div>
 
       <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
@@ -119,50 +135,131 @@
 
   <div class="drawer-side z-40">
     <label for="app-drawer" aria-label="Fechar menu" class="drawer-overlay"></label>
-    <aside class="ads-sidebar flex min-h-full w-72 flex-col border-r">
-      <div class="flex h-[60px] flex-none items-center gap-3 border-b border-white/10 px-6">
-        <span
-          class="relative size-5 flex-none rounded-[3px] border-[3px] border-[#ffcb05] border-r-transparent"
-          aria-hidden="true"
-        >
-          <span
-            class="absolute -right-1.5 top-1/2 -mt-1 size-2 rounded-full"
-            style="background: linear-gradient(180deg, #ffcb05, #f58220)"
-          ></span>
-        </span>
-        <span class="whitespace-nowrap text-xl font-light leading-none tracking-[0.01em] text-white">
-          <strong class="font-medium">{{ brand.logoStrong }}&nbsp;</strong>{{ brand.logoLight }}
-        </span>
+    <aside
+      class="ads-sidebar flex min-h-full flex-col border-r transition-[width] duration-200"
+      [attr.data-collapsed]="sidebarCollapsed()"
+      [class.w-72]="!sidebarCollapsed()"
+      [class.w-[72px]]="sidebarCollapsed()"
+    >
+      <div
+        class="flex h-16 min-h-16 flex-none items-center border-b border-base-300 transition-all"
+        [class.px-4]="!sidebarCollapsed()"
+        [class.justify-between]="!sidebarCollapsed()"
+        [class.px-2]="sidebarCollapsed()"
+        [class.justify-center]="sidebarCollapsed()"
+      >
+        @if (!sidebarCollapsed()) {
+          <div class="flex items-center gap-2 min-w-0">
+            <app-logo variant="expanded" customClass="h-7 w-auto max-w-[155px] object-contain" />
+          </div>
+          <button
+            type="button"
+            class="btn btn-ghost btn-square btn-xs hidden lg:inline-flex text-base-content/60 hover:text-base-content"
+            (click)="toggleSidebarCollapse()"
+            aria-label="Recolher menu lateral"
+            title="Recolher menu lateral"
+          >
+            <app-icon name="chevron-left" size="xs" />
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="group flex size-11 items-center justify-center rounded-xl hover:bg-base-200 transition-all cursor-pointer"
+            (click)="toggleSidebarCollapse()"
+            aria-label="Expandir menu lateral"
+            title="Clique para expandir o menu lateral"
+          >
+            <app-logo variant="symbol" customClass="size-8.5 object-contain transition-transform group-hover:scale-105" />
+          </button>
+        }
       </div>
 
-      <nav class="grow overflow-y-auto px-2 pb-4" aria-label="Navegação principal" data-open-help="navegacao">
-        @for (group of groups; track group.title) {
-          <ul class="menu w-full gap-1">
-            <li class="menu-title">{{ group.title }}</li>
-            @for (item of group.items; track item.path) {
-              <li>
-                <a [routerLink]="item.path" routerLinkActive="menu-active" (click)="closeDrawer()">
-                  <app-icon [name]="item.icon" size="sm" />
-                  {{ item.label }}
-                </a>
-              </li>
+      <nav
+        class="grow overflow-y-auto pb-4"
+        [class.px-2]="!sidebarCollapsed()"
+        [class.px-0]="sidebarCollapsed()"
+        [class.py-3]="sidebarCollapsed()"
+        aria-label="Navegação principal"
+        data-open-help="navegacao"
+      >
+        @for (group of groups; track group.title; let firstGroup = $first) {
+          @if (sidebarCollapsed()) {
+            @if (!firstGroup) {
+              <div class="nav-group-divider" aria-hidden="true"></div>
             }
-          </ul>
+            <ul class="flex flex-col items-center gap-1.5 w-full p-0 m-0 list-none">
+              @for (item of group.items; track item.path) {
+                <li class="w-full flex justify-center">
+                  <div class="tooltip tooltip-right flex justify-center" [attr.data-tip]="item.label">
+                    <a
+                      [routerLink]="item.path"
+                      routerLinkActive="retracted-active"
+                      (click)="closeDrawer()"
+                      class="retracted-item"
+                      [attr.title]="item.label"
+                      [attr.aria-label]="item.label"
+                    >
+                      <app-icon [name]="item.icon" size="md" />
+                    </a>
+                  </div>
+                </li>
+              }
+            </ul>
+          } @else {
+            <ul class="menu w-full gap-1">
+              <li class="menu-title">{{ group.title }}</li>
+              @for (item of group.items; track item.path) {
+                <li>
+                  <a [routerLink]="item.path" routerLinkActive="menu-active" (click)="closeDrawer()">
+                    <app-icon [name]="item.icon" size="sm" />
+                    <span>{{ item.label }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          }
         }
       </nav>
-      <div class="flex-none border-t border-white/10 px-6 py-3 flex flex-col gap-2">
-        <div class="flex items-center justify-between text-xs text-white/50">
-          <span>Criado por {{ author.name }}</span>
-        </div>
-        <button
-          type="button"
-          class="btn btn-xs btn-outline border-white/20 text-white/80 hover:bg-white/10 hover:text-white justify-start gap-1.5 w-full"
-          (click)="donationModalOpen.set(true)"
-          title="Colaborar voluntariamente com o projeto via PIX"
-        >
-          <app-icon name="heart" size="xs" class="text-error" />
-          <span>Apoiar via PIX</span>
-        </button>
+
+      <div
+        class="flex-none border-t border-base-300 py-3 flex flex-col gap-2 transition-all"
+        [class.px-6]="!sidebarCollapsed()"
+        [class.px-2]="sidebarCollapsed()"
+        [class.items-center]="sidebarCollapsed()"
+      >
+        @if (!sidebarCollapsed()) {
+          <div class="flex items-center justify-between text-xs text-base-content/60">
+            <span>Criado por {{ author.name }}</span>
+          </div>
+          <button
+            type="button"
+            class="btn btn-xs btn-outline border-base-300 text-base-content/80 hover:bg-base-200 justify-start gap-1.5 w-full"
+            (click)="donationModalOpen.set(true)"
+            title="Colaborar voluntariamente com o projeto via PIX"
+          >
+            <app-icon name="heart" size="xs" class="text-error" />
+            <span>Apoiar via PIX</span>
+          </button>
+        } @else {
+          <div class="tooltip tooltip-right" data-tip="Apoiar via PIX">
+            <button
+              type="button"
+              class="btn btn-ghost btn-square size-10.5 rounded-xl hover:bg-base-200 text-error flex items-center justify-center transition-all cursor-pointer"
+              (click)="donationModalOpen.set(true)"
+              title="Apoiar via PIX"
+              aria-label="Apoiar via PIX"
+            >
+              <app-icon name="heart" size="md" />
+            </button>
+          </div>
+          <span
+            class="text-[10px] font-mono font-medium tracking-wider text-base-content/40 hover:text-base-content/75 transition-colors cursor-default select-none pt-0.5"
+            [title]="'Criado por ' + author.name"
+            [attr.aria-label]="'Criado por ' + author.name"
+          >
+            DS
+          </span>
+        }
       </div>
     </aside>
   </div>

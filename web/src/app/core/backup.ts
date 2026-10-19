@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { AuditRules, BusinessConfig } from '../domain/models';
 import { AccountStore } from './account.store';
 import { BusinessConfigStore } from './business-config.store';
+import { TrackingHistory } from './tracking-history';
 import {
   ChangesStore,
   ContentStore,
@@ -29,6 +30,7 @@ export interface BackupFile {
   learnings: unknown[];
   recStates: unknown[];
   questions?: unknown[];
+  trackingHistory?: unknown[];
 }
 
 /**
@@ -47,6 +49,7 @@ export class Backup {
   private readonly learnings = inject(LearningsStore);
   private readonly recStates = inject(RecStatesStore);
   private readonly questions = inject(QuestionsStore);
+  private readonly tracking = inject(TrackingHistory);
 
   build(): BackupFile {
     const { config, rules } = this.config.exportAll();
@@ -64,6 +67,7 @@ export class Backup {
       learnings: this.learnings.items(),
       recStates: this.recStates.items(),
       questions: this.questions.items(),
+      trackingHistory: this.tracking.exportAll(),
     };
   }
 
@@ -124,6 +128,8 @@ export class Backup {
     const questions = retag<never>(data.questions);
     await this.questions.upsertMany(questions);
     counts['dúvidas do atendimento'] = questions.length;
+
+    counts['histórico de rastreamento'] = this.tracking.importAll(data.trackingHistory);
 
     return counts;
   }
