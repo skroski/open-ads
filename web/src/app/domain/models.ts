@@ -401,8 +401,11 @@ export interface WasteRow {
   perf: Perf;
   /** Resultados no estágio-meta (contatos, qualificados…). */
   outcomes: number;
+  /** false distingue resultado desconhecido de zero medido. */
+  outcomesKnown?: boolean;
+  outcomeSource?: DataSource;
   assessment: Assessment;
-  /** Custo mensalizado que seria poupado se o padrão se mantiver (R$). */
+  /** Ritmo de gasto mensalizado; não é previsão de economia nem impacto causal. */
   monthlyCost: number;
   /** Já bloqueado no Google Ads (termo negativado): conta o gasto, mas não há o que negativar. */
   blocked?: boolean;

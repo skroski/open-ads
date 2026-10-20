@@ -1,0 +1,16 @@
+{
+  "name": "openads",
+  "owner": {
+    "name": "Daniel Ribeiro Skroski"
+  },
+  "plugins": [
+    {
+      "name": "openads",
+      "source": "./plugins/openads",
+      "description": "Análises de Google Ads em português pela API oficial."
+    }
+  ],
+  "metadata": {
+    "description": "Comandos OpenAds para consultar e analisar a API oficial do Google Ads."
+  }
+}

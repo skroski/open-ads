@@ -102,8 +102,15 @@ export function buildRecommendations(input: RecommendationInput): Recommendation
   const out: Recommendation[] = [];
   const stage = STAGE_LABEL[input.goal.goalStage].toLowerCase();
   const push = (r: Omit<Recommendation, 'priority'> & { priority?: number }): void => {
+    // Os valores mensais antigos são exposição ao gasto, não estimativas causais
+    // de economia. Recortes sobrepostos também não podem ser somados no plano.
+    const impact = r.impact.monthlyCostBrl === undefined ? r.impact : {
+      description: 'Impacto financeiro ainda não estimado. O gasto observado nas evidências indica o que revisar, sem garantir economia ou preservar todas as conversões.',
+      basis: `${r.impact.basis} A hipótese de melhoria ainda precisa ser validada. Mensalizar o gasto não estima o efeito de uma mudança; valide volume, janela, atribuição e qualidade dos resultados antes de projetar ganhos.`,
+    };
     out.push({
       ...r,
+      impact,
       priority: r.priority ?? priority(r.category, r.impact.monthlyCostBrl, r.confidence),
     });
   };
@@ -321,7 +328,7 @@ export function buildRecommendations(input: RecommendationInput): Recommendation
             .map((r) => `${r.label} (${brl(r.perf.cost)})`)
             .join('; ')}.`,
         ),
-        hypothesis('Aplicativos móveis tendem a gerar cliques acidentais; o aprendizado vale para vender soluções B2B.'),
+        hypothesis('O contexto do posicionamento, o criativo ou a página podem explicar cliques sem resultado. O tipo de aplicativo, sozinho, não identifica público inadequado.'),
       ],
       impact: {
         monthlyCostBrl: monthlyCost,
@@ -345,7 +352,8 @@ export function buildRecommendations(input: RecommendationInput): Recommendation
 
   for (const row of above.slice(0, 3)) {
     const cpo = row.perf.cost / Math.max(row.outcomes, 1);
-    const best = performing[0];
+    const channel = input.campaigns.find((c) => c.id === row.key)?.channel;
+    const best = channel ? performing.find((r) => input.campaigns.find((c) => c.id === r.key)?.channel === channel) : undefined;
     const bestCpo = best ? best.perf.cost / best.outcomes : null;
     push({
       id: `campaign:above:${row.key}`,
@@ -367,8 +375,8 @@ export function buildRecommendations(input: RecommendationInput): Recommendation
             : `${brl(row.monthlyCost)} por mês estão em uma campanha acima da referência.`,
         basis: 'Supõe que o custo por resultado médio se mantém ao mover verba: é uma estimativa otimista.',
       },
-      action: best
-        ? `Reduzir verba ou pausar "${row.label}" e testar o efeito de realocar para "${best.label}".`
+      action: best && row.assessment.confidence.level !== 'LOW'
+        ? `Revisar "${row.label}" e testar uma pequena realocação para "${best.label}", acompanhando volume e qualidade antes de ampliar a mudança.`
         : `Revisar segmentação, termos e página de "${row.label}".`,
       actionButton: { label: 'Ver campanhas', kind: 'ROUTE', route: '/campanhas' },
       confidence: row.assessment.confidence,
@@ -405,7 +413,7 @@ export function buildRecommendations(input: RecommendationInput): Recommendation
   }
 
   // ───── Horário ─────
-  const afterHours = input.waste.hours.filter((r) => r.assessment.verdict === 'PROBABLE_WASTE');
+  const afterHours = input.waste.hours.filter((r) => r.key.startsWith('h:') && r.assessment.verdict === 'PROBABLE_WASTE');
   if (afterHours.length) {
     const cost = afterHours.reduce((s, r) => s + r.perf.cost, 0);
     const monthlyCost = afterHours.reduce((s, r) => s + r.monthlyCost, 0);

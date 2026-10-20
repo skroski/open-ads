@@ -2,6 +2,7 @@ import { Injectable, computed, inject } from '@angular/core';
 
 import { ContentOpportunity, findContentOpportunities } from '../domain/content';
 import { stageLagDays } from '../domain/config';
+import { aggregateMatchesGoal, analyzeEfficiency, MediaScope } from '../domain/efficiency';
 import { diffDays, isoDate } from '../domain/dates';
 import { CHANNEL_LABEL } from '../domain/format';
 import {
@@ -188,7 +189,10 @@ export class Insights {
   /** Resultados no estágio-meta; null quando a fonte do estágio não existe. */
   private outcomesOf(m: FunnelMetrics): number | null {
     const v = m.stages[this.goal().goalStage];
-    return v.source === 'NONE' ? null : v.count;
+    if (v.source === 'NONE') return null;
+    if (v.source === 'ADS' && this.funnel()?.resolutions.some((r) =>
+      r.stage === this.goal().goalStage && r.allConversions > 0 && !r.confirmed)) return null;
+    return v.count;
   }
 
   readonly costRef = computed(() => {
@@ -200,7 +204,8 @@ export class Insights {
 
   readonly goalIsAdsMeasured = computed(() => {
     const s = this.goal().goalStage;
-    return s === 'CONTACT' || s === 'INTERACTION';
+    return (s === 'CONTACT' || s === 'INTERACTION') &&
+      aggregateMatchesGoal(this.ws.conversionActions.value() ?? [], this.cfg.config().mapping, this.goal());
   });
 
   // ───── Mapas auxiliares ─────
@@ -308,6 +313,11 @@ export class Insights {
     outcomesOf: (m) => this.outcomesOf(m),
     options: (dimension, groupLabel, extra) => this.options(dimension, groupLabel, extra),
   }));
+
+  /** Recortes com o mesmo escopo; a tela não rateia dados da conta entre campanhas. */
+  efficiency(channel: MediaScope, campaignId = '') {
+    return analyzeEfficiency(this.wasteInputs(), this.wasteEnv(), channel, campaignId);
+  }
 
   readonly wasteCampaigns = computed<WasteRow[]>(() =>
     wasteCampaigns(this.wasteInputs(), this.wasteEnv()),

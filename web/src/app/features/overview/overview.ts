@@ -304,7 +304,7 @@ const CATEGORY_LABEL: Record<string, string> = {
                 <div>
                   <h2 class="card-title text-base">Onde olhar primeiro</h2>
                   <p class="text-sm text-base-content/70">
-                    Ordenado por impacto estimado e confiança. Cada item mostra a evidência e como validar.
+                    Ordenado pela urgência, pelo gasto envolvido e pela confiança. Cada item mostra a evidência e como validar.
                   </p>
                 </div>
                 <a routerLink="/acoes" class="btn btn-ghost btn-sm">Todas ({{ insights.openRecommendations().length }})</a>

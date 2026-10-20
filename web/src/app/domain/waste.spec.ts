@@ -88,7 +88,7 @@ describe('assess — veredito de uma linha', () => {
         baselineRate: 0.1,
         signals: [
           { text: 'Termo desqualificado.', kind: 'FACT' },
-          { text: 'Intenção de emprego.', kind: 'HYPOTHESIS' },
+          { text: 'Página sem meio de contato no HTML.', kind: 'FACT', mechanism: 'PAGE_CONTACT' },
         ],
       },
       ctx,
@@ -100,6 +100,36 @@ describe('assess — veredito de uma linha', () => {
   it('com resultado e sem meta nem média, pede configuração', () => {
     const a = assess({ ...base, outcomes: 4, costTarget: null }, ctx);
     expect(a.reason).toBe('NO_CONFIG');
+  });
+
+  it('uma hipótese sobre aplicativos não confirma desperdício, mesmo com muitos cliques', () => {
+    const a = assess({ ...base, clicks: 1000, signals: [{ kind: 'HYPOTHESIS', text: 'Talvez sejam cliques acidentais.' }] }, ctx);
+    expect(a.verdict).toBe('INSUFFICIENT_DATA');
+    expect(a.reason).toBe('UNCONFIRMED');
+  });
+
+  it('hipóteses e sinais do mesmo mecanismo não elevam a confiança', () => {
+    const a = assess({ ...base, clicks: 1000, signals: [
+      { kind: 'FACT', text: 'Busca fora da oferta.', mechanism: 'INTENT' },
+      { kind: 'FACT', text: 'O mesmo termo está na lista.', mechanism: 'INTENT' },
+      { kind: 'HYPOTHESIS', text: 'Pode haver cliques acidentais.' },
+    ] }, ctx);
+    expect(a.confidence.level).toBe('MEDIUM');
+  });
+
+  it('não usa uma fração de dias maduros como se todos os cliques estivessem maduros', () => {
+    const a = assess({ ...base, clicks: 1000, maturity: 0.95, signals: [{ kind: 'FACT', text: 'Outro sinal.' }] }, ctx);
+    expect(a.reason).toBe('IMMATURE');
+    expect(a.chanceByLuck).toBeUndefined();
+  });
+
+  it('uma taxa com múltiplas conversões por clique não alimenta o teste de zero', () => {
+    expect(assess({ ...base, baselineRate: 1.3 }, ctx).reason).toBe('NO_GOAL_DATA');
+  });
+
+  it('informa a fonte real de resultados vindos do CRM', () => {
+    const a = assess({ ...base, outcomes: 10, outcomeSource: 'CRM' }, ctx);
+    expect(a.evidence.some((e) => e.text.includes('cada') && e.source === 'CRM')).toBe(true);
   });
 
   it('custo por resultado dentro da meta = dentro da meta', () => {
@@ -162,6 +192,27 @@ describe('assessGroup — referência sem a própria linha', () => {
     const a = rows.find((r) => r.key === 'a');
     expect(a?.assessment.verdict).toBe('INSUFFICIENT_DATA');
     expect(a?.assessment.reason).toBe('NO_GOAL_DATA');
+  });
+
+  it('não compara Display com Pesquisa quando o fallback entre grupos é desativado', () => {
+    const rows = assessGroup([item('display', 300, 0, 'DISPLAY'), item('busca', 300, 60, 'SEARCH')], ctx, { ...opts, allowGroupFallback: false });
+    expect(rows[0].assessment.reason).toBe('NO_GOAL_DATA');
+  });
+
+  it('dados desconhecidos ficam distintos de zero mesmo quando falta volume', () => {
+    const rows = assessGroup([{ ...item('a', 2, 0), outcomes: null }], ctx, opts);
+    expect(rows[0].outcomesKnown).toBe(false);
+    expect(rows[0].assessment.reason).toBe('LOW_VOLUME');
+  });
+
+  it('linhas imaturas não viram referência para outra linha', () => {
+    const rows = assessGroup([item('a', 300, 0, 'c1'), { ...item('b', 300, 60, 'c1'), maturity: 0.9 }], ctx, opts);
+    expect(rows[0].assessment.reason).toBe('NO_GOAL_DATA');
+  });
+
+  it('não mistura taxas do CRM com conversões atribuídas pelo Google Ads', () => {
+    const rows = assessGroup([item('a', 300, 0, 'c1'), { ...item('b', 300, 60, 'c1'), outcomeSource: 'CRM' }], ctx, opts);
+    expect(rows[0].assessment.reason).toBe('NO_GOAL_DATA');
   });
 
   it('linha fora da referência (termo negativado) não muda o veredito dos demais', () => {

@@ -83,9 +83,10 @@ type Tab = RecommendationStatus;
           <app-kpi label="Ações pendentes" [value]="count('OPEN') + ''" tip="Recomendações abertas, ainda não aceitas nem descartadas." note="aguardando decisão" />
           <app-kpi
             label="Impacto estimado"
-            [value]="money(pendingImpact())"
-            tip="Soma do custo mensal que as ações pendentes e em andamento podem poupar, quando estimável. Projeção do período, não garantia."
-            note="por mês, nas ações não concluídas"
+            [value]="pendingImpact() > 0 ? money(pendingImpact()) : 'Não estimado'"
+            [unavailable]="pendingImpact() === 0"
+            tip="Mensalizar o gasto não prevê economia. Um impacto financeiro exige dados comparáveis e validação do efeito sobre as conversões valiosas."
+            note="gasto em revisão não é economia garantida"
           />
           <app-kpi label="Em andamento" [value]="count('ACCEPTED') + ''" tip="Ações que você aceitou e ainda não marcou como feitas." note="aceitas" />
           <app-kpi label="Concluídas" [value]="count('DONE') + ''" tip="Ações marcadas como feitas. O efeito aparece em Histórico." note="marcadas como feitas" />
@@ -97,7 +98,7 @@ type Tab = RecommendationStatus;
           <div class="card-body gap-4">
             <div>
               <h2 class="text-base font-semibold">Impacto pendente por frente</h2>
-              <p class="text-sm text-base-content/70">R$ por mês, só ações ainda não concluídas e com impacto estimável.</p>
+              <p class="text-sm text-base-content/70">Exibido apenas quando houver uma estimativa sustentada por dados. Públicos, páginas e horários podem representar o mesmo gasto e não devem ser somados.</p>
             </div>
             <app-bar-list [items]="impactBars()" empty="Nenhuma ação pendente tem impacto em reais estimável." />
           </div>

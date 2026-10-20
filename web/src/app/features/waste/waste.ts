@@ -82,7 +82,7 @@ function forTotals(dimension: WasteDimension, rows: readonly WasteRow[]): WasteR
     <app-page-header data-open-help="desperdicios-introducao"
       group="Inteligência"
       title="Desperdícios"
-      subtitle="Separe o que é desperdício real do que rende. Cada conclusão mostra a evidência; só é desperdício quando o acaso não explica e outro sinal concorda."
+      subtitle="Veja quais gastos merecem revisão e quais trazem resultado. Cada análise mostra a evidência, a confiança e o que ainda falta saber."
       [exportData]="exportData()"
     />
 
@@ -186,10 +186,10 @@ function forTotals(dimension: WasteDimension, rows: readonly WasteRow[]): WasteR
           <section class="card card-border bg-base-100">
             <div class="card-body gap-4">
               <div>
-                <h2 class="text-base font-semibold">Maiores fontes de desperdício real</h2>
+                <h2 class="text-base font-semibold">Maiores gastos com desperdício provável</h2>
                 <p class="text-sm text-base-content/70">{{ currentTab().label }} sem resultado, do maior gasto para o menor.</p>
               </div>
-              <app-bar-list [items]="topBars('WASTE')" empty="Nenhum desperdício confirmado neste recorte." />
+              <app-bar-list [items]="topBars('WASTE')" empty="Nenhum desperdício provável identificado neste recorte." />
             </div>
           </section>
           <section class="card card-border bg-base-100">
@@ -327,7 +327,7 @@ function forTotals(dimension: WasteDimension, rows: readonly WasteRow[]): WasteR
                   <td class="text-right tabular">{{ r.perf.clicks | number: '1.0-0' }}</td>
                   <td class="text-right tabular font-semibold">{{ r.perf.cost | currency: 'BRL' : 'symbol' : '1.2-2' }}</td>
                   <td class="text-right tabular">
-                    @if (r.assessment.reason === 'NO_GOAL_DATA' && r.outcomes === 0) {
+                    @if (r.outcomesKnown === false) {
                       <span class="text-base-content/40">—</span>
                     } @else {
                       {{ r.outcomes | number: '1.0-1' }}
@@ -361,7 +361,7 @@ function forTotals(dimension: WasteDimension, rows: readonly WasteRow[]): WasteR
                 </tr>
                 @if (isOpen(r)) {
                   <tr class="bg-base-200/50">
-                    <td colspan="7">
+                    <td colspan="8">
                       <div class="grid gap-4 p-2 lg:grid-cols-3">
                         <div class="lg:col-span-2">
                           <h3 class="mb-2 text-sm font-semibold">Por que este veredito</h3>
@@ -411,7 +411,7 @@ function forTotals(dimension: WasteDimension, rows: readonly WasteRow[]): WasteR
                 }
               } @empty {
                 <tr>
-                  <td colspan="7" class="py-12 text-center text-base-content/60">
+                  <td colspan="8" class="py-12 text-center text-base-content/60">
                     Nada para mostrar com os filtros atuais.
                   </td>
                 </tr>
@@ -531,7 +531,7 @@ export class WastePage {
       };
     }
     const parts = [
-      `${pct(t.WASTE.share, 0)} é desperdício real (${brl(t.WASTE.cost)})`,
+      `${pct(t.WASTE.share, 0)} tem sinais de desperdício (${brl(t.WASTE.cost)})`,
       `${pct(t.GOOD.share, 0)} está dentro da meta (${brl(t.GOOD.cost)})`,
     ];
     const rest = t.EXPENSIVE.share + t.UNKNOWN.share + t.TRACKING.share;
@@ -540,13 +540,13 @@ export class WastePage {
       const top = this.countable().filter((r) => wasteCategory(r) === 'WASTE').sort((a, b) => b.perf.cost - a.perf.cost)[0];
       return {
         tone: t.WASTE.share >= 0.15 ? 'bad' : 'warn',
-        title: `${pct(t.WASTE.share, 0)} do investimento em ${dim} não gerou resultado`,
+        title: `${pct(t.WASTE.share, 0)} do investimento em ${dim} merece revisão`,
         text: `${text} O maior item é "${top.label}" (${brl(top.perf.cost)}).`,
       };
     }
     return {
       tone: t.GOOD.share > 0 ? 'ok' : 'info',
-      title: t.GOOD.share > 0 ? `Nenhum desperdício confirmado em ${dim}` : `Ainda não dá para concluir sobre ${dim}`,
+      title: t.GOOD.share > 0 ? `Nenhum desperdício provável identificado em ${dim}` : `Ainda não dá para concluir sobre ${dim}`,
       text,
     };
   });

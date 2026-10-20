@@ -1,0 +1,470 @@
+<app-page-header
+  group="Inteligência"
+  title="Eficiência da mídia"
+  subtitle="Entenda onde seu investimento merece atenção e qual é o próximo passo, sem cortar o que pode trazer bons clientes."
+  [exportData]="exportData()"
+/>
+
+<app-data-state
+  [loading]="insights.loadingCore()"
+  [error]="insights.coreError()"
+  [hasData]="!!insights.funnel()"
+  (retry)="ws.reloadAll()"
+>
+  <section class="card card-border bg-base-100" aria-label="Escolha o que analisar">
+    <div class="card-body gap-5">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="flex min-w-0 flex-col gap-2 font-medium">
+          <label for="efficiency-format">Tipo de campanha</label>
+          <select
+            id="efficiency-format"
+            class="select efficiency-control w-full"
+            [value]="channel()"
+            (change)="changeFormat($event)"
+          >
+            @for (f of formats; track f) {
+              <option [value]="f">{{ formatLabel(f) }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex min-w-0 flex-col gap-2 font-medium">
+          <label for="efficiency-campaign">Campanha</label>
+          <select
+            id="efficiency-campaign"
+            class="select efficiency-control w-full"
+            [value]="campaignId()"
+            (change)="campaignId.set(value($event))"
+          >
+            <option value="">Todas deste formato</option>
+            @for (c of campaigns(); track c.id) {
+              <option [value]="c.id">{{ c.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-x-6 gap-y-2 border-t border-base-300 pt-4 text-sm">
+        <p><strong>Período:</strong> {{ period() }}</p>
+        <p><strong>Resultado avaliado:</strong> {{ goalLabel() }}</p>
+        <p>
+          <strong>Meta por resultado:</strong>
+          {{
+            insights.goal().targetCostPerGoal === null
+              ? 'Ainda não definida'
+              : money(insights.goal().targetCostPerGoal!)
+          }}
+        </p>
+      </div>
+      <p class="text-sm text-base-content/70">
+        A meta por resultado é o custo que você aceita pagar por uma ação importante para o negócio.
+        Você pode ajustá-la nas
+        <a routerLink="/configuracoes" class="link font-medium text-base-content">Configurações</a>.
+      </p>
+    </div>
+  </section>
+
+  <section
+    class="card card-border border-primary/30 bg-base-100"
+    aria-labelledby="efficiency-summary"
+  >
+    <div class="card-body gap-5">
+      <div class="flex items-start gap-3">
+        <span class="rounded-box bg-primary/10 p-3 text-primary"><app-icon name="target" /></span>
+        <div class="min-w-0">
+          <p class="mb-1 text-sm font-medium text-base-content">Sua leitura do período</p>
+          <h2 id="efficiency-summary" class="text-xl font-semibold sm:text-2xl" aria-live="polite">
+            {{ title() }}
+          </h2>
+          <p class="mt-2 max-w-3xl text-base-content/70">
+            Comece pelos itens prioritários abaixo. Um gasto em revisão pede investigação; ele não
+            representa uma economia garantida.
+          </p>
+        </div>
+      </div>
+      <div class="grid gap-3 md:grid-cols-3">
+        <div class="rounded-box border border-base-300 p-4">
+          <p class="text-sm font-medium">Investimento neste recorte</p>
+          <p class="my-2 font-display text-3xl tabular">
+            {{ totalCost() | currency: 'BRL' : 'symbol' : '1.2-2' }}
+          </p>
+          <p class="text-sm text-base-content/70">Fonte: Google Ads · campanhas · {{ period() }}</p>
+        </div>
+        <div class="rounded-box border border-warning/40 bg-warning/5 p-4">
+          <p class="text-sm font-medium">Gasto que merece revisão</p>
+          <p class="my-2 font-display text-3xl tabular">
+            {{ reviewCost() | currency: 'BRL' : 'symbol' : '1.2-2' }}
+          </p>
+          <p class="text-sm text-base-content/70">
+            Cálculo sobre Google Ads: acima da referência, sinais de desperdício ou medição a
+            conferir.
+          </p>
+        </div>
+        <div class="rounded-box border border-base-300 p-4">
+          <p class="text-sm font-medium">Gasto ainda sem conclusão</p>
+          <p class="my-2 font-display text-3xl tabular">
+            {{ totals().UNKNOWN.cost | currency: 'BRL' : 'symbol' : '1.2-2' }}
+          </p>
+          <p class="text-sm text-base-content/70">
+            Cálculo sobre Google Ads: falta volume, tempo ou informação sobre os resultados.
+          </p>
+        </div>
+      </div>
+      <p class="text-sm text-base-content/70">
+        Dentro da referência:
+        <strong>{{ totals().GOOD.cost | currency: 'BRL' : 'symbol' : '1.2-2' }}</strong> (cálculo
+        sobre Google Ads). Os valores acima usam somente campanhas; páginas, horários e
+        posicionamentos são outras visões do mesmo investimento.
+      </p>
+    </div>
+  </section>
+
+  @if (insights.maturity() < 1) {
+    <div role="status" class="alert alert-info alert-soft items-start">
+      <app-icon name="clock" />
+      <div>
+        <p class="font-semibold">Parte dos resultados ainda pode chegar</p>
+        <p>
+          A meta configurada prevê até {{ insights.goalLagDays() }} dias para o resultado acontecer.
+          Reavalie este período após {{ insights.maturesOnDate() }} ou escolha um período anterior.
+          Fonte: prazo configurado no negócio; não é um atraso medido da plataforma.
+        </p>
+      </div>
+    </div>
+  }
+
+  <details class="card card-border bg-base-100">
+    <summary class="px-5 py-4 font-semibold">O que esta análise consegue enxergar</summary>
+    <div class="flex flex-col gap-4 border-t border-base-300 p-5">
+      <p>
+        Estas são as fontes e os limites deste recorte. Uma fonte indisponível não significa que
+        houve zero resultado.
+      </p>
+      <dl class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <dt class="font-semibold">Google Ads</dt>
+          <dd class="text-sm text-base-content/70">
+            Campanhas, cliques, gasto e conversões do período. Cada recorte informa quando não há
+            dados ou a consulta falhou.
+          </dd>
+        </div>
+        <div>
+          <dt class="font-semibold">Google Analytics · {{ ga4State() }}</dt>
+          <dd class="text-sm text-base-content/70">
+            Sessões e engajamento por página, considerando todas as origens. Não identificam
+            sozinhos o público ou posicionamento que gerou a visita.
+          </dd>
+        </div>
+        <div>
+          <dt class="font-semibold">Conteúdo orgânico · {{ gscState() }}</dt>
+          <dd class="text-sm text-base-content/70">
+            O Search Console ajuda na análise de intenção e conteúdo. Cliques orgânicos não são
+            resultados da mídia paga.
+            <a routerLink="/intencao" class="link font-medium text-base-content">Ver intenção e páginas</a>.
+          </dd>
+        </div>
+        <div>
+          <dt class="font-semibold">Páginas lidas · {{ auditedCount() }}</dt>
+          <dd class="text-sm text-base-content/70">
+            Fonte: leituras do site em cache por até 24 horas. A leitura do HTML não reproduz toda a
+            experiência no navegador nem o período histórico.
+          </dd>
+        </div>
+        <div>
+          <dt class="font-semibold">Qualidade das conversões</dt>
+          <dd class="text-sm text-base-content/70">
+            Contato não significa cliente qualificado. Qualificação, vendas e receita dependem dos
+            registros vinculados ao negócio.
+            <a routerLink="/funil" class="link font-medium text-base-content">Conferir o funil</a>.
+          </dd>
+        </div>
+        <div>
+          <dt class="font-semibold">Públicos, interesses e frequência</dt>
+          <dd class="text-sm text-base-content/70">
+            Segmentos, interesses, dados demográficos, alcance e frequência ainda não são coletados.
+            Estratégia de lance e orçamento configurado também não entram nesta análise. Nenhum
+            deles é presumido.
+          </dd>
+        </div>
+      </dl>
+      @if (channel() !== 'ALL' || campaignId()) {
+        <p class="rounded-box bg-base-200 p-3 text-sm">
+          Regiões e dispositivos estão disponíveis apenas no total da conta nas consultas atuais.
+          Para evitar atribuir o gasto ao público errado, eles aparecem ao selecionar todos os
+          formatos e todas as campanhas.
+        </p>
+      }
+      @if (!insights.goalIsAdsMeasured()) {
+        <p class="rounded-box bg-base-200 p-3 text-sm">
+          Os recortes detalhados não têm uma contagem confirmada do resultado escolhido. Confirme as
+          ações no <a routerLink="/funil" class="link font-medium text-base-content">funil</a>: conversões que
+          misturam cliques em botão, contatos e vendas não podem ser tratadas como se fossem o mesmo
+          resultado.
+        </p>
+      }
+      <p class="text-sm text-base-content/70">
+        Google Ads, Analytics e CRM podem atribuir o resultado a dias e canais diferentes. Confira
+        janela, fuso, consentimento e modelo de atribuição antes de comparar as fontes. Receita e
+        retorno sobre gasto exigem vendas com valor registrado.
+      </p>
+      <div class="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          class="btn efficiency-control"
+          [disabled]="audits.running().size > 0 || !ws.landingPages.value()?.length"
+          (click)="readPages()"
+        >
+          @if (audits.running().size > 0) {
+            <span class="loading loading-spinner loading-sm"></span>
+          }
+          Conferir páginas deste recorte
+        </button>
+        <a routerLink="/configuracoes" class="btn btn-ghost efficiency-control"
+          >Conectar e ajustar fontes</a
+        >
+      </div>
+      @if (audits.lastError(); as message) {
+        <p role="alert" class="text-error">{{ message }}</p>
+      }
+    </div>
+  </details>
+
+  <section aria-labelledby="efficiency-priorities" class="flex flex-col gap-4">
+    <div>
+      <h2 id="efficiency-priorities" class="text-2xl font-semibold">Onde olhar primeiro</h2>
+      <p class="mt-1 text-base-content/70">
+        Primeiro a medição, depois os sinais de desperdício e o custo por resultado. Dentro de cada
+        prioridade, o maior gasto vem antes.
+      </p>
+    </div>
+    <div class="grid gap-4 rounded-box border border-base-300 bg-base-100 p-4 md:grid-cols-3">
+      <div class="flex min-w-0 flex-col gap-2 text-sm font-medium">
+        <label for="efficiency-dimension">O que você quer conferir?</label>
+        <select
+          id="efficiency-dimension"
+          class="select efficiency-control w-full"
+          [value]="dimension()"
+          (change)="changeDimension($event)"
+        >
+          @for (d of dimensions(); track d.key) {
+            <option [value]="d.key">{{ d.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="flex min-w-0 flex-col gap-2 text-sm font-medium">
+        <label for="efficiency-status">Mostrar</label>
+        <select
+          id="efficiency-status"
+          class="select efficiency-control w-full"
+          [value]="filter()"
+          (change)="filter.set(value($event))"
+        >
+          <option value="ALL">Todos os diagnósticos</option>
+          <option value="REVIEW">Revisar primeiro</option>
+          <option value="UNKNOWN">Sem dados para concluir</option>
+          <option value="GOOD">Dentro da referência</option>
+        </select>
+      </div>
+      <div class="flex min-w-0 flex-col gap-2 text-sm font-medium">
+        <label for="efficiency-search">Buscar pelo nome</label>
+        <input
+          id="efficiency-search"
+          type="search"
+          class="input efficiency-control w-full"
+          placeholder="Nome do item ou campanha"
+          [value]="query()"
+          (input)="query.set(value($event))"
+        />
+      </div>
+    </div>
+    @if (dimension() === 'placement') {
+      <p class="text-sm text-base-content/70">
+        Fonte: Google Ads · {{ placementNote() }} Um aplicativo, site ou canal não é inadequado
+        apenas por seu tipo.
+      </p>
+    }
+    @if (dimension() === 'hour') {
+      <p class="text-sm text-base-content/70">
+        Os cartões agrupam por hora do dia. O mesmo clique também pertence a um dia da semana, por
+        isso essas duas visões não são somadas.
+      </p>
+    }
+    <app-data-state
+      [loading]="dimensionLoading()"
+      [error]="dimensionError()"
+      [hasData]="rows().length > 0"
+      (retry)="ws.reloadAll()"
+    >
+      <p class="text-sm text-base-content/70" role="status">
+        {{ advice().length }} itens neste filtro · {{ period() }} · fonte do gasto: Google Ads
+      </p>
+      @for (a of visible(); track a.row.key) {
+        <article class="card card-border min-w-0 bg-base-100">
+          <div class="card-body gap-5">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="badge badge-outline h-auto min-h-7 py-1">{{ a.priorityLabel }}</span>
+              <app-confidence [level]="a.row.assessment.confidence.level" />
+            </div>
+            <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto]">
+              <div class="min-w-0">
+                <h3 class="break-words text-xl font-semibold">{{ a.row.label }}</h3>
+                @if (a.row.sublabel) {
+                  <p class="mt-1 break-words text-sm text-base-content/70">{{ a.row.sublabel }}</p>
+                }
+                <p class="mt-3 font-semibold">{{ a.headline }}</p>
+                <p class="mt-1 max-w-3xl text-base-content/70">{{ a.explanation }}</p>
+              </div>
+              <dl class="flex flex-wrap gap-5 lg:text-right">
+                <div>
+                  <dt class="text-sm text-base-content/70">Gasto · Google Ads</dt>
+                  <dd class="mt-1 text-xl font-semibold tabular">
+                    {{ a.row.perf.cost | currency: 'BRL' : 'symbol' : '1.2-2' }}
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-base-content/70">Cliques · Google Ads</dt>
+                  <dd class="mt-1 text-xl font-semibold tabular">
+                    {{ a.row.perf.clicks | number: '1.0-0' }}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+            <div class="rounded-box bg-base-200 p-4">
+              <p class="mb-1 text-sm font-semibold text-base-content">Próximo passo</p>
+              <p>{{ a.action }}</p>
+            </div>
+            <details class="border-t border-base-300 pt-2">
+              <summary class="font-medium">Entender os dados e o motivo desta análise</summary>
+              <div class="mt-4 grid gap-6 lg:grid-cols-2">
+                <div class="flex min-w-0 flex-col gap-5">
+                  <dl class="grid grid-cols-1 gap-3 rounded-box bg-base-200 p-4 sm:grid-cols-3">
+                    <div>
+                      <dt class="text-sm text-base-content/70">Impressões · Google Ads</dt>
+                      <dd class="font-semibold tabular">
+                        {{ a.row.perf.impressions | number: '1.0-0' }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm text-base-content/70">
+                        {{ goalLabel() }} ·
+                        {{
+                          a.row.outcomesKnown === false
+                            ? 'fonte indisponível'
+                            : sourceLabel[a.row.outcomeSource ?? 'GOOGLE_ADS']
+                        }}
+                      </dt>
+                      <dd class="font-semibold tabular">
+                        {{
+                          a.row.outcomesKnown === false
+                            ? 'Não disponível'
+                            : (a.row.outcomes | number: '1.0-1')
+                        }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm text-base-content/70">Custo por resultado · cálculo</dt>
+                      <dd class="font-semibold tabular">
+                        {{
+                          a.row.outcomesKnown !== false && a.row.outcomes > 0
+                            ? money(a.row.perf.cost / a.row.outcomes)
+                            : 'Não disponível'
+                        }}
+                      </dd>
+                    </div>
+                  </dl>
+                  <section>
+                    <h4 class="mb-2 font-semibold">O que sabemos · {{ period() }}</h4>
+                    <app-evidence-list [items]="a.facts" />
+                  </section>
+                  @if (a.hypotheses.length) {
+                    <section>
+                      <h4 class="mb-2 font-semibold">
+                        Possíveis explicações, ainda não confirmadas
+                      </h4>
+                      <app-evidence-list [items]="a.hypotheses" />
+                    </section>
+                  }
+                  @if (a.missing.length) {
+                    <section>
+                      <h4 class="mb-2 font-semibold">O que falta para decidir melhor</h4>
+                      <app-evidence-list [items]="a.missing" />
+                    </section>
+                  }
+                </div>
+                <div class="flex min-w-0 flex-col gap-5">
+                  <section>
+                    <h4 class="mb-2 font-semibold">Como chegamos a essa confiança</h4>
+                    <ul class="list-disc space-y-2 pl-5 text-sm text-base-content/70">
+                      @for (reason of a.row.assessment.confidence.reasons; track reason) {
+                        <li>{{ reason }}</li>
+                      }
+                    </ul>
+                    <div class="mt-3"><app-verdict [verdict]="a.row.assessment.verdict" /></div>
+                  </section>
+                  <section class="rounded-box border border-base-300 p-4">
+                    <h4 class="font-semibold">{{ a.impact.label }}</h4>
+                    @if (a.impact.amount !== null) {
+                      <p class="my-2 text-2xl tabular">
+                        {{ a.impact.amount | currency: 'BRL' : 'symbol' : '1.2-2' }}
+                      </p>
+                    }
+                    <p class="mt-2 text-sm text-base-content/70">{{ a.impact.basis }}</p>
+                  </section>
+                  <section>
+                    <h4 class="mb-2 font-semibold">Como saber se melhorou</h4>
+                    <p class="text-sm text-base-content/70">{{ a.validation }}</p>
+                  </section>
+                </div>
+              </div>
+            </details>
+          </div>
+        </article>
+      } @empty {
+        <div class="card card-border bg-base-100">
+          <div class="card-body items-start gap-3 py-8">
+            <app-icon name="search" />
+            <h3 class="text-xl font-semibold">
+              {{
+                query() || filter() !== 'ALL'
+                  ? 'Nenhum item corresponde aos filtros'
+                  : 'Não há itens disponíveis neste recorte'
+              }}
+            </h3>
+            <p class="max-w-2xl text-base-content/70">
+              {{
+                query() || filter() !== 'ALL'
+                  ? 'Limpe a busca ou mostre todos os diagnósticos para continuar.'
+                  : 'Experimente outro tipo de campanha ou período. A ausência de linhas não comprova que não há desperdício.'
+              }}
+            </p>
+            @if (query() || filter() !== 'ALL') {
+              <button
+                type="button"
+                class="btn efficiency-control"
+                (click)="query.set(''); filter.set('ALL')"
+              >
+                Limpar filtros
+              </button>
+            }
+            <a
+              routerLink="/configuracoes"
+              class="link font-medium text-base-content efficiency-control content-center"
+              >Conferir as fontes de dados</a
+            >
+          </div>
+        </div>
+      }
+      @if (advice().length > shown()) {
+        <button
+          type="button"
+          class="btn efficiency-control self-center"
+          (click)="shown.set(shown() + 12)"
+        >
+          Mostrar mais itens
+        </button>
+      }
+    </app-data-state>
+  </section>
+  <p class="text-sm text-base-content/70">
+    As recomendações orientam sua revisão. Alterações em campanhas, exclusões e lances exigem sua
+    confirmação explícita.
+  </p>
+</app-data-state>

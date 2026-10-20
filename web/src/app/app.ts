@@ -34,6 +34,7 @@ const NAV_GROUPS: NavGroup[] = [
     title: 'Inteligência',
     items: [
       { path: 'visao-geral', label: 'Visão geral', icon: 'home' },
+      { path: 'eficiencia', label: 'Eficiência da mídia', icon: 'target' },
       { path: 'funil', label: 'Qualidade do funil', icon: 'funnel' },
       { path: 'desperdicios', label: 'Desperdícios', icon: 'ban' },
       { path: 'intencao', label: 'Intenção e páginas', icon: 'link' },

@@ -151,7 +151,8 @@ describe('buildRecommendations', () => {
     expect(rec).toBeDefined();
     expect(rec?.actionButton?.kind).toBe('NEGATE_TERMS');
     expect(rec?.actionButton?.terms).toEqual(['curso ia', 'vagas ia']);
-    expect(rec?.impact.monthlyCostBrl).toBeCloseTo(80, 5); // dois fixtures com monthlyCost 40
+    expect(rec?.impact.monthlyCostBrl).toBeUndefined();
+    expect(rec?.impact.description).toContain('não estimado');
   });
 
   it('não repete como "lista de desqualificados" os termos já listados como desperdício provável', () => {
