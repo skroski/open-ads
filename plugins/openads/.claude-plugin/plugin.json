@@ -1,0 +1,9 @@
+{
+  "name": "openads",
+  "version": "1.0.0",
+  "description": "Consulte e analise Google Ads em português com dados da API oficial.",
+  "author": {
+    "name": "Daniel Ribeiro Skroski"
+  },
+  "license": "GPL-2.0-or-later"
+}

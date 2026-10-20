@@ -21,9 +21,9 @@ export const BADGE_TONE: Record<WasteCategory, string> = {
 
 export const CATEGORY: Record<WasteCategory, CategoryInfo> = {
   WASTE: {
-    label: 'Desperdício real',
+    label: 'Desperdício provável',
     short: 'Desperdício',
-    tip: 'Gasto sem resultado que o acaso não explica e outro sinal confirma, mais o gasto em termos que você já bloqueou.',
+    tip: 'Sinais que justificam revisar o gasto, incluindo regras configuradas e termos já bloqueados. Não é garantia de economia ao cortar.',
     color: VERDICT_COLOR.waste,
     tone: 'error',
   },

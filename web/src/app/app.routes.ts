@@ -16,6 +16,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/funnel/funnel').then((m) => m.FunnelPage),
   },
   {
+    path: 'eficiencia',
+    title: `Eficiência da mídia · ${TITLE}`,
+    loadComponent: () => import('./features/efficiency/efficiency').then((m) => m.EfficiencyPage),
+  },
+  {
     path: 'desperdicios',
     title: `Desperdícios · ${TITLE}`,
     loadComponent: () => import('./features/waste/waste').then((m) => m.WastePage),

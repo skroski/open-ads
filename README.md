@@ -25,6 +25,12 @@ Painel de análise de Google Ads que separa **desperdício real** de **gasto que
 
 **Para agências:** várias contas de clientes, acesso direto ou por MCC, e importação de todos os clientes de um MCC de uma vez. Metas, regras e histórico ficam separados por conta.
 
+## Comandos OpenAds para assistentes
+
+Use comandos como `/openads:analise-palavras-chave`, `/openads:analise-termos` e `/openads:analise-campanhas` para consultar a API oficial em português, sem escrever GAQL. O plugin utiliza a API do painel já configurada; a interface visual é opcional.
+
+Veja [como ativar o plugin e usar os dez comandos](docs/OPENADS.md).
+
 ## Sumário
 
 - [Requisitos](#requisitos)

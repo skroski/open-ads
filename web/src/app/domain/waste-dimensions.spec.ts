@@ -1,7 +1,7 @@
 import { defaultGoal } from './config';
 import { AssessContext, GroupOptions } from './waste';
 import { RegionRow, SearchTermRow } from './models';
-import { WasteEnv, WasteInputs, wasteDevices, wasteHours, wasteRegions, wasteTerms } from './waste-dimensions';
+import { WasteEnv, WasteInputs, wasteDevices, wasteHours, wastePages, wasteRegions, wasteTerms } from './waste-dimensions';
 
 const context: AssessContext = {
   thresholds: { zeroResultAlpha: 0.1, minClicks: 8, aboveTargetFactor: 1.5 },
@@ -68,6 +68,21 @@ describe('wasteDevices', () => {
     );
     expect(rows.map((r) => r.label).sort()).toEqual(['Celular', 'Computador']);
     expect(rows.every((r) => r.dimension === 'device')).toBe(true);
+  });
+});
+
+describe('wastePages — limites do cruzamento com Analytics', () => {
+  const page = { ...perf(200, 200, 0), url: 'https://exemplo.com/oferta', normalizedUrl: 'exemplo.com/oferta', campaignId: '1', campaignName: 'Display' };
+  it('uma página ausente do relatório do GA4 não vira zero sessões nem falha de rastreamento', () => {
+    const rows = wastePages(inputs({ landingPages: [page], ga4Rows: [{ path: '/outro', sessions: 100, engagedSessions: 30, keyEvents: 4, avgEngagementSec: 10 }] }), env);
+    expect(rows[0].assessment.verdict).not.toBe('TRACKING_FAILURE');
+    expect(rows[0].assessment.evidence.some((e) => e.source === 'GA4' && e.kind === 'UNAVAILABLE')).toBe(true);
+  });
+  it('mostra engajamento como contexto de todas as origens, sem confirmar desperdício de mídia', () => {
+    const rows = wastePages(inputs({ landingPages: [page], ga4Rows: [{ path: '/oferta', sessions: 100, engagedSessions: 5, keyEvents: 0, avgEngagementSec: 2 }] }), env);
+    expect(rows[0].assessment.evidence.some((e) => e.source === 'GA4' && e.kind === 'FACT' && e.text.includes('todas as origens'))).toBe(true);
+    expect(rows[0].assessment.evidence.some((e) => e.source === 'GA4' && e.kind === 'HYPOTHESIS')).toBe(true);
+    expect(rows[0].assessment.verdict).not.toBe('PROBABLE_WASTE');
   });
 });
 

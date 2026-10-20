@@ -13,6 +13,7 @@ import {
   RegionRow,
   BusinessConfig,
   Ga4PageRow,
+  Evidence,
 } from './models';
 import { deviceLabel } from '../data/ads-normalize';
 import { FunnelMetrics, FunnelResult } from './funnel';
@@ -100,6 +101,8 @@ export function wasteCampaigns(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
         signals.push({
           kind: 'FACT',
           text: `${pct(share.unq / share.cost, 0)} do custo desta campanha está em termos da sua lista de "sem intenção de compra".`,
+          source: 'CONFIG',
+          mechanism: 'INTENT',
         });
       }
       return {
@@ -113,6 +116,7 @@ export function wasteCampaigns(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
           conversions: c.conversions,
         },
         outcomes: metrics ? env.outcomesOf(metrics) : null,
+        outcomeSource: metrics?.stages[env.context.goal.goalStage].source === 'CRM' ? 'CRM' : 'GOOGLE_ADS',
         parentKey: c.channel,
         signals,
         maturity: maturity.get(c.id),
@@ -124,6 +128,7 @@ export function wasteCampaigns(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
     env.options('campaign', 'todas as campanhas', {
       parentLabel: 'outras campanhas do mesmo tipo',
       parentNames: inputs.channelNames,
+      allowGroupFallback: false,
     }),
   );
 }
@@ -131,16 +136,13 @@ export function wasteCampaigns(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
 export function wasteTerms(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
   const brand = inputs.brand;
   const adsByGroup = inputs.adsByGroup;
-  const crm = inputs.crmByTerm;
   const adsMeasured = env.adsMeasured;
   const items: GroupItem[] = inputs.terms
     .filter((t) => t.clicks > 0 || t.cost > 0)
     .map((t) => {
       const outcomes = adsMeasured
         ? t.conversions
-        : crm.available
-          ? (crm.map.get(normalize(t.term)) ?? 0)
-          : null;
+        : null;
       const base = {
         key: `${t.term}|${t.campaignId}|${t.adGroupId}`,
         label: t.term,
@@ -184,7 +186,7 @@ export function wasteTerms(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
       }
 
       const signals: RowSignal[] = [];
-      if (t.category === 'UNQUALIFIED') signals.push({ kind: 'FACT', text: t.categoryReason });
+      if (t.category === 'UNQUALIFIED') signals.push({ kind: 'FACT', source: 'CONFIG', mechanism: 'INTENT', text: t.categoryReason });
       const intent = inferIntent(t.term, brand);
       if (intentFit(intent) === 'BAD' && t.category !== 'UNQUALIFIED') {
         signals.push({
@@ -198,7 +200,8 @@ export function wasteTerms(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
         const c = coherenceOf(t.term, group.texts, pageTextOf(url, inputs.auditOf(url)));
         if (c.score !== null && c.score < LOW_COHERENCE) {
           signals.push({
-            kind: c.basis === 'AUDIT' ? 'FACT' : 'HYPOTHESIS',
+            kind: 'HYPOTHESIS',
+            mechanism: 'INTENT',
             text: `A busca tem pouco a ver com ${c.weakest === 'AD' ? 'o texto do anúncio' : 'a página de destino'} (aderência de ${pct(c.score, 0)}).`,
           });
         }
@@ -211,6 +214,7 @@ export function wasteTerms(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
     env.options('term', 'todos os termos', {
       parentLabel: 'demais termos da mesma campanha',
       parentNames: inputs.campaignNames,
+      allowGroupFallback: false,
     }),
   );
 }
@@ -238,6 +242,7 @@ export function wasteKeywords(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
     env.options('keyword', 'todas as palavras', {
       parentLabel: 'demais palavras da mesma campanha',
       parentNames: inputs.campaignNames,
+      allowGroupFallback: false,
     }),
   );
 }
@@ -376,8 +381,10 @@ export function wastePages(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
     const audit = inputs.auditOf(e.url);
     const signals: RowSignal[] = [];
     const trackingIssues: string[] = [];
+    const contextEvidence: Evidence[] = [];
 
     if (audit) {
+      contextEvidence.push({ kind: 'FACT', source: 'SITE', text: `Página consultada em ${audit.fetchedAt}. Esta leitura atual do HTML não descreve necessariamente a página durante o período dos anúncios.` });
       if (!audit.ok) {
         trackingIssues.push(
           `A página respondeu ${audit.status ?? 'sem resposta'}${audit.error ? ` (${audit.error})` : ''}.`,
@@ -386,7 +393,9 @@ export function wastePages(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
         if (audit.forms + audit.telLinks + audit.whatsappLinks === 0) {
           signals.push({
             kind: 'FACT',
-            text: 'A página não tem formulário, telefone nem botão de WhatsApp.',
+            text: 'O HTML lido não contém formulário, telefone nem botão de WhatsApp; elementos carregados por JavaScript precisam de verificação no navegador.',
+            source: 'SITE',
+            mechanism: 'PAGE_CONTACT',
           });
         }
         if (audit.trackingTags.length === 0 && e.perf.conversions === 0) {
@@ -398,6 +407,8 @@ export function wastePages(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
           signals.push({
             kind: 'FACT',
             text: `A página levou ${num((audit.responseMs ?? 0) / 1000, 1)} s para responder.`,
+            source: 'SITE',
+            mechanism: 'PAGE_SPEED',
           });
         }
         if (!audit.hasViewport) {
@@ -409,7 +420,7 @@ export function wastePages(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
       }
     }
 
-    if (sessionsByPath.size && e.perf.clicks >= env.context.thresholds.minClicks) {
+    if (ga4Rows !== null) {
       let path = '/';
       try {
         path =
@@ -420,10 +431,19 @@ export function wastePages(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
       } catch {
         /* mantém "/" */
       }
-      if ((sessionsByPath.get(path) ?? 0) === 0) {
-        trackingIssues.push(
-          `O Google Analytics não registrou nenhuma sessão em ${path}, apesar de ${num(e.perf.clicks)} cliques pagos.`,
-        );
+      const analytics = ga4Rows.filter((r) => (r.path.split('?')[0].replace(/\/+$/, '') || '/') === path);
+      if (analytics.length) {
+        const sessions = analytics.reduce((s, r) => s + r.sessions, 0);
+        const engaged = analytics.reduce((s, r) => s + r.engagedSessions, 0);
+        const keyEvents = analytics.reduce((s, r) => s + r.keyEvents, 0);
+        contextEvidence.push({ kind: 'FACT', source: 'GA4', text: `O caminho ${path} tem ${num(sessions)} sessões, ${num(engaged)} sessões com engajamento e ${num(keyEvents, 1)} eventos principais no período. São todas as origens da propriedade, sem identificar domínio ou campanha; não são somados às conversões do Ads.` });
+        if (sessions >= 30 && engaged / sessions < 0.25) signals.push({ kind: 'HYPOTHESIS', source: 'GA4', mechanism: 'PAGE_ENGAGEMENT', text: 'Uma parte pequena das sessões deste caminho tem engajamento. Confira relevância da oferta, carregamento e consentimento; esse recorte não comprova baixa qualidade do tráfego pago.' });
+      } else {
+        contextEvidence.push({ kind: 'UNAVAILABLE', source: 'GA4', text: `O relatório não retornou o caminho ${path}. Isso não significa zero sessões: confira filtros, domínio, limites e configuração da propriedade.` });
+      }
+      if (sessionsByPath.has(path) && sessionsByPath.get(path) === 0) {
+        signals.push({ kind: 'HYPOTHESIS', source: 'GA4', mechanism: 'PAGE_MEASUREMENT',
+          text: `O Google Analytics retornou zero sessões em ${path}; confira domínio, consentimento e filtros antes de atribuir isso aos cliques pagos.` });
       }
     }
 
@@ -442,7 +462,8 @@ export function wastePages(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
     }
     if (weight > 0 && weighted / weight < LOW_COHERENCE) {
       signals.push({
-        kind: audit?.ok ? 'FACT' : 'HYPOTHESIS',
+        kind: 'HYPOTHESIS',
+        mechanism: 'INTENT',
         text: `As buscas que chegam aqui têm aderência de ${pct(weighted / weight, 0)} com o conteúdo da página${
           audit?.ok ? '' : ' (estimada pelo endereço; leia a página para confirmar)'
         }.`,
@@ -456,6 +477,7 @@ export function wastePages(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
       outcomes: env.adsMeasured ? e.perf.conversions : null,
       signals,
       trackingIssues,
+      contextEvidence,
     };
   });
   return assessGroup(
@@ -485,7 +507,7 @@ export function wastePlacements(inputs: WasteInputs, env: WasteEnv): WasteRow[] 
           ? [
               {
                 kind: 'HYPOTHESIS' as const,
-                text: 'Aplicativo móvel: cliques acidentais são comuns e a intenção de compra tende a ser baixa.',
+                text: 'Se houver cliques sem resultado, confira a experiência no aplicativo e a qualidade dos contatos. O tipo de posicionamento, sozinho, não demonstra cliques acidentais nem público inadequado.',
               },
             ]
           : [],
@@ -496,6 +518,7 @@ export function wastePlacements(inputs: WasteInputs, env: WasteEnv): WasteRow[] 
     env.options('placement', 'demais posicionamentos', {
       parentLabel: 'mesma campanha de Display',
       parentNames: inputs.campaignNames,
+      allowGroupFallback: false,
     }),
   );
 }
@@ -517,6 +540,7 @@ export function wasteAds(inputs: WasteInputs, env: WasteEnv): WasteRow[] {
     env.options('ad', 'todos os anúncios', {
       parentLabel: 'demais anúncios da mesma campanha',
       parentNames: inputs.campaignNames,
+      allowGroupFallback: false,
     }),
   );
 }

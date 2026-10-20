@@ -11,11 +11,11 @@ import { SOURCE_LABEL } from './labels';
   template: `
     <ul class="flex flex-col gap-2">
       @for (e of items(); track $index) {
-        <li class="flex items-start gap-2 text-sm leading-snug">
+        <li class="flex items-start gap-2 text-sm leading-relaxed">
           <app-epistemic [kind]="e.kind" />
           <span class="min-w-0">
             {{ e.text }}
-            <span class="text-base-content/50 text-xs whitespace-nowrap">· {{ source(e.source) }}</span>
+            <span class="text-base-content/70 text-xs">· {{ source(e.source) }}</span>
           </span>
         </li>
       } @empty {

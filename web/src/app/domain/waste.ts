@@ -5,6 +5,7 @@ import {
   Assessment,
   BusinessGoal,
   Confidence,
+  DataSource,
   Evidence,
   InsufficientReason,
   Perf,
@@ -33,6 +34,9 @@ export interface RowSignal {
   text: string;
   /** FACT = medido/configurado; HYPOTHESIS = leitura plausível que falta verificar. */
   kind: 'FACT' | 'HYPOTHESIS';
+  source?: DataSource;
+  /** Sinais do mesmo mecanismo não contam como confirmações independentes. */
+  mechanism?: string;
 }
 
 export interface AssessInput {
@@ -47,12 +51,15 @@ export interface AssessInput {
   /** Custo por resultado de referência (meta, ou média da conta). */
   costTarget: number | null;
   costTargetIsAverage: boolean;
+  costReferenceLabel?: string;
   /** 0–1: fração do período que já teve tempo de gerar o estágio-meta. */
   maturity: number;
   signals: readonly RowSignal[];
   trackingIssues: readonly string[];
   /** Regra do negócio que torna o gasto desperdício por definição (ex.: fora da área atendida). */
   forcedWaste?: string;
+  outcomeSource?: DataSource;
+  contextEvidence?: readonly Evidence[];
 }
 
 export interface AssessContext {
@@ -61,7 +68,9 @@ export interface AssessContext {
   windowDays: number;
 }
 
-const MATURITY_MIN = 0.5;
+// Sem coortes de cliques por data, a fração de dias/custo maduro não permite
+// saber quantos cliques já tiveram toda a janela de conversão.
+const MATURITY_MIN = 1;
 
 function confidence(level: Confidence['level'], reasons: string[]): Confidence {
   return { level, reasons };
@@ -94,7 +103,12 @@ export function assess(input: AssessInput, ctx: AssessContext): Assessment {
     },
   ];
   const signalTexts = input.signals.map((s) => s.text);
-  for (const s of input.signals) evidence.push({ kind: s.kind, source: 'CALCULATION', text: s.text });
+  evidence.push(...(input.contextEvidence ?? []));
+  if (input.outcomes === 0) evidence.push({ kind: 'FACT', source: input.outcomeSource ?? 'GOOGLE_ADS', text: `Não há registros de ${stage} para esta linha no período.` });
+  for (const s of input.signals) evidence.push({ kind: s.kind, source: s.source ?? 'CALCULATION', text: s.text });
+  const independentFacts = new Set(input.signals
+    .filter((s) => s.kind === 'FACT')
+    .map((s) => s.mechanism ?? s.text));
 
   // 1) Regra do negócio: gasto onde a empresa não atende.
   if (input.forcedWaste) {
@@ -142,8 +156,8 @@ export function assess(input: AssessInput, ctx: AssessContext): Assessment {
   if (input.outcomes === null) {
     evidence.push({
       kind: 'UNAVAILABLE',
-      source: 'CRM',
-      text: `Não há como saber quantos ${stage} esta linha gerou.`,
+      source: 'CALCULATION',
+      text: `Os dados disponíveis não permitem contar os resultados de ${stage} desta linha. Confirme as ações de conversão e a cobertura da fonte.`,
     });
     return insufficient('NO_GOAL_DATA', evidence);
   }
@@ -172,11 +186,11 @@ export function assess(input: AssessInput, ctx: AssessContext): Assessment {
       return insufficient('IMMATURE', evidence);
     }
 
-    if (input.baselineRate === null || input.baselineRate <= 0) {
+    if (input.baselineRate === null || input.baselineRate <= 0 || input.baselineRate >= 1) {
       evidence.push({
         kind: 'UNAVAILABLE',
         source: 'CALCULATION',
-        text: 'Não há outras linhas comparáveis com resultado para servir de referência.',
+        text: 'Não há uma taxa válida de linhas comparáveis. Conversões por clique iguais ou superiores a 100% também não permitem este teste.',
       });
       return insufficient('NO_GOAL_DATA', evidence);
     }
@@ -192,13 +206,14 @@ export function assess(input: AssessInput, ctx: AssessContext): Assessment {
       source: 'CALCULATION',
       text: `Com ${num(input.clicks)} cliques, ficar sem nenhum resultado só por acaso aconteceria em ${pct(chance, 1)} das vezes.`,
     });
+    evidence.push({ kind: 'HYPOTHESIS', source: 'CALCULATION', text: 'Este cálculo supõe cliques independentes e uma taxa comparável e estável. Não é a probabilidade de o público ser inadequado; repetição de usuários, atribuição e muitos recortes podem reduzir sua confiabilidade.' });
     if (immatureNote) evidence.push(immatureNote);
 
     if (chance > thresholds.zeroResultAlpha) {
       return insufficient('LOW_VOLUME', evidence, { chanceByLuck: chance });
     }
 
-    if (input.signals.length === 0) {
+    if (independentFacts.size === 0) {
       evidence.push({
         kind: 'UNAVAILABLE',
         source: 'CALCULATION',
@@ -207,7 +222,7 @@ export function assess(input: AssessInput, ctx: AssessContext): Assessment {
       return insufficient('UNCONFIRMED', evidence, { chanceByLuck: chance });
     }
 
-    const strong = chance < thresholds.zeroResultAlpha / 5 && input.signals.length >= 2 && input.maturity >= 0.8;
+    const strong = chance < thresholds.zeroResultAlpha / 5 && independentFacts.size >= 2;
     return {
       verdict: 'PROBABLE_WASTE',
       confidence: strong
@@ -218,7 +233,7 @@ export function assess(input: AssessInput, ctx: AssessContext): Assessment {
           ])
         : confidence('MEDIUM', [
             'Chance de acaso baixa.',
-            `${input.signals.length} sinal(is) independente(s) concordam.`,
+            `${independentFacts.size} sinal(is) observado(s) reforçam a revisão. Hipóteses não contam como confirmação.`,
           ]),
       evidence,
       signals: signalTexts,
@@ -230,8 +245,8 @@ export function assess(input: AssessInput, ctx: AssessContext): Assessment {
   const cpo = input.cost / input.outcomes;
   evidence.push({
     kind: 'FACT',
-    source: 'GOOGLE_ADS',
-    text: `${num(input.outcomes, 1)} ${stage}, a ${brl(cpo)} cada.`,
+    source: input.outcomeSource ?? 'GOOGLE_ADS',
+    text: `${num(input.outcomes, 1)} resultados (${stage}), a ${brl(cpo)} cada.`,
   });
 
   if (input.costTarget === null || input.costTarget <= 0) {
@@ -247,10 +262,14 @@ export function assess(input: AssessInput, ctx: AssessContext): Assessment {
     kind: 'FACT',
     source: input.costTargetIsAverage ? 'CALCULATION' : 'CONFIG',
     text: input.costTargetIsAverage
-      ? `Meta não definida: comparado com a média da conta, ${brl(input.costTarget)} por ${stage}.`
+      ? `Meta não definida: comparado com ${input.costReferenceLabel ?? 'a média da conta'}, ${brl(input.costTarget)} por ${stage}.`
       : `Meta configurada: ${brl(input.costTarget)} por ${stage}.`,
   });
   if (immatureNote) evidence.push(immatureNote);
+
+  if (input.maturity < MATURITY_MIN) {
+    return insufficient('IMMATURE', evidence);
+  }
 
   const outcomesLevel: Confidence['level'] = input.outcomes >= 10 ? 'HIGH' : input.outcomes >= 3 ? 'MEDIUM' : 'LOW';
 
@@ -290,6 +309,8 @@ export interface GroupItem {
   perf: Perf;
   /** Resultados no estágio-meta; null quando desconhecidos para esta linha. */
   outcomes: number | null;
+  outcomeSource?: DataSource;
+  contextEvidence?: Evidence[];
   /** Linha "pai" cuja taxa serve de referência (ex.: campanha de um termo). */
   parentKey?: string;
   signals?: RowSignal[];
@@ -318,8 +339,11 @@ export interface GroupOptions {
   maturity: number;
   costTarget: number | null;
   costTargetIsAverage: boolean;
+  costReferenceLabel?: string;
   /** Rótulo para o pai (ex.: id da campanha → nome). */
   parentNames?: Map<string, string>;
+  /** Desative quando misturar pais significaria comparar públicos/formatos diferentes. */
+  allowGroupFallback?: boolean;
 }
 
 /** Taxa (resultados/clique) de um conjunto, desconsiderando uma linha. */
@@ -337,26 +361,33 @@ export function assessGroup(items: readonly GroupItem[], ctx: AssessContext, opt
   const minBase = opts.minBaselineClicks ?? 30;
 
   // Totais do grupo e de cada pai, contando só linhas com resultado conhecido.
-  const known = items.filter((i) => i.outcomes !== null && !i.excludeFromBaseline);
-  const groupClicks = known.reduce((s, i) => s + i.perf.clicks, 0);
-  const groupOutcomes = known.reduce((s, i) => s + (i.outcomes ?? 0), 0);
+  const known = items.filter((i) => i.outcomes !== null && !i.excludeFromBaseline &&
+    (i.maturity ?? opts.maturity) >= MATURITY_MIN && !i.trackingIssues?.length);
+  const groups = new Map<DataSource, { clicks: number; outcomes: number }>();
+  const parentKey = (item: GroupItem) => JSON.stringify([item.parentKey, item.outcomeSource ?? 'GOOGLE_ADS']);
   const parent = new Map<string, { clicks: number; outcomes: number }>();
   for (const i of known) {
+    const source = i.outcomeSource ?? 'GOOGLE_ADS';
+    const group = groups.get(source) ?? { clicks: 0, outcomes: 0 };
+    group.clicks += i.perf.clicks;
+    group.outcomes += i.outcomes ?? 0;
+    groups.set(source, group);
     if (!i.parentKey) continue;
-    const p = parent.get(i.parentKey) ?? { clicks: 0, outcomes: 0 };
+    const key = parentKey(i);
+    const p = parent.get(key) ?? { clicks: 0, outcomes: 0 };
     p.clicks += i.perf.clicks;
     p.outcomes += i.outcomes ?? 0;
-    parent.set(i.parentKey, p);
+    parent.set(key, p);
   }
 
   return items.map((item) => {
     let baseline = { rate: null as number | null, clicks: 0 };
     let label = opts.groupLabel;
     // Linha fora dos totais: nada a descontar dela na referência.
-    const self = item.excludeFromBaseline
+    const self = !known.includes(item)
       ? { clicks: 0, outcomes: 0 }
       : { clicks: item.perf.clicks, outcomes: item.outcomes };
-    const p = item.parentKey ? parent.get(item.parentKey) : undefined;
+    const p = item.parentKey ? parent.get(parentKey(item)) : undefined;
     if (p) {
       const r = leaveOneOut(p.clicks, p.outcomes, self);
       if (r.clicks >= minBase) {
@@ -365,8 +396,9 @@ export function assessGroup(items: readonly GroupItem[], ctx: AssessContext, opt
         label = name ? `${opts.parentLabel ?? 'mesma campanha'}: ${name}` : (opts.parentLabel ?? opts.groupLabel);
       }
     }
-    if (baseline.rate === null) {
-      const r = leaveOneOut(groupClicks, groupOutcomes, self);
+    if (baseline.rate === null && opts.allowGroupFallback !== false) {
+      const group = groups.get(item.outcomeSource ?? 'GOOGLE_ADS') ?? { clicks: 0, outcomes: 0 };
+      const r = leaveOneOut(group.clicks, group.outcomes, self);
       if (r.clicks >= minBase) baseline = r;
     }
 
@@ -380,10 +412,13 @@ export function assessGroup(items: readonly GroupItem[], ctx: AssessContext, opt
         baselineClicks: baseline.clicks,
         costTarget: opts.costTarget,
         costTargetIsAverage: opts.costTargetIsAverage,
+        costReferenceLabel: opts.costReferenceLabel,
         maturity: item.maturity ?? opts.maturity,
         signals: item.signals ?? [],
         trackingIssues: item.trackingIssues ?? [],
         forcedWaste: item.forcedWaste,
+        outcomeSource: item.outcomeSource,
+        contextEvidence: item.contextEvidence,
       },
       ctx,
     );
@@ -395,6 +430,8 @@ export function assessGroup(items: readonly GroupItem[], ctx: AssessContext, opt
       sublabel: item.sublabel,
       perf: item.perf,
       outcomes: item.outcomes ?? 0,
+      outcomesKnown: item.outcomes !== null,
+      outcomeSource: item.outcomeSource ?? 'GOOGLE_ADS',
       assessment,
       // Já bloqueado não gasta mais: entra no custo do período, não na projeção mensal.
       monthlyCost: item.blocked ? 0 : monthly(item.perf.cost, ctx.windowDays),

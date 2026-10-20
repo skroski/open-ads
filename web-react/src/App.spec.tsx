@@ -17,7 +17,8 @@ describe('App (React)', () => {
     for (const item of NAV_GROUPS.flatMap((group) => group.items)) {
       expect(screen.getAllByText(item.label).length).toBeGreaterThan(0);
     }
-    await screen.findByRole('heading', { name: 'Visão geral' });
+    // A primeira rota carrega sob demanda e pode disputar CPU com o build Angular.
+    await screen.findByRole('heading', { name: 'Visão geral' }, { timeout: 5000 });
   });
 
   it('mantém o crédito de autoria exigido pela licença', () => {
