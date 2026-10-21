@@ -22,6 +22,8 @@ import {
   expandSharedNegatives,
   normalizeNetworks,
   normalizePlacements,
+  normalizePmaxAssetGroups,
+  normalizePmaxAssets,
   normalizeRegions,
   normalizeSearchTerms,
   regionIdsOf,
@@ -162,6 +164,15 @@ export class Workspace {
     normalizePlacements(await this.run(AdsQueries.placements(p.w), p.id)),
   );
 
+  /** Diagnóstico de composição e desempenho observado das campanhas PMax. */
+  readonly pmaxAssetGroups = new Dataset(this.byWindow, async (p) =>
+    normalizePmaxAssetGroups(await this.run(AdsQueries.pmaxAssetGroups(p.w), p.id)),
+  );
+
+  readonly pmaxAssets = new Dataset(this.byWindow, async (p) =>
+    normalizePmaxAssets(await this.run(AdsQueries.pmaxAssets(p.w), p.id)),
+  );
+
   readonly conversionActions = new Dataset(this.byAccount, async (p) =>
     normalizeConversionActions(await this.run(AdsQueries.conversionActions(), p.id)),
   );
@@ -275,6 +286,8 @@ export class Workspace {
     this.landingPages,
     this.ads,
     this.placements,
+    this.pmaxAssetGroups,
+    this.pmaxAssets,
     this.conversionActions,
     this.conversionBreakdown,
     this.negatives,

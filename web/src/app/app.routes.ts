@@ -41,8 +41,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/actions/actions').then((m) => m.ActionsPage),
   },
   {
+    path: 'oportunidades',
+    title: `Central de oportunidades · ${TITLE}`,
+    loadComponent: () => import('./features/opportunities/opportunities').then((m) => m.OpportunitiesPage),
+  },
+  {
+    path: 'experimentos',
+    title: `Laboratório de experimentos · ${TITLE}`,
+    loadComponent: () => import('./features/experiments/experiments').then((m) => m.ExperimentsPage),
+  },
+  {
     path: 'historico',
-    title: `Histórico e aprendizado · ${TITLE}`,
+    title: `Auditoria e aprendizado · ${TITLE}`,
     loadComponent: () => import('./features/history/history').then((m) => m.HistoryPage),
   },
   {
@@ -64,6 +74,11 @@ export const routes: Routes = [
     path: 'campanhas',
     title: `Campanhas · ${TITLE}`,
     loadComponent: () => import('./features/operations/campaigns').then((m) => m.CampaignsPage),
+  },
+  {
+    path: 'performance-max',
+    title: `Radar Performance Max · ${TITLE}`,
+    loadComponent: () => import('./features/pmax/pmax').then((m) => m.PmaxPage),
   },
   {
     path: 'dispositivos',

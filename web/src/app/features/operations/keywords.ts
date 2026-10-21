@@ -1,6 +1,7 @@
 import { CurrencyPipe, DecimalPipe, PercentPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormField, FormRoot, form, min, required } from '@angular/forms/signals';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AdsActions } from '../../core/ads-actions';
 import { AccountStore } from '../../core/account.store';
@@ -11,14 +12,17 @@ import { ToastService } from '../../core/toast.service';
 import { Workspace } from '../../core/workspace';
 import { AdGroupFit } from '../../domain/keyword-fit';
 import { KeywordSuggestion, SuggestionSource } from '../../domain/keyword-suggest';
+import { projectKeywordExpansion } from '../../domain/growth-projection';
 import { KeywordCategory, KeywordQuality, KeywordRow, MatchType, QualityRating } from '../../domain/models';
 import { DataState } from '../../shared/data-state';
+import { EChart } from '../../shared/echart';
 import { Icon } from '../../shared/icon';
 import { KEYWORD_CATEGORY_CLASS, KEYWORD_CATEGORY_LABEL, MATCH_CLASS, MATCH_LABEL, formatMatch } from '../../shared/labels';
 import { AppModal } from '../../shared/modal';
 import { ExportData, PageHeader } from '../../shared/page-header';
 
 import { ThSort, SortDirection } from '../../shared/th-sort';
+import type { EChartsCoreOption } from 'echarts/core';
 
 const BRAND_BID_CAP = 0.1;
 const PAGE_SIZE = 100;
@@ -26,7 +30,7 @@ const PAGE_SIZE = 100;
 @Component({
   selector: 'app-keywords-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, PercentPipe, AppModal, DataState, FormField, FormRoot, Icon, PageHeader, ThSort],
+  imports: [CurrencyPipe, DecimalPipe, PercentPipe, AppModal, DataState, EChart, FormField, FormRoot, Icon, PageHeader, ThSort],
   template: `
     <app-page-header data-open-help="palavras-introducao"
       group="Operação no Google Ads"
@@ -301,6 +305,7 @@ const PAGE_SIZE = 100;
                     <table class="table table-sm">
                       <thead>
                         <tr>
+                          <th><span class="sr-only">Selecionar</span></th>
                           <th>Ideia</th>
                           <th class="text-right">Buscas/mês</th>
                           <th>Concorrência</th>
@@ -311,6 +316,7 @@ const PAGE_SIZE = 100;
                       <tbody>
                         @for (i of newIdeas(); track i.text) {
                           <tr class="hover:bg-base-200/60">
+                            <td><input type="checkbox" class="checkbox checkbox-sm" [checked]="selectedIdeas().has(i.text)" [attr.aria-label]="'Selecionar ' + i.text" (change)="toggleIdea(i.text)" /></td>
                             <td class="font-medium">{{ i.text }}</td>
                             <td class="tabular text-right">{{ i.avgMonthlySearches | number: '1.0-0' }}</td>
                             <td class="text-sm">{{ competitionLabel(i.competition) }}</td>
@@ -326,6 +332,48 @@ const PAGE_SIZE = 100;
                         }
                       </tbody>
                     </table>
+                  </div>
+
+                  <div class="rounded-box border border-base-300 bg-base-200/40 p-4">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <h4 class="font-medium">Cenário de expansão mensal</h4>
+                        <p class="mt-1 text-sm text-base-content/70">Combine a demanda do Planejador com as taxas observadas da campanha, deixando a cobertura como premissa editável.</p>
+                      </div>
+                      @if (growthScenario().ideas > 0) {
+                        <button type="button" class="btn btn-sm" (click)="openExperiment()"><app-icon name="beaker" size="sm" /> Criar hipótese</button>
+                      }
+                    </div>
+                    @if (growthScenario().ideas > 0) {
+                      <div class="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+                        <div><div class="text-xs font-semibold uppercase tracking-wide text-base-content/60">Ideias selecionadas</div><p class="mt-1 font-medium">{{ growthScenario().ideas }}</p></div>
+                        <div><div class="text-xs font-semibold uppercase tracking-wide text-base-content/60">Buscas médias/mês somadas</div><p class="mt-1 font-medium tabular">{{ growthScenario().searches | number: '1.0-0' }}</p></div>
+                        <div><div class="text-xs font-semibold uppercase tracking-wide text-base-content/60">Faixa média de lance no topo</div><p class="mt-1 font-medium tabular">@if (growthScenario().lowBid !== null && growthScenario().highBid !== null) { {{ growthScenario().lowBid | currency: 'BRL' : 'symbol' : '1.2-2' }} – {{ growthScenario().highBid | currency: 'BRL' : 'symbol' : '1.2-2' }} } @else { Não disponível }</p></div>
+                      </div>
+
+                      <label class="mt-4 block text-sm">
+                        <span class="font-medium">Cobertura assumida da demanda: {{ capturePct() }}%</span>
+                        <span class="mt-1 block text-xs text-base-content/60">É uma premissa para explorar cenários; não é parcela de impressão nem garantia de alcance.</span>
+                        <input type="range" min="5" max="100" step="5" class="range range-sm mt-3 w-full" [value]="capturePct()" (input)="capturePct.set(captureValue($event))" />
+                      </label>
+
+                      @if (growthProjection(); as projection) {
+                        <div class="mt-4 grid gap-3 rounded-box bg-base-100 p-4 text-sm sm:grid-cols-4">
+                          <div><div class="text-xs font-semibold uppercase tracking-wide text-base-content/60">CTR observado</div><p class="mt-1 font-medium tabular">{{ projection.observedCtr | percent: '1.1-1' }}</p></div>
+                          <div><div class="text-xs font-semibold uppercase tracking-wide text-base-content/60">Cliques estimados/mês</div><p class="mt-1 font-medium tabular">{{ projection.estimatedClicks | number: '1.0-0' }}</p></div>
+                          <div><div class="text-xs font-semibold uppercase tracking-wide text-base-content/60">Conversões estimadas/mês</div><p class="mt-1 font-medium tabular">@if (projection.estimatedConversions !== null) { {{ projection.estimatedConversions | number: '1.0-1' }} } @else { Sem base }</p></div>
+                          <div><div class="text-xs font-semibold uppercase tracking-wide text-base-content/60">Investimento estimado</div><p class="mt-1 font-medium tabular">@if (projection.estimatedLowCost !== null && projection.estimatedHighCost !== null) { {{ projection.estimatedLowCost | currency: 'BRL' : 'symbol' : '1.0-0' }} – {{ projection.estimatedHighCost | currency: 'BRL' : 'symbol' : '1.0-0' }} } @else { Sem faixa de lance }</p></div>
+                        </div>
+                        @if (projectionCurve(); as chart) {
+                          <div class="mt-4"><app-echart [option]="chart" [height]="260" label="Sensibilidade de cliques e conversões estimadas pela cobertura assumida" /></div>
+                        }
+                        <p class="mt-3 text-xs text-base-content/60">Fontes e premissas: buscas e CPC do Planejador de Palavras-chave; CTR e taxa de conversão da campanha escolhida no período atual; cobertura escolhida acima. A soma de buscas pode ter sobreposição. É um cenário calculado, não previsão nem promessa de cliques, custo, conversões ou receita.</p>
+                      } @else {
+                        <p class="mt-3 text-xs text-warning">Ainda não há impressões e cliques suficientes na campanha escolhida para aplicar uma taxa observada. O painel mantém apenas demanda e faixas de lance, sem inventar uma projeção.</p>
+                      }
+                    } @else {
+                      <p class="mt-3 text-sm text-base-content/60">Selecione uma ou mais ideias para montar um cenário de descoberta.</p>
+                    }
                   </div>
                 }
               }
@@ -619,6 +667,7 @@ export class KeywordsPage {
   private readonly insights = inject(Insights);
   protected readonly actions = inject(AdsActions);
   private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
 
   protected readonly brandCap = BRAND_BID_CAP;
   protected readonly pageSize = PAGE_SIZE;
@@ -655,6 +704,66 @@ export class KeywordsPage {
   protected readonly newIdeas = computed(() => {
     const existing = new Set(this.keywords().map((k) => k.text.replace(/[[\]"+]/g, '').toLowerCase().trim()));
     return (this.planner.result()?.ideas ?? []).filter((i) => !existing.has(i.text.toLowerCase().trim())).slice(0, 30);
+  });
+  /** Ideias escolhidas para um cenário, mantidas só nesta sessão de tela. */
+  protected readonly selectedIdeas = signal<ReadonlySet<string>>(new Set<string>());
+  /** Premissa consciente para explorar o cenário; não vem da API. */
+  protected readonly capturePct = signal(20);
+  protected readonly growthScenario = computed(() => {
+    const selected = this.newIdeas().filter((idea) => this.selectedIdeas().has(idea.text));
+    const withBid = selected.filter((idea) => idea.lowBid !== null && idea.highBid !== null);
+    const weight = (idea: KeywordIdeasResult['ideas'][number]) => Math.max(1, idea.avgMonthlySearches);
+    const divisor = withBid.reduce((sum, idea) => sum + weight(idea), 0);
+    return {
+      ideas: selected.length,
+      searches: selected.reduce((sum, idea) => sum + idea.avgMonthlySearches, 0),
+      lowBid: divisor ? withBid.reduce((sum, idea) => sum + (idea.lowBid ?? 0) * weight(idea), 0) / divisor : null,
+      highBid: divisor ? withBid.reduce((sum, idea) => sum + (idea.highBid ?? 0) * weight(idea), 0) / divisor : null,
+    };
+  });
+  protected readonly growthProjection = computed(() => {
+    const campaign = (this.ws.campaigns.value() ?? []).find((item) => item.id === this.suggestCampaign());
+    const scenario = this.growthScenario();
+    if (!campaign || !scenario.ideas) return null;
+    return projectKeywordExpansion({
+      impressions: campaign.impressions,
+      clicks: campaign.clicks,
+      conversions: campaign.conversions,
+      monthlySearches: scenario.searches,
+      captureShare: this.capturePct() / 100,
+      lowCpc: scenario.lowBid,
+      highCpc: scenario.highBid,
+    });
+  });
+  protected readonly projectionCurve = computed<EChartsCoreOption | null>(() => {
+    const campaign = (this.ws.campaigns.value() ?? []).find((item) => item.id === this.suggestCampaign());
+    const scenario = this.growthScenario();
+    if (!campaign || !scenario.ideas) return null;
+    const shares = Array.from(new Set([5, 10, 20, this.capturePct(), 40, 60, 80, 100])).sort((a, b) => a - b);
+    const points = shares
+      .map((share) => projectKeywordExpansion({
+        impressions: campaign.impressions,
+        clicks: campaign.clicks,
+        conversions: campaign.conversions,
+        monthlySearches: scenario.searches,
+        captureShare: share / 100,
+        lowCpc: scenario.lowBid,
+        highCpc: scenario.highBid,
+      }))
+      .filter((point): point is NonNullable<typeof point> => point !== null);
+    if (!points.length) return null;
+    return {
+      color: ['#3d7ea6', '#5c9c2f'],
+      grid: { left: 52, right: 54, top: 34, bottom: 44 },
+      legend: { data: ['Cliques estimados/mês', 'Conversões estimadas/mês'] },
+      tooltip: { trigger: 'axis' },
+      xAxis: { type: 'category', name: 'Cobertura assumida', data: shares.map((share) => `${share}%`) },
+      yAxis: [{ type: 'value', name: 'Cliques', minInterval: 1 }, { type: 'value', name: 'Conversões', minInterval: 1 }],
+      series: [
+        { type: 'line', name: 'Cliques estimados/mês', data: points.map((point) => Math.round(point.estimatedClicks)), smooth: true },
+        { type: 'line', name: 'Conversões estimadas/mês', yAxisIndex: 1, data: points.map((point) => point.estimatedConversions === null ? null : Math.round(point.estimatedConversions * 10) / 10), smooth: true },
+      ],
+    };
   });
   protected readonly allFits = signal(false);
   private readonly audits = inject(PageAudits);
@@ -853,6 +962,32 @@ export class KeywordsPage {
     this.chosenCampaign.set(id);
     this.planner.result.set(null);
     this.planner.error.set(null);
+    this.selectedIdeas.set(new Set());
+  }
+
+  protected toggleIdea(text: string): void {
+    this.selectedIdeas.update((current) => {
+      const next = new Set(current);
+      if (next.has(text)) next.delete(text);
+      else next.add(text);
+      return next;
+    });
+  }
+
+  protected captureValue(event: Event): number {
+    const value = Number((event.target as HTMLInputElement).value);
+    return Number.isFinite(value) ? Math.min(100, Math.max(5, Math.round(value / 5) * 5)) : 20;
+  }
+
+  protected openExperiment(): void {
+    const ideas = this.newIdeas().filter((idea) => this.selectedIdeas().has(idea.text));
+    const names = ideas.slice(0, 8).map((idea) => `“${idea.text}”`).join(', ');
+    void this.router.navigate(['/experimentos'], {
+      queryParams: {
+        title: `Testar expansão com ${ideas.length} ideia${ideas.length === 1 ? '' : 's'} de palavra-chave`,
+        statement: `Se adicionarmos ${names} em uma campanha ou grupo controlado, podemos ampliar a cobertura de buscas qualificadas. Vamos validar pelo custo por conversão e pela qualidade dos resultados antes de escalar.`,
+      },
+    });
   }
 
   protected async copy(text: string): Promise<void> {
@@ -887,6 +1022,7 @@ export class KeywordsPage {
     this.planner.error.set(null);
     try {
       this.planner.result.set(await firstValueFrom(this.api.keywordIdeas({ keywords: seeds, url }, this.account.selectedId() ?? undefined)));
+      this.selectedIdeas.set(new Set());
     } catch {
       this.planner.error.set('Não foi possível consultar o Planejador agora. Tente de novo em instantes.');
     } finally {

@@ -40,7 +40,9 @@ const NAV_GROUPS: NavGroup[] = [
       { path: 'intencao', label: 'Intenção e páginas', icon: 'link' },
       { path: 'conteudo', label: 'Conteúdo', icon: 'document' },
       { path: 'acoes', label: 'Plano de ação', icon: 'clipboard' },
-      { path: 'historico', label: 'Histórico e aprendizado', icon: 'history' },
+      { path: 'oportunidades', label: 'Central de oportunidades', icon: 'light-bulb' },
+      { path: 'experimentos', label: 'Laboratório de experimentos', icon: 'beaker' },
+      { path: 'historico', label: 'Auditoria e aprendizado', icon: 'history' },
     ],
   },
   {
@@ -50,6 +52,7 @@ const NAV_GROUPS: NavGroup[] = [
       { path: 'negativas', label: 'Palavras negativas', icon: 'shield' },
       { path: 'palavras', label: 'Palavras-chave', icon: 'tag' },
       { path: 'campanhas', label: 'Campanhas', icon: 'folder' },
+      { path: 'performance-max', label: 'Radar Performance Max', icon: 'chart' },
       { path: 'dispositivos', label: 'Dispositivos e redes', icon: 'desktop' },
     ],
   },

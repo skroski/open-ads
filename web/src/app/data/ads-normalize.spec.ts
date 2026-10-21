@@ -21,6 +21,8 @@ import {
   normalizeLandingPages,
   normalizeNegatives,
   normalizeNetworks,
+  normalizePmaxAssetGroups,
+  normalizePmaxAssets,
   normalizeRegions,
   normalizeSearchTerms,
   num,
@@ -182,6 +184,24 @@ describe('páginas de destino', () => {
     expect(p.url).toBe(url);
     expect(p.normalizedUrl).toBe(normalizeUrl(url));
     expect(p.clicks).toBe(40);
+  });
+});
+
+describe('Performance Max', () => {
+  it('normaliza grupos de recursos e os recursos com métricas do período', () => {
+    const [group] = normalizePmaxAssetGroups([
+      {
+        assetGroup: { id: '9', name: 'Grupo principal', adStrength: 'GOOD', assetCoverage: 'FULL', primaryStatus: 'ELIGIBLE' },
+        campaign: { id: '1', name: 'PMax' },
+        metrics,
+      },
+    ]);
+    expect(group).toMatchObject({ id: '9', campaignId: '1', campaignName: 'PMax', adStrength: 'GOOD', cost: 85.5 });
+
+    const [asset] = normalizePmaxAssets([
+      { assetGroup: { id: '9' }, campaign: { id: '1' }, assetGroupAsset: { asset: 'assets/7', fieldType: 'HEADLINE', primaryStatus: 'ELIGIBLE', status: 'ENABLED' }, metrics },
+    ]);
+    expect(asset).toMatchObject({ assetGroupId: '9', campaignId: '1', asset: 'assets/7', fieldType: 'HEADLINE', clicks: 40 });
   });
 });
 

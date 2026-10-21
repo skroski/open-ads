@@ -36,9 +36,13 @@ test('relatórios rejeitam datas impossíveis, inversão, injeção, nomes e lim
   for (const patch of [{ from: '2026-02-30' }, { to: '2026-08-01' }, { from: "2026-09-01' OR 1=1" }, { report: '__proto__' }, { limit: -1 }, { limit: '10' }, { limit: 5001 }]) {
     assert.throws(() => buildReport({ ...body, ...patch }), { status: 400 });
   }
-  for (const name of ['conta', 'contas', 'campanhas', 'palavras-chave', 'termos', 'dispositivos']) {
+  for (const name of ['conta', 'contas', 'campanhas', 'palavras-chave', 'termos', 'dispositivos', 'configuracao-conversoes', 'mudancas']) {
     assert.match(buildReport({ ...body, report: name }).query, /^SELECT /);
   }
+  const changes = buildReport({ report: 'mudancas', from: '2026-09-01', to: '2026-09-30' });
+  assert.match(changes.query, /change_event\.change_date_time BETWEEN '2026-09-01 00:00:00' AND '2026-09-30 23:59:59'/);
+  assert.match(changes.query, /ORDER BY change_event\.change_date_time DESC/);
+  assert.throws(() => buildReport({ report: 'mudancas', from: '2026-09-01', to: '2026-10-01' }), { status: 400 });
 });
 
 test('relatório preserva MCC, período, fonte e sinaliza limite alcançado', async () => {
@@ -105,6 +109,20 @@ test('cliente rejeita origem insegura e não oculta falhas da API', async () => 
   globalThis.fetch = async () => Response.json({ error: 'Acesso recusado' }, { status: 401 });
   await assert.rejects(main(['contas']), /Acesso recusado/);
   assert.ok((await main(['ajuda'])).reports.includes('palavras-chave'));
+});
+
+test('cliente reúne apenas leituras para o diagnóstico de eficiência', async () => {
+  process.env.OPENADS_API_URL = 'http://127.0.0.1:3000';
+  const requested = [];
+  globalThis.fetch = async (_url, init) => {
+    requested.push(JSON.parse(init.body).report);
+    return Response.json({ results: [] });
+  };
+  const data = await main(['diagnostico-eficiencia', '--customer', '1234567890', '--from', body.from, '--to', body.to, '--target-cpa', '80']);
+  assert.deepEqual(requested.sort(), ['campanhas', 'dispositivos', 'palavras-chave', 'termos']);
+  assert.equal(data.command, 'diagnostico-eficiencia');
+  assert.equal(data.context.targetCpa, '80');
+  assert.deepEqual(Object.keys(data.reports).sort(), requested.sort());
 });
 
 
