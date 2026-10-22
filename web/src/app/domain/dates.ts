@@ -14,8 +14,11 @@ export type DateRangeOption =
   | 'LAST_14_DAYS'
   | 'LAST_30_DAYS'
   | 'LAST_90_DAYS'
+  | 'LAST_180_DAYS'
+  | 'LAST_365_DAYS'
   | 'THIS_MONTH'
-  | 'LAST_MONTH';
+  | 'LAST_MONTH'
+  | 'CUSTOM';
 
 export interface DateWindow {
   /** Primeiro dia (inclusive), formato YYYY-MM-DD. */
@@ -33,9 +36,30 @@ export const DATE_RANGE_OPTIONS: ReadonlyArray<{ value: DateRangeOption; label: 
   { value: 'LAST_14_DAYS', label: 'Últimos 14 dias', short: '14 dias' },
   { value: 'LAST_30_DAYS', label: 'Últimos 30 dias', short: '30 dias' },
   { value: 'LAST_90_DAYS', label: 'Últimos 90 dias', short: '90 dias' },
+  { value: 'LAST_180_DAYS', label: 'Últimos 6 meses', short: '6 meses' },
+  { value: 'LAST_365_DAYS', label: 'Último ano', short: '1 ano' },
   { value: 'THIS_MONTH', label: 'Este mês', short: 'Este mês' },
   { value: 'LAST_MONTH', label: 'Mês anterior', short: 'Mês ant.' },
+  { value: 'CUSTOM', label: 'Período personalizado', short: 'Personalizado' },
 ];
+
+/** Maior intervalo personalizado aceito, em dias (a comparação usa outro igual antes dele). */
+export const MAX_CUSTOM_DAYS = 730;
+
+export interface CustomRange {
+  from: string;
+  to: string;
+}
+
+/** Mensagem de erro em português, ou null quando o intervalo é válido. */
+export function validateCustomRange(from: string, to: string, today: Date = new Date()): string | null {
+  const iso = /^\d{4}-\d{2}-\d{2}$/;
+  if (!iso.test(from) || !iso.test(to)) return 'Informe a data inicial e a final.';
+  if (from > to) return 'A data inicial deve ser anterior à final.';
+  if (to > isoDate(today)) return 'A data final não pode estar no futuro.';
+  if (inclusiveDays(from, to) > MAX_CUSTOM_DAYS) return `Escolha no máximo ${MAX_CUSTOM_DAYS} dias.`;
+  return null;
+}
 
 export function isoDate(d: Date): string {
   const y = d.getFullYear();
@@ -71,7 +95,7 @@ export function windowOf(from: string, to: string): DateWindow {
   return { from, to, days: Math.max(1, inclusiveDays(from, to)) };
 }
 
-export function resolveWindow(range: DateRangeOption, today: Date = new Date()): DateWindow {
+export function resolveWindow(range: DateRangeOption, today: Date = new Date(), custom: CustomRange | null = null): DateWindow {
   const t = isoDate(today);
   switch (range) {
     case 'TODAY':
@@ -88,6 +112,14 @@ export function resolveWindow(range: DateRangeOption, today: Date = new Date()):
       return windowOf(addDays(t, -30), addDays(t, -1));
     case 'LAST_90_DAYS':
       return windowOf(addDays(t, -90), addDays(t, -1));
+    case 'LAST_180_DAYS':
+      return windowOf(addDays(t, -180), addDays(t, -1));
+    case 'LAST_365_DAYS':
+      return windowOf(addDays(t, -365), addDays(t, -1));
+    case 'CUSTOM':
+      return custom && !validateCustomRange(custom.from, custom.to, today)
+        ? windowOf(custom.from, custom.to)
+        : windowOf(addDays(t, -30), addDays(t, -1));
     case 'THIS_MONTH': {
       const first = new Date(today.getFullYear(), today.getMonth(), 1);
       return windowOf(isoDate(first), t);

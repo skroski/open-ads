@@ -1,10 +1,27 @@
-import { addDays, eachDay, inclusiveDays, previousWindow, resolveWindow, windowOf } from './dates';
+import { addDays, eachDay, inclusiveDays, previousWindow, resolveWindow, validateCustomRange, windowOf } from './dates';
 import { classifyKeyword, classifyTerm, DEFAULT_AUDIT_RULES, parseTermList, prepareAuditRules } from './classify';
 import { chanceOfZero, median, sampleSizePerVariant, twoProportionTest, wilson } from './stats';
 import { coverage, matchesRule, normalizeUrl, tokens, urlWords } from './text';
 
 describe('dates', () => {
   const today = new Date(2026, 9, 13); // 13/10/2026
+
+  it('resolve 6 meses, 1 ano e intervalo personalizado', () => {
+    const today = new Date(2026, 9, 13);
+    expect(resolveWindow('LAST_180_DAYS', today).days).toBe(180);
+    expect(resolveWindow('LAST_365_DAYS', today).days).toBe(365);
+    expect(resolveWindow('CUSTOM', today, { from: '2026-01-01', to: '2026-03-31' })).toEqual({ from: '2026-01-01', to: '2026-03-31', days: 90 });
+    expect(resolveWindow('CUSTOM', today, null).days).toBe(30);
+  });
+
+  it('valida o intervalo personalizado', () => {
+    const today = new Date(2026, 9, 13);
+    expect(validateCustomRange('2026-03-01', '2026-03-31', today)).toBeNull();
+    expect(validateCustomRange('2026-04-01', '2026-03-01', today)).toContain('anterior');
+    expect(validateCustomRange('2026-03-01', '2026-11-01', today)).toContain('futuro');
+    expect(validateCustomRange('2023-01-01', '2026-03-01', today)).toContain('no máximo');
+    expect(validateCustomRange('', '', today)).toContain('Informe');
+  });
 
   it('resolve os períodos nomeados como o Google Ads (sem incluir hoje)', () => {
     expect(resolveWindow('LAST_7_DAYS', today)).toEqual({ from: '2026-10-06', to: '2026-10-12', days: 7 });

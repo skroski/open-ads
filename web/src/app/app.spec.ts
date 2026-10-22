@@ -17,12 +17,13 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('mostra os grupos de navegação', async () => {
+  it('mostra os destinos principais de decisão', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('Visão geral');
-    expect(text).toContain('Operação no Google Ads');
+    expect(text).toContain('Hoje');
+    expect(text).toContain('Investimento');
+    expect(text).toContain('Medição e funil');
   });
 
   it('alterna o estado da barra lateral entre expandido e retraído', async () => {

@@ -10,7 +10,7 @@ Como a interface foi construída e como trocar o visual pelo do seu design syste
 | Tailwind CSS | 4 | Utilitários e tokens (`@theme`) |
 | daisyUI | 5 | Componentes CSS (card, stat, alert, table, badge, modal, menu, dropdown…) e temas |
 | Apache ECharts | 6 | Gráficos (barras, linhas, rosca), com importação modular |
-| Fontes | Jost, Oswald, JetBrains Mono | Texto, números e rótulos, códigos e IDs (Google Fonts, em `web/src/index.html`) |
+| Fontes | Jost, Barlow Semi Condensed, JetBrains Mono | Texto, números e rótulos, códigos e IDs (Google Fonts, em `web/src/index.html`) |
 
 A skill do daisyUI em `.agents/skills/daisyui` ensina às IAs as classes certas. Peça para ela ser usada ao criar telas.
 
@@ -20,7 +20,7 @@ A skill do daisyUI em `.agents/skills/daisyui` ensina às IAs as classes certas.
 |---|---|
 | Cores dos temas claro e escuro (`@plugin "daisyui/theme"`) | `web/src/styles.css` |
 | Escala de espaço e tipografia, fontes (`@theme`) | `web/src/styles.css` |
-| Menu lateral, botão primário com gradiente, link de destaque | `web/src/styles.css` (`.ads-sidebar`, `.btn-primary`, `@utility link-brand`) |
+| Menu lateral, hierarquia da tela Hoje, botão primário e link de destaque | `web/src/styles.css` (`.ads-sidebar`, `.overview-*`, `.btn-primary`, `@utility link-brand`) |
 | Nome e logo em texto | `web/src/app/brand.ts` |
 | Logo (ícone) e estrutura da página | `web/src/app/app.html` |
 | Cores dos gráficos e dos veredictos | `web/src/app/shared/echart.ts` (`VERDICT_COLOR`) |
@@ -52,7 +52,7 @@ A skill do daisyUI em `.agents/skills/daisyui` ensina às IAs as classes certas.
 2. **Cantos e bordas:** `--radius-box`, `--radius-field`, `--radius-selector` e `--border`, no mesmo bloco.
 3. **Fontes:** troque o `<link>` em `index.html` e as variáveis `--font-sans`, `--font-display` e `--font-mono` em `@theme`.
 4. **Densidade:** ajuste `--spacing-block` e `--spacing-card`.
-5. **Menu lateral e logo:** `.ads-sidebar` em `styles.css`, o ícone em `app.html` e o texto em `brand.ts`.
+5. **Menu lateral e logo:** `.ads-sidebar` em `styles.css`, o ícone em `app.html` e o texto em `brand.ts`. A navegação principal é orientada a decisão: Hoje, Investimento, Oportunidades, Medição e funil, Ações e aprendizado e Configurações.
 6. **Gráficos:** `VERDICT_COLOR` em `echart.ts`. Mantenha o vermelho para desperdício e o verde para bom, para não inverter o significado.
 7. Rode `npm --prefix web run build` e confira os dois temas no botão de sol/lua.
 
