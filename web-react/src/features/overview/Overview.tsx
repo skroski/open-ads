@@ -1,514 +1,566 @@
 import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { EChartsCoreOption } from 'echarts/core';
-import { days, num, pct, brl } from '@shared/domain/format';
+import { brl, num, pct } from '@shared/domain/format';
 import { evaluateGoal } from '@shared/domain/funnel';
-import { STAGE_LABEL, type WasteRow } from '@shared/domain/models';
-import { wasteCategory } from '@shared/domain/waste';
+import { STAGE_LABEL, type FunnelStage } from '@shared/domain/models';
+import type { RecommendationView } from '../../state/insights';
 import type { IconName } from '@shared/shared/icons';
 import { ConfidenceBadge } from '../../components/Badges';
 import { DataState } from '../../components/DataState';
 import { EChart } from '../../components/EChart';
-import { FunnelBars } from '../../components/FunnelBars';
 import { Icon } from '../../components/Icon';
-import { PageHeader } from '../../components/PageHeader';
-import { Sparkline } from '../../components/Sparkline';
-import { currency, decimal, percent } from '../../lib/format';
 import { useAccount } from '../../state/account';
 import { useBusinessConfig } from '../../state/config';
 import { useInsights } from '../../state/insights';
 import { useWorkspace } from '../../state/workspace';
 
-interface HealthItem {
+interface DashboardKpi {
   label: string;
-  ok: boolean;
-  detail: string;
-  route?: string;
+  value: string;
+  comparison: string;
+  reference: string;
+  interpretation: string;
+  source: string;
+  confidence: string;
+  unavailable?: boolean;
 }
 
-/** Cores dos vereditos, iguais às do Oficial (`shared/echart.ts`). */
-const VERDICT_COLOR = { tracking: '#3d7ea6', performing: '#5c9c2f' } as const;
+interface VerdictFact {
+  label: string;
+  value: string;
+  note: string;
+}
 
-const CATEGORY_ICON: Record<string, IconName> = {
-  TRACKING: 'warning',
-  WASTE: 'ban',
-  CAMPAIGN: 'folder',
-  FUNNEL: 'funnel',
-  LANDING_PAGE: 'link',
-  CONTENT: 'document',
-  DATA_QUALITY: 'database',
+interface DashboardVerdict {
+  state: string;
+  tone: 'attention' | 'risk' | 'healthy' | 'neutral';
+  headline: string;
+  reason: string;
+  action: string;
+  route: string;
+  facts: VerdictFact[];
+}
+
+interface FlowStage {
+  label: string;
+  value: string;
+  note: string;
+  source: string;
+  available: boolean;
+  warning: boolean;
+}
+
+const DECISION_LABEL: Record<string, string> = {
+  TRACKING: 'Investigar primeiro',
+  WASTE: 'Corrigir agora',
+  CAMPAIGN: 'Investigar primeiro',
+  FUNNEL: 'Melhorar a medição',
+  LANDING_PAGE: 'Investigar primeiro',
+  CONTENT: 'Preparar oportunidade',
+  DATA_QUALITY: 'Completar a leitura',
 };
 
-const CATEGORY_LABEL: Record<string, string> = {
-  TRACKING: 'Medição',
-  WASTE: 'Desperdício',
-  CAMPAIGN: 'Campanha',
-  FUNNEL: 'Funil',
-  LANDING_PAGE: 'Página',
-  CONTENT: 'Conteúdo',
-  DATA_QUALITY: 'Qualidade dos dados',
-};
+const sourceName = (source: 'ADS' | 'CRM' | 'NONE') =>
+  source === 'ADS' ? 'Google Ads' : source === 'CRM' ? 'CRM' : 'Indisponível';
 
-const stageLabel = (s: 'CONTACT' | 'QUALIFIED'): string => STAGE_LABEL[s];
-const sourceName = (s: 'ADS' | 'CRM' | 'NONE'): string => (s === 'ADS' ? 'Google Ads' : s === 'CRM' ? 'CRM' : 'indisponível');
-
+/** Tela de entrada: decisão, evidência e limites dos dados antes do detalhe técnico. */
 export function Overview() {
   const ws = useWorkspace();
   const account = useAccount();
   const { config } = useBusinessConfig();
   const insights = useInsights();
-  const { funnel, goal } = insights;
+  const { funnel, outages, openRecommendations, maturity, loadingCore, coreError } = insights;
+  const f = funnel;
 
-  useEffect(() => ws.needCore(), [ws.needCore]);
+  useEffect(() => {
+    ws.needCore();
+  }, [ws]);
 
-  const goalLabel = STAGE_LABEL[config.goal.goalStage].toLowerCase();
-  const lagText = days(insights.goalLagDays);
+  const goalLabel = useMemo(() => STAGE_LABEL[config.goal.goalStage].toLowerCase(), [config.goal.goalStage]);
+  const top = useMemo(() => openRecommendations.slice(0, 5), [openRecommendations]);
 
-  const bars = useMemo(
-    () => (funnel ? insights.stageOrder.map((stage) => ({ stage, count: funnel.total.stages[stage].count, source: funnel.total.stages[stage].source })) : []),
-    [funnel, insights.stageOrder],
-  );
+  const outagesInPeriod = useMemo(() => {
+    const from = account.window.from;
+    return outages.filter((outage) => outage.ongoing || outage.to >= from);
+  }, [account.window.from, outages]);
 
-  const goalEval = useMemo(
-    () => (funnel ? evaluateGoal(funnel.total, config.goal, config.thresholds.aboveTargetFactor) : null),
-    [funnel, config.goal, config.thresholds.aboveTargetFactor],
-  );
+  const goalEval = useMemo(() => {
+    return f ? evaluateGoal(f.total, config.goal, config.thresholds.aboveTargetFactor) : null;
+  }, [f, config.goal, config.thresholds.aboveTargetFactor]);
 
-  const top = insights.openRecommendations.slice(0, 5);
+  const readingConfidence = useMemo(() => {
+    if (!f) return { label: 'Indisponível', note: 'A leitura ainda não terminou.' };
+    if (outagesInPeriod.length) return { label: 'Baixa', note: 'Há conversões interrompidas no período.' };
+    if (!f.crmPresent || maturity < 0.8) {
+      return {
+        label: 'Média',
+        note: !f.crmPresent
+          ? 'O CRM não está conectado para confirmar vendas.'
+          : `${pct(maturity, 0)} do período já amadureceu.`,
+      };
+    }
+    return { label: 'Alta', note: 'Fontes e maturidade suficientes para esta leitura.' };
+  }, [f, outagesInPeriod.length, maturity]);
 
-  /** Maiores desperdícios reais em campanhas e termos (lista, não soma: são recortes diferentes). */
-  const topWaste = useMemo<WasteRow[]>(
-    () =>
-      [...insights.waste.campaign, ...insights.waste.term]
-        .filter((r) => wasteCategory(r) === 'WASTE')
-        .sort((a, b) => b.perf.cost - a.perf.cost)
-        .slice(0, 5),
-    [insights.waste],
-  );
+  const verdict = useMemo<DashboardVerdict>(() => {
+    const target = config.goal.targetCostPerGoal;
+    const confidence = readingConfidence;
+    const goal = goalEval;
+    const outcomeLabel = goalLabel;
+    const facts: VerdictFact[] = [
+      {
+        label: 'Referência',
+        value: target === null ? 'Não definida' : brl(target),
+        note: target === null ? `Defina o custo aceitável por ${outcomeLabel}.` : `Por ${outcomeLabel}.`,
+      },
+      {
+        label: 'Período maduro',
+        value: pct(maturity, 0),
+        note: `Janela para gerar ${outcomeLabel}.`,
+      },
+      { label: 'Confiança da leitura', value: confidence.label, note: confidence.note },
+    ];
 
-  const dailyRows = ws.daily.value;
+    if (!f || !goal) {
+      return {
+        state: 'Sem dados',
+        tone: 'neutral',
+        headline: 'Ainda não há dados suficientes para concluir.',
+        reason: 'Conclua a leitura da conta antes de decidir sobre orçamento ou cortes.',
+        action: 'Ver medição',
+        route: '/funil',
+        facts,
+      };
+    }
 
-  /** Série diária da conta: custo, cliques e conversões, cada um no próprio eixo. */
+    const outage = outagesInPeriod[0];
+    if (outage) {
+      return {
+        state: 'Medição em risco',
+        tone: 'risk',
+        headline: 'Há um trecho sem conversões registradas que precisa ser investigado antes de otimizar a conta.',
+        reason: `${outage.days} dias com ${num(outage.clicks)} cliques e nenhuma conversão registrada. Esse período não deve sustentar cortes ou aumentos de orçamento.`,
+        action: 'Verificar medição',
+        route: '/funil',
+        facts,
+      };
+    }
+
+    if (target === null) {
+      return {
+        state: 'Sem referência',
+        tone: 'neutral',
+        headline: `Há resultado, mas ainda não existe uma régua para avaliar o custo por ${outcomeLabel}.`,
+        reason: `O painel mostra o custo observado; a conclusão depende de você definir quanto vale pagar por ${outcomeLabel}.`,
+        action: 'Definir referência',
+        route: '/funil',
+        facts,
+      };
+    }
+
+    if (goal.status === 'ABOVE') {
+      const cpo = goal.costPerGoal === null ? '—' : brl(goal.costPerGoal);
+      return {
+        state: 'Atenção',
+        tone: 'attention',
+        headline: `O custo por ${outcomeLabel} está em ${cpo}, acima da sua referência.`,
+        reason: 'Revise as oportunidades antes de aumentar o orçamento. Custo alto é um sinal para investigar, não uma ordem para pausar.',
+        action: 'Revisar oportunidades',
+        route: '/oportunidades',
+        facts,
+      };
+    }
+
+    if (goal.status === 'NO_RESULTS' || goal.status === 'NO_DATA') {
+      return {
+        state: 'Sem conclusão',
+        tone: 'neutral',
+        headline: `Ainda não há ${outcomeLabel} suficiente para comparar o custo com segurança.`,
+        reason: 'Espere mais dados ou confira se a conversão está configurada antes de interpretar o investimento.',
+        action: 'Ver medição',
+        route: '/funil',
+        facts,
+      };
+    }
+
+    return {
+      state: 'Dentro da referência',
+      tone: 'healthy',
+      headline: `O custo por ${outcomeLabel} está dentro da referência definida para a conta.`,
+      reason: 'Acompanhe as oportunidades abertas e a maturação do período antes de ampliar o investimento.',
+      action: 'Ver oportunidades',
+      route: '/oportunidades',
+      facts,
+    };
+  }, [config.goal.targetCostPerGoal, readingConfidence, goalEval, goalLabel, maturity, f, outagesInPeriod]);
+
+  const costDelta = useMemo(() => {
+    const now = f?.total.cost ?? 0;
+    const previous = (ws.previousCampaigns.value ?? []).reduce((sum, campaign) => sum + campaign.cost, 0);
+    if (!previous) return 'Sem comparação anterior disponível.';
+    const change = (now - previous) / previous;
+    if (Math.abs(change) < 0.005) return 'Praticamente igual ao período anterior.';
+    return `${change > 0 ? '+' : '−'}${pct(Math.abs(change), 0)} vs. período anterior.`;
+  }, [f?.total.cost, ws.previousCampaigns.value]);
+
+  const kpis = useMemo<DashboardKpi[]>(() => {
+    if (!f) return [];
+    const goalStage = config.goal.goalStage;
+    const outcome = f.total.stages[goalStage];
+    const cost = f.total.costPer[goalStage];
+    const target = config.goal.targetCostPerGoal;
+    const confidence = readingConfidence.label.toLowerCase();
+    const targetReference =
+      target === null ? `Defina uma referência para ${goalLabel}.` : `Referência: ${brl(target)} por ${goalLabel}.`;
+
+    return [
+      {
+        label: 'Investimento',
+        value: brl(f.total.cost),
+        comparison: costDelta,
+        reference: `${num(f.total.impressions)} impressões e ${num(f.total.clicks)} cliques.`,
+        interpretation: 'O investimento mostra o tamanho da aposta; sozinho, não diz se ela foi bem usada.',
+        source: 'Google Ads',
+        confidence: `Confiança ${confidence}`,
+      },
+      {
+        label: STAGE_LABEL[goalStage],
+        value: outcome.source === 'NONE' ? '—' : num(outcome.count, 1),
+        comparison: outcome.source === 'NONE' ? 'Indisponível' : `${goalLabel} registrados no período.`,
+        reference: outcome.source === 'NONE' ? 'A fonte desse estágio não está conectada.' : `Fonte: ${sourceName(outcome.source)}.`,
+        interpretation:
+          outcome.source === 'NONE'
+            ? 'A ausência de fonte não é zero: conecte ou importe os dados necessários.'
+            : 'Este é o resultado mais profundo disponível para a leitura atual.',
+        source: sourceName(outcome.source),
+        confidence: `Confiança ${confidence}`,
+        unavailable: outcome.source === 'NONE',
+      },
+      {
+        label: `Custo por ${goalLabel}`,
+        value: cost === null ? '—' : brl(cost),
+        comparison: cost === null ? 'Sem resultado suficiente para calcular.' : targetReference,
+        reference: target === null ? 'Sem referência definida.' : cost !== null && cost > target ? 'Acima da referência.' : 'Dentro da referência.',
+        interpretation: cost === null
+          ? 'Não calculamos custo quando falta resultado mensurado.'
+          : 'O custo é investimento dividido pelo resultado no estágio escolhido.',
+        source: `Cálculo · ${sourceName(outcome.source)}`,
+        confidence: `Confiança ${confidence}`,
+        unavailable: cost === null,
+      },
+      {
+        label: 'Receita e retorno',
+        value: f.total.roi === null ? '—' : pct(f.total.roi, 0),
+        comparison: f.total.revenue === null ? 'Indisponível · CRM não conectado' : `${brl(f.total.revenue)} de receita confirmada.`,
+        reference: f.total.revenue === null ? 'Não calculamos retorno sem vendas confirmadas.' : 'Receita confirmada no CRM.',
+        interpretation:
+          f.total.revenue === null
+            ? 'Contatos registrados não comprovam venda. O retorno só aparece com receita importada.'
+            : 'Retorno calculado sobre a receita disponível no CRM.',
+        source: 'CRM',
+        confidence: f.total.revenue === null ? 'Confiança indisponível' : `Confiança ${confidence}`,
+        unavailable: f.total.revenue === null,
+      },
+    ];
+  }, [f, config.goal.goalStage, config.goal.targetCostPerGoal, readingConfidence.label, goalLabel, costDelta]);
+
+  const flow = useMemo<FlowStage[]>(() => {
+    if (!f) return [];
+    const stages: FunnelStage[] = ['CLICK', 'INTERACTION', 'CONTACT', 'QUALIFIED', 'SALE'];
+    const firstUnavailable = stages.findIndex((stage) => f.total.stages[stage].source === 'NONE');
+    const hasOutage = outagesInPeriod.length > 0;
+    return stages.map((stage, index) => {
+      const data = f.total.stages[stage];
+      const available = data.source !== 'NONE';
+      return {
+        label: STAGE_LABEL[stage],
+        value: available ? num(data.count, 1) : '—',
+        note: available
+          ? stage === 'CLICK'
+            ? `${brl(f.total.cost)} investidos`
+            : 'Resultado registrado no período'
+          : index === firstUnavailable
+            ? 'A visão termina aqui'
+            : 'Exige uma fonte anterior',
+        source: sourceName(data.source),
+        available,
+        warning: hasOutage && stage === 'CONTACT',
+      };
+    });
+  }, [f, outagesInPeriod.length]);
+
+  /** Série diária para a leitura do histórico; sem conversão diária, não há custo exibido. */
   const evolution = useMemo<EChartsCoreOption | null>(() => {
-    const w = account.window;
-    const byDay = new Map<string, { cost: number; clicks: number; conversions: number }>();
-    for (const r of dailyRows ?? []) {
-      if (r.date < w.from || r.date > w.to) continue;
-      const d = byDay.get(r.date) ?? { cost: 0, clicks: 0, conversions: 0 };
-      d.cost += r.cost;
-      d.clicks += r.clicks;
-      d.conversions += r.conversions;
-      byDay.set(r.date, d);
+    const window = account.window;
+    const byDay = new Map<string, { cost: number; conversions: number }>();
+    for (const row of ws.daily.value ?? []) {
+      if (row.date < window.from || row.date > window.to) continue;
+      const entry = byDay.get(row.date) ?? { cost: 0, conversions: 0 };
+      entry.cost += row.cost;
+      entry.conversions += row.conversions;
+      byDay.set(row.date, entry);
     }
     const dates = [...byDay.keys()].sort();
     if (dates.length < 2) return null;
-    const label = (iso: string): string => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
-    const line = (name: string, color: string, axis: number, values: number[], money = false) => ({
-      name,
-      type: 'line',
-      yAxisIndex: axis,
-      smooth: true,
-      showSymbol: false,
-      lineStyle: { width: 2, color },
-      itemStyle: { color },
-      data: values,
-      tooltip: money ? { valueFormatter: (v: number) => brl(v) } : undefined,
+    const target = config.goal.targetCostPerGoal;
+    const label = (date: string) => `${date.slice(8, 10)}/${date.slice(5, 7)}`;
+    const costPerConversion = dates.map((date) => {
+      const day = byDay.get(date);
+      return day && day.conversions > 0 ? Math.round((day.cost / day.conversions) * 100) / 100 : null;
     });
-    const hidden = { show: false };
     return {
-      tooltip: { trigger: 'axis' },
+      tooltip: {
+        trigger: 'axis',
+        valueFormatter: (value: number | string) => (typeof value === 'number' ? brl(value) : String(value)),
+      },
       legend: { bottom: 0, icon: 'roundRect', itemWidth: 12, itemHeight: 4 },
-      grid: { left: 8, right: 8, top: 12, bottom: 34, containLabel: true },
+      grid: { left: 10, right: 10, top: 18, bottom: 36, containLabel: true },
       xAxis: { type: 'category', boundaryGap: false, data: dates.map(label) },
-      yAxis: [
-        { type: 'value', min: 0, axisLabel: { formatter: (v: number) => brl(v).replace(',00', '') } },
-        { type: 'value', min: 0, axisLabel: hidden, splitLine: hidden },
-        { type: 'value', min: 0, axisLabel: hidden, splitLine: hidden },
-      ],
+      yAxis: { type: 'value', min: 0, axisLabel: { formatter: (value: number) => brl(value).replace(',00', '') } },
       series: [
-        line('Custo', '#e98015', 0, dates.map((d) => Math.round((byDay.get(d)?.cost ?? 0) * 100) / 100), true),
-        line('Cliques', VERDICT_COLOR.tracking, 1, dates.map((d) => byDay.get(d)?.clicks ?? 0)),
-        line('Conversões', VERDICT_COLOR.performing, 2, dates.map((d) => Math.round((byDay.get(d)?.conversions ?? 0) * 10) / 10)),
+        {
+          name: 'Custo por conversão registrada',
+          type: 'line',
+          smooth: true,
+          showSymbol: false,
+          lineStyle: { width: 2.5, color: '#1d1f21' },
+          itemStyle: { color: '#1d1f21' },
+          data: costPerConversion,
+        },
+        ...(target === null
+          ? []
+          : [
+              {
+                name: 'Referência',
+                type: 'line' as const,
+                showSymbol: false,
+                lineStyle: { width: 1.5, type: 'dashed' as const, color: '#f2a60d' },
+                itemStyle: { color: '#f2a60d' },
+                data: dates.map(() => target),
+              },
+            ]),
       ],
     };
-  }, [dailyRows, account.window]);
+  }, [account.window, ws.daily.value, config.goal.targetCostPerGoal]);
 
-  /** Falhas de medição que tocam o período analisado ou ainda estão em curso. */
-  const outagesInPeriod = useMemo(
-    () => insights.outages.filter((o) => o.ongoing || o.to >= account.window.from).slice(0, 2),
-    [insights.outages, account.window.from],
-  );
+  const decisionLabel = (r: RecommendationView) => DECISION_LABEL[r.category] ?? 'Investigar';
+  const routeFor = (r: RecommendationView) => r.actionButton?.route ?? '/oportunidades';
+  const evidenceText = (r: RecommendationView) =>
+    r.evidence[0]?.text ?? 'A análise não trouxe uma evidência resumida para este item.';
 
-  const sparkCost = useMemo(() => {
-    const w = account.window;
-    const byDay = new Map<string, number>();
-    for (const r of dailyRows ?? []) {
-      if (r.date >= w.from && r.date <= w.to) byDay.set(r.date, (byDay.get(r.date) ?? 0) + r.cost);
-    }
-    return Array.from(byDay.keys())
-      .sort()
-      .map((d) => byDay.get(d) as number);
-  }, [dailyRows, account.window]);
-
-  const costDelta = useMemo(() => {
-    const now = funnel?.total.cost ?? 0;
-    const prev = (ws.previousCampaigns.value ?? []).reduce((s, c) => s + c.cost, 0);
-    if (!prev) return '';
-    const change = (now - prev) / prev;
-    if (Math.abs(change) < 0.005) return '≈ igual';
-    return `${change > 0 ? '+' : '−'}${pct(Math.abs(change), 0)}`;
-  }, [funnel, ws.previousCampaigns.value]);
-
-  const health: HealthItem[] = [
-    {
-      label: 'Google Ads conectado',
-      ok: !!ws.campaigns.value,
-      detail: `${num(ws.campaigns.value?.length ?? 0)} campanhas lidas`,
-    },
-    {
-      label: 'Conversões classificadas por você',
-      ok: !!funnel && funnel.unconfirmedConversions === 0,
-      detail:
-        funnel && funnel.unconfirmedConversions > 0
-          ? `${num(funnel.unconfirmedConversions, 1)} conversões ainda dependem de sugestão automática`
-          : 'Cada ação está mapeada para um estágio do funil',
-      route: '/funil',
-    },
-    {
-      label: 'Meta de custo definida',
-      ok: goal.targetCostPerGoal !== null,
-      detail: goal.targetCostPerGoal !== null ? 'Vereditos usam a sua meta' : 'Sem meta, a comparação usa a média da conta',
-      route: '/funil',
-    },
-    {
-      label: 'Leads e vendas do CRM',
-      ok: !!funnel?.crmPresent,
-      detail: funnel?.crmPresent ? 'Qualificação, venda e receita medidas' : 'Sem leads no período: qualidade e ROI indisponíveis',
-      route: '/funil',
-    },
-    {
-      label: 'Google Analytics',
-      ok: ws.ga4Status.configured,
-      detail: ws.ga4Status.configured ? 'Sessões e eventos por página' : (ws.ga4Status.reason ?? 'Não conectado'),
-      route: '/configuracoes',
-    },
-    {
-      label: 'Search Console',
-      ok: ws.searchConsoleStatus.configured,
-      detail: ws.searchConsoleStatus.configured ? 'Consultas e posição orgânica' : (ws.searchConsoleStatus.reason ?? 'Não conectado'),
-      route: '/configuracoes',
-    },
-    {
-      label: 'Área de atendimento',
-      ok: insights.serviceAreaConfigured,
-      detail: insights.serviceAreaConfigured ? 'Regiões fora da área são identificadas' : 'Informe onde a empresa atende',
-      route: '/configuracoes',
-    },
-    {
-      label: 'Período maduro',
-      ok: insights.maturity >= 0.8,
-      detail: `${pct(insights.maturity, 0)} do período já teve tempo de gerar ${goalLabel}`,
-    },
-  ];
+  const ctr = (clicks: number, impressions: number) => (impressions > 0 ? pct(clicks / impressions, 2) : '—');
+  const costPerClick = (cost: number, clicks: number) => (clicks > 0 ? brl(cost / clicks) : '—');
 
   return (
-    <>
-      <PageHeader
-        helpId="visao-geral-introducao"
-        group="Inteligência"
-        title="Visão geral"
-        subtitle={`Do clique à venda: ${account.rangeLabel.toLowerCase()}. Cada número diz de onde vem; o que não pôde ser medido aparece como indisponível.`}
-      />
+    <div>
+      <header className="overview-heading" data-open-help="visao-geral-introducao">
+        <div className="overview-eyebrow">Hoje · {account.rangeLabel}</div>
+        <h1>O seu dinheiro está sendo bem usado?</h1>
+        <p>Uma leitura para decidir o próximo passo, com a origem e os limites de cada número visíveis.</p>
+      </header>
 
-      <DataState loading={insights.loadingCore} error={insights.coreError} hasData={!!funnel} onRetry={ws.reloadAll}>
-        {funnel && (
-          <div className="flex flex-col gap-block">
-            {/* Alertas que invalidam o resto */}
-            {outagesInPeriod.map((o) => (
-              <div key={o.from + o.campaignId} role="alert" className="alert alert-warning alert-soft">
-                <Icon name="warning" />
-                <div className="min-w-0">
-                  <h3 className="font-semibold">
-                    {o.ongoing ? 'Conversões pararam' : 'Houve um período sem conversões'}{' '}
-                    {o.scope === 'ACCOUNT' ? 'na conta' : `em "${o.campaignName}"`}
-                  </h3>
-                  <div className="text-sm">
-                    {o.days} dias seguidos ({o.from} a {o.to}) com {decimal(o.clicks)} cliques e nenhuma conversão registrada.{' '}
-                    {o.ongoing
-                      ? 'Vale testar o formulário e a etiqueta de medição antes de decidir qualquer corte.'
-                      : 'Se a medição já existia, ela falhou nesse trecho; se foi criada depois, esse gasto não pode ser avaliado.'}
-                  </div>
+      <DataState loading={loadingCore} error={coreError} hasData={!!f} onRetry={ws.reloadAll}>
+        {f && (
+          <div className="overview-stack">
+            <section
+              aria-label="Veredito executivo"
+              className={`overview-verdict ${
+                verdict.tone === 'attention'
+                  ? 'overview-verdict--attention'
+                  : verdict.tone === 'risk'
+                    ? 'overview-verdict--risk'
+                    : verdict.tone === 'healthy'
+                      ? 'overview-verdict--healthy'
+                      : 'overview-verdict--neutral'
+              }`}
+            >
+              <div className="overview-verdict__copy">
+                <span className={`overview-state ${verdict.tone === 'healthy' ? 'overview-state--healthy' : ''}`}>
+                  <Icon name={verdict.tone === 'healthy' ? 'check' : verdict.tone === 'neutral' ? 'info' : 'warning'} size="xs" />
+                  {verdict.state}
+                </span>
+                <h2>{verdict.headline}</h2>
+                <p>{verdict.reason}</p>
+                <div className="overview-verdict__actions">
+                  <Link to={verdict.route} className="btn btn-neutral btn-sm">
+                    {verdict.action} <Icon name="arrow-right" size="xs" />
+                  </Link>
+                  <a href="#prioridades" className="btn btn-ghost btn-sm">
+                    Ver evidências
+                  </a>
                 </div>
-                <Link to="/acoes" className="btn btn-sm">
-                  Ver detalhes
+              </div>
+
+              <dl className="overview-verdict__facts">
+                {verdict.facts.map((fact) => (
+                  <div key={fact.label}>
+                    <dt>{fact.label}</dt>
+                    <dd>{fact.value}</dd>
+                    <p>{fact.note}</p>
+                  </div>
+                ))}
+              </dl>
+            </section>
+
+            <section aria-label="Métricas essenciais" className="overview-kpis">
+              {kpis.map((kpi) => (
+                <article key={kpi.label} className={`overview-kpi ${kpi.unavailable ? 'overview-kpi--unavailable' : ''}`}>
+                  <div className="overview-kpi__label">{kpi.label}</div>
+                  <div className="overview-kpi__value">{kpi.value}</div>
+                  <div className="overview-kpi__comparison">{kpi.comparison}</div>
+                  <div className="overview-kpi__reference">{kpi.reference}</div>
+                  <p>{kpi.interpretation}</p>
+                  <footer>
+                    <span className="overview-source">{kpi.source}</span>
+                    <span className="overview-confidence">{kpi.confidence}</span>
+                  </footer>
+                </article>
+              ))}
+            </section>
+
+            <section className="overview-flow" aria-labelledby="flow-title">
+              <div className="overview-section-heading">
+                <div>
+                  <h2 id="flow-title">Fluxo do investimento</h2>
+                  <p>Do dinheiro investido à venda: onde ele vira resultado e onde a visão termina.</p>
+                </div>
+                <div className="overview-legend" aria-label="Legenda do fluxo">
+                  <span>
+                    <i className="overview-legend__available"></i>Dado disponível
+                  </span>
+                  <span>
+                    <i className="overview-legend__unavailable"></i>Indisponível
+                  </span>
+                  {outagesInPeriod.length > 0 && (
+                    <span>
+                      <i className="overview-legend__warning"></i>Medição em risco
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <ol className="overview-flow__stages">
+                {flow.map((stage) => (
+                  <li key={stage.label} className={`${!stage.available ? 'is-unavailable' : ''} ${stage.warning ? 'is-warning' : ''}`}>
+                    <div className="overview-flow__stage-label">{stage.label}</div>
+                    <strong>{stage.value}</strong>
+                    <span>{stage.note}</span>
+                    <small>{stage.source}</small>
+                  </li>
+                ))}
+              </ol>
+
+              {!f.crmPresent && (
+                <div className="overview-flow__limit">
+                  <Icon name="info" size="sm" />
+                  <p>
+                    A visão termina em <strong>{goalLabel}</strong>. Para medir vendas, receita e retorno, importe os dados do CRM.
+                  </p>
+                  <Link to="/funil" className="btn btn-sm btn-outline">
+                    Configurar CRM
+                  </Link>
+                </div>
+              )}
+            </section>
+
+            <section id="prioridades" className="overview-priorities" data-open-help="visao-geral-prioridades">
+              <div className="overview-section-heading">
+                <div>
+                  <h2>Decisões prioritárias</h2>
+                  <p>Ordem por estado de decisão, dinheiro envolvido e confiança. Uma recomendação não altera a conta sozinha.</p>
+                </div>
+                <Link to="/oportunidades" className="btn btn-outline btn-sm">
+                  Ver todas ({insights.openRecommendations.length})
                 </Link>
               </div>
-            ))}
 
-            {insights.maturity < 0.5 && (
-              <div role="status" className="alert alert-info alert-soft">
-                <Icon name="clock" />
-                <span className="text-sm">
-                  Só {percent(insights.maturity)} deste período já teve tempo de gerar {goalLabel} (prazo típico: {lagText}). Evite cortes baseados nele; ele
-                  amadurece em {insights.maturesOnDate}.
-                </span>
-              </div>
-            )}
-
-            {/* Números principais */}
-            <section aria-label="Resultados do período" data-open-help="visao-geral-resultados">
-              <div className="stats w-full">
-                <div className="stat">
-                  <div className="stat-title">Investimento</div>
-                  <div className="stat-value">{currency(funnel.total.cost)}</div>
-                  <div className="stat-desc">
-                    {decimal(funnel.total.impressions)} impressões · {decimal(funnel.total.clicks)} cliques
-                    {costDelta && <> · {costDelta} vs. período anterior</>}
-                  </div>
-                </div>
-
-                <div className="stat">
-                  <div className="stat-title">{stageLabel('CONTACT')}</div>
-                  <div className="stat-value">
-                    {funnel.total.stages.CONTACT.source === 'NONE' ? <span className="text-base-content/50">—</span> : decimal(funnel.total.stages.CONTACT.count, 0, 1)}
-                  </div>
-                  <div className="stat-desc">
-                    {funnel.total.costPer.CONTACT !== null
-                      ? `${currency(funnel.total.costPer.CONTACT)} por contato · ${sourceName(funnel.total.stages.CONTACT.source)}`
-                      : 'Sem conversões de contato no período'}
-                  </div>
-                </div>
-
-                <div className="stat">
-                  <div className="stat-title">{stageLabel('QUALIFIED')}</div>
-                  <div className="stat-value">
-                    {funnel.total.stages.QUALIFIED.source === 'NONE' ? <span className="text-base-content/50">—</span> : decimal(funnel.total.stages.QUALIFIED.count)}
-                  </div>
-                  <div className="stat-desc">
-                    {funnel.total.costPer.QUALIFIED !== null
-                      ? `${currency(funnel.total.costPer.QUALIFIED)} por lead qualificado`
-                      : funnel.total.stages.QUALIFIED.source === 'NONE'
-                        ? 'Indisponível: importe os leads do CRM'
-                        : 'Nenhum lead qualificado ainda'}
-                  </div>
-                </div>
-
-                <div className="stat">
-                  <div className="stat-title">Vendas e retorno</div>
-                  <div className="stat-value">
-                    {funnel.total.stages.SALE.source === 'NONE' ? <span className="text-base-content/50">—</span> : decimal(funnel.total.stages.SALE.count)}
-                  </div>
-                  <div className="stat-desc">
-                    {funnel.total.revenue !== null ? (
-                      <>
-                        {currency(funnel.total.revenue)} de receita
-                        {funnel.total.roi !== null && <> · ROI {percent(funnel.total.roi)}</>}
-                      </>
-                    ) : (
-                      'Receita e ROI só existem com vendas do CRM'
-                    )}
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Evolução do período */}
-            {evolution && (
-              <section className="card card-border bg-base-100">
-                <div className="card-body gap-4">
-                  <h2 className="text-base font-semibold">Evolução do período</h2>
-                  <p className="text-sm text-base-content/70">Custo, cliques e conversões do Google Ads por dia. Cada linha usa a própria escala.</p>
-                  <EChart option={evolution} height={280} label="Custo, cliques e conversões por dia no período" />
-                </div>
-              </section>
-            )}
-
-            <div className="grid gap-block lg:grid-cols-5">
-              {/* Funil */}
-              <section className="card card-border bg-base-100 lg:col-span-3">
-                <div className="card-body gap-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h2 className="card-title text-base">Funil do período</h2>
-                      <p className="text-sm text-base-content/70">Um clique não é um contato, e um contato não é um lead qualificado.</p>
-                    </div>
-                    <Link to="/funil" className="btn btn-ghost btn-sm">
-                      Detalhar
-                    </Link>
-                  </div>
-                  <FunnelBars bars={bars} />
-                  {funnel.adsValue.isStatic && (
-                    <div role="note" className="alert alert-soft alert-warning">
-                      <Icon name="info" />
-                      <span className="text-sm">
-                        O Google Ads atribui o mesmo valor a cada conversão ({funnel.adsValue.perConversion !== null ? currency(funnel.adsValue.perConversion) : ''}). Isso não é receita e não entra no ROI.
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </section>
-
-              {/* Meta */}
-              <section className="card card-border bg-base-100 lg:col-span-2">
-                <div className="card-body gap-4">
-                  <h2 className="card-title text-base">Seu bom resultado</h2>
-                  <p className="text-sm text-base-content/70">
-                    {config.goal.targetCostPerGoal !== null
-                      ? `Meta: ${goalLabel} a até ${currency(config.goal.targetCostPerGoal)} cada.`
-                      : `Meta: ${goalLabel}. Defina quanto vale pagar para avaliar com uma régua sua.`}
-                  </p>
-
-                  {goalEval && (
-                    <>
-                      <div className="flex items-end justify-between gap-3">
-                        <div>
-                          <div className="text-3xl font-semibold tabular">
-                            {goalEval.costPerGoal !== null ? currency(goalEval.costPerGoal) : <span className="text-base-content/40">—</span>}
-                          </div>
-                          <div className="text-sm text-base-content/70">por {goalLabel}</div>
+              <div className="overview-priority-list">
+                {top.length > 0 ? (
+                  top.map((r, position) => (
+                    <article key={r.id} className="overview-priority">
+                      <div className="overview-priority__number">{position + 1}</div>
+                      <div className="overview-priority__body">
+                        <div className="overview-priority__meta">
+                          <span>{decisionLabel(r)}</span>
+                          <ConfidenceBadge level={r.confidence.level} />
                         </div>
-                        {sparkCost.length > 1 && (
-                          <div className="text-base-content/70">
-                            <Sparkline values={sparkCost} label="Custo diário no período" />
-                            <div className="text-right text-xs">custo por dia</div>
+                        <h3>{r.title}</h3>
+                        <p>{r.problem}</p>
+                        <dl>
+                          <div>
+                            <dt>Evidência principal</dt>
+                            <dd>{evidenceText(r)}</dd>
                           </div>
-                        )}
+                          <div>
+                            <dt>Como validar</dt>
+                            <dd>{r.validation}</dd>
+                          </div>
+                        </dl>
                       </div>
-
-                      <div>
-                        {goalEval.status === 'MET' ? (
-                          <span className="badge badge-soft badge-success">Dentro da meta</span>
-                        ) : goalEval.status === 'ABOVE' ? (
-                          <span className="badge badge-soft badge-warning">Acima da meta</span>
-                        ) : goalEval.status === 'NO_TARGET' ? (
-                          <span className="badge badge-soft">Sem meta definida</span>
-                        ) : goalEval.status === 'NO_RESULTS' ? (
-                          <span className="badge badge-soft badge-error">Nenhum resultado no período</span>
-                        ) : (
-                          <span className="badge badge-dash">Sem dados deste estágio</span>
-                        )}
-                      </div>
-                    </>
-                  )}
-                  <Link to="/funil" className="btn btn-sm self-start">
-                    Configurar meta
-                  </Link>
-                </div>
-              </section>
-            </div>
-
-            {/* Onde olhar primeiro */}
-            <section className="card card-border bg-base-100" data-open-help="visao-geral-prioridades">
-              <div className="card-body gap-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h2 className="card-title text-base">Onde olhar primeiro</h2>
-                    <p className="text-sm text-base-content/70">Ordenado por impacto estimado e confiança. Cada item mostra a evidência e como validar.</p>
-                  </div>
-                  <Link to="/acoes" className="btn btn-ghost btn-sm">
-                    Todas ({insights.openRecommendations.length})
-                  </Link>
-                </div>
-
-                <ul className="list">
-                  {top.map((r) => (
-                    <li key={r.id} className="list-row items-center">
-                      <span className="grid size-9 place-items-center rounded-box bg-base-200">
-                        <Icon name={CATEGORY_ICON[r.category] ?? 'info'} size="sm" />
-                      </span>
-                      <div className="min-w-0">
-                        <div className="font-medium break-words">{r.title}</div>
-                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-base-content/60">
-                          <span>{CATEGORY_LABEL[r.category] ?? r.category}</span>
-                          {r.impact.monthlyCostBrl ? <span>· até {currency(r.impact.monthlyCostBrl, 0, 0)}/mês</span> : null}
-                        </div>
-                      </div>
-                      <ConfidenceBadge level={r.confidence.level} />
-                      <Link to="/acoes" className="btn btn-ghost btn-sm btn-square" aria-label="Abrir no plano de ação">
-                        <Icon name="arrow-right" size="sm" />
+                      <Link to={routeFor(r)} className="btn btn-neutral btn-sm overview-priority__action">
+                        {r.actionButton?.label || 'Abrir análise'} <Icon name="arrow-right" size="xs" />
                       </Link>
-                    </li>
-                  ))}
-                  {top.length === 0 && (
-                    <li className="list-row text-sm text-base-content/60">Nenhuma recomendação aberta. Isso pode mudar quando mais dados chegarem.</li>
-                  )}
-                </ul>
+                    </article>
+                  ))
+                ) : (
+                  <div className="overview-empty-priority">
+                    <Icon name="check" size="md" />
+                    <div>
+                      <h3>Nada exige ação agora</h3>
+                      <p>Não há recomendações abertas com os dados disponíveis neste período.</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
 
-            <div className="grid gap-block lg:grid-cols-2">
-              {/* Desperdícios identificados */}
-              <section className="card card-border bg-base-100">
-                <div className="card-body gap-0 p-0">
-                  <div className="flex items-start justify-between gap-3 px-6 pt-4 pb-2">
-                    <div>
-                      <h2 className="text-base font-semibold">Desperdícios identificados</h2>
-                      <p className="text-sm text-base-content/70">Campanhas e termos sem resultado, do maior gasto para o menor.</p>
-                    </div>
-                    <Link to="/desperdicios" className="link-brand whitespace-nowrap text-sm">
-                      Ver todos »
-                    </Link>
+            {evolution && (
+              <section className="overview-evolution" aria-labelledby="evolution-title">
+                <div className="overview-section-heading">
+                  <div>
+                    <h2 id="evolution-title">Como chegamos aqui?</h2>
+                    <p>Custo por conversão registrada no Google Ads. A referência aparece apenas quando foi configurada.</p>
                   </div>
-                  <ul>
-                    {topWaste.map((w) => (
-                      <li key={w.dimension + w.key} className="flex items-center justify-between gap-3 border-t border-base-300 px-6 py-3">
-                        <div className="min-w-0">
-                          <div className="text-sm font-medium break-words">{w.label}</div>
-                          <div className="text-xs text-base-content/60">
-                            {w.dimension === 'campaign' ? 'Campanha' : 'Termo'} · {decimal(w.perf.clicks)} cliques, nenhum resultado
-                            {w.blocked && ' · já bloqueado'}
-                          </div>
-                        </div>
-                        <div className="flex flex-none flex-col items-end gap-1">
-                          <span className="font-display text-base font-medium tabular">{brl(w.perf.cost)}</span>
-                          <span className={w.assessment.confidence.level === 'HIGH' ? 'badge badge-soft badge-xs badge-error' : 'badge badge-soft badge-xs badge-warning'}>
-                            {w.assessment.confidence.level === 'HIGH' ? 'Crítico' : 'Atenção'}
-                          </span>
-                        </div>
-                      </li>
-                    ))}
-                    {topWaste.length === 0 && (
-                      <li className="border-t border-base-300 px-6 py-4 text-sm text-base-content/60">Nenhum desperdício confirmado em campanhas ou termos neste período.</li>
-                    )}
-                  </ul>
                 </div>
+                <EChart option={evolution} height={280} label="Evolução diária do custo por conversão registrada" />
+                {outagesInPeriod.length > 0 && (
+                  <p className="overview-chart-note">
+                    <Icon name="warning" size="xs" /> Há períodos com conversões interrompidas; dias sem resultado não têm custo calculado.
+                  </p>
+                )}
               </section>
+            )}
 
-              {/* Saúde dos dados */}
-              <section className="card card-border bg-base-100" data-open-help="visao-geral-saude">
-                <div className="card-body gap-4">
-                  <h2 className="card-title text-base">Saúde dos dados</h2>
-                  <p className="text-sm text-base-content/70">Quanto mais completo, mais firmes ficam as conclusões.</p>
-                  <ul className="flex flex-col gap-2">
-                    {health.map((h) => (
-                      <li key={h.label} className="flex items-start gap-3 text-sm">
-                        <span
-                          className={
-                            h.ok
-                              ? 'mt-1 grid size-5 shrink-0 place-items-center rounded-full bg-success text-success-content'
-                              : 'mt-1 grid size-5 shrink-0 place-items-center rounded-full bg-base-300 text-base-content/70'
-                          }
-                        >
-                          <Icon name={h.ok ? 'check' : 'x'} size="xs" stroke={2.5} />
-                        </span>
-                        <div className="min-w-0 grow">
-                          <div className="font-medium">{h.label}</div>
-                          <div className="text-xs text-base-content/60">{h.detail}</div>
-                        </div>
-                        {!h.ok && h.route && (
-                          <Link to={h.route} className="btn btn-ghost btn-xs">
-                            Resolver
-                          </Link>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </section>
-            </div>
+            <details className="overview-media-metrics">
+              <summary>Ver métricas de mídia</summary>
+              <div>
+                <dl>
+                  <div>
+                    <dt>Impressões</dt>
+                    <dd>{num(f.total.impressions)}</dd>
+                  </div>
+                  <div>
+                    <dt>Cliques</dt>
+                    <dd>{num(f.total.clicks)}</dd>
+                  </div>
+                  <div>
+                    <dt>CTR</dt>
+                    <dd>{ctr(f.total.clicks, f.total.impressions)}</dd>
+                  </div>
+                  <div>
+                    <dt>CPC</dt>
+                    <dd>{costPerClick(f.total.cost, f.total.clicks)}</dd>
+                  </div>
+                </dl>
+                <p>
+                  Indicadores de apoio do Google Ads. Eles ajudam a investigar, mas não substituem custo por resultado, qualidade e receita.
+                </p>
+              </div>
+            </details>
           </div>
         )}
       </DataState>
-    </>
+    </div>
   );
 }

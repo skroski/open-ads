@@ -1,11 +1,11 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
-import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
-import { AUTHOR, DONATION } from '@shared/brand';
-import { DATE_RANGE_OPTIONS, type DateWindow } from '@shared/domain/dates';
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
+import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { AUTHOR, BRAND, DONATION } from '@shared/brand';
+import { DATE_RANGE_OPTIONS, isoDate, type DateRangeOption, type DateWindow } from '@shared/domain/dates';
 import { Icon } from './components/Icon';
 import { Logo } from './components/Logo';
 import { isPersistent } from './lib/localDb';
-import { NAV_GROUPS } from './nav';
+import { NAV_SECTIONS, sectionForUrl } from './nav';
 import { Placeholder } from './Placeholder';
 import { useAccount } from './state/account';
 import { useWorkspace } from './state/workspace';
@@ -77,10 +77,34 @@ export function App() {
   const ws = useWorkspace();
   const now = useNow();
   const fresh = freshness(ws.lastLoadedAt, now);
+  const location = useLocation();
+
+  const periodMenuRef = useRef<HTMLDetailsElement>(null);
+  const [customFrom, setCustomFrom] = useState(() => account.customRange?.from ?? '');
+  const [customTo, setCustomTo] = useState(() => account.customRange?.to ?? '');
+  const [customError, setCustomError] = useState<string | null>(null);
+  const todayIso = useMemo(() => isoDate(new Date()), []);
+
+  const activeSection = useMemo(() => sectionForUrl(location.pathname), [location.pathname]);
+  const presetRanges = useMemo(() => DATE_RANGE_OPTIONS.filter((o) => o.value !== 'CUSTOM'), []);
 
   const closeDrawer = (): void => {
     const toggle = document.getElementById('app-drawer') as HTMLInputElement | null;
     if (toggle) toggle.checked = false;
+  };
+
+  const pickRange = (range: DateRangeOption): void => {
+    account.setRange(range);
+    if (periodMenuRef.current) periodMenuRef.current.open = false;
+  };
+
+  const applyCustom = (e: React.FormEvent): void => {
+    e.preventDefault();
+    const error = account.setCustomRange(customFrom, customTo);
+    setCustomError(error);
+    if (!error && periodMenuRef.current) {
+      periodMenuRef.current.open = false;
+    }
   };
 
   const copyPix = async (): Promise<void> => {
@@ -92,12 +116,24 @@ export function App() {
     }
   };
 
+  // Coleta todas as rotas filhas e principais para garantir mapeamento completo de rotas
+  const allRoutes = useMemo(() => {
+    const routesMap = new Map<string, string>();
+    for (const section of NAV_SECTIONS) {
+      routesMap.set(section.path, section.label);
+      for (const tab of section.tabs) {
+        routesMap.set(tab.path, tab.label);
+      }
+    }
+    return Array.from(routesMap.entries()).map(([path, label]) => ({ path, label }));
+  }, []);
+
   return (
     <div className="drawer lg:drawer-open">
       <input id="app-drawer" type="checkbox" className="drawer-toggle" />
 
       <div className="drawer-content flex min-h-screen min-w-0 flex-col bg-base-200">
-        <header className="navbar sticky top-0 z-30 h-16 min-h-16 gap-2 border-b border-base-300 bg-base-100 px-3 sm:px-4">
+        <header className="navbar sticky top-0 z-30 h-auto min-h-16 flex-wrap gap-2 border-b border-base-300 bg-base-100 px-3 py-2 sm:px-4 lg:flex-nowrap">
           <div className="flex-none lg:hidden">
             <label htmlFor="app-drawer" className="btn btn-square btn-sm" aria-label="Abrir menu de navegação">
               <Icon name="menu" />
@@ -150,7 +186,7 @@ export function App() {
               </div>
             </details>
 
-            <details className="dropdown">
+            <details ref={periodMenuRef} className="dropdown">
               <summary className="btn h-auto min-h-[38px] justify-start gap-2 border-base-300 bg-base-100 px-3 py-1 font-normal" aria-label="Período de análise">
                 <Icon name="calendar" size="sm" className="text-base-content/60" />
                 <span className="flex flex-col items-start leading-tight">
@@ -162,39 +198,68 @@ export function App() {
               <div className="dropdown-content z-50 mt-1 w-64 rounded-box border border-base-300 bg-base-100 p-1.5 shadow-lg">
                 <div className="px-3 pt-2 pb-2 font-display text-xs font-semibold uppercase tracking-[0.08em] text-base-content/60">Período</div>
                 <ul className="menu w-full p-0">
-                  {DATE_RANGE_OPTIONS.map((r) => (
+                  {presetRanges.map((r) => (
                     <li key={r.value}>
-                      <button type="button" className={r.value === account.range ? 'menu-active' : ''} onClick={() => account.setRange(r.value)}>
+                      <button type="button" className={r.value === account.range ? 'menu-active' : ''} onClick={() => pickRange(r.value)}>
                         {r.label}
                       </button>
                     </li>
                   ))}
                 </ul>
+                <form className="mt-1 border-t border-base-300 px-3 pt-3 pb-2" onSubmit={applyCustom}>
+                  <div className="font-display text-xs font-semibold uppercase tracking-[0.08em] text-base-content/60">Intervalo de datas</div>
+                  <label className="mt-2 block text-xs text-base-content/70">
+                    De
+                    <input
+                      type="date"
+                      className="input input-sm mt-1 w-full"
+                      name="customFrom"
+                      max={todayIso}
+                      value={customFrom}
+                      onChange={(e) => setCustomFrom(e.target.value)}
+                    />
+                  </label>
+                  <label className="mt-2 block text-xs text-base-content/70">
+                    Até
+                    <input
+                      type="date"
+                      className="input input-sm mt-1 w-full"
+                      name="customTo"
+                      max={todayIso}
+                      value={customTo}
+                      onChange={(e) => setCustomTo(e.target.value)}
+                    />
+                  </label>
+                  {customError && <p role="alert" className="mt-2 text-xs text-error">{customError}</p>}
+                  <button type="submit" className="btn btn-sm btn-primary mt-3 w-full">Aplicar intervalo</button>
+                </form>
                 <p className="mt-1 border-t border-base-300 px-3 pt-2 pb-1 text-xs text-base-content/60">Comparação feita com o período anterior de mesma duração.</p>
               </div>
             </details>
           </div>
 
-          {ws.anyLoading ? (
-            <span className="hidden items-center gap-2 text-sm text-base-content/60 sm:flex">
-              <span className="loading loading-spinner loading-xs"></span> Atualizando…
-            </span>
-          ) : (
-            fresh && (
+          <div className="flex flex-none items-center gap-3">
+            {ws.anyLoading ? (
               <span className="hidden items-center gap-2 text-sm text-base-content/60 sm:flex">
-                <span className="status status-success"></span> {fresh}
+                <span className="loading loading-spinner loading-xs"></span> Atualizando…
               </span>
-            )
-          )}
-          <button
-            type="button"
-            className="btn btn-square border-base-300 bg-base-100"
-            aria-label={dark ? 'Usar tema claro' : 'Usar tema escuro'}
-            title={dark ? 'Usar tema claro' : 'Usar tema escuro'}
-            onClick={() => setTheme(dark ? 'light' : 'dark')}
-          >
-            <Icon name={dark ? 'sun' : 'moon'} size="sm" />
-          </button>
+            ) : (
+              fresh && (
+                <span className="hidden items-center gap-2 text-sm text-base-content/60 sm:flex">
+                  <span className="status status-success"></span> {fresh}
+                </span>
+              )
+            )}
+            <button
+              type="button"
+              className="btn btn-square border-base-300 bg-base-100"
+              aria-label={dark ? 'Usar tema claro' : 'Usar tema escuro'}
+              title={dark ? 'Usar tema claro' : 'Usar tema escuro'}
+              onClick={() => setTheme(dark ? 'light' : 'dark')}
+            >
+              <Icon name={dark ? 'sun' : 'moon'} size="sm" />
+            </button>
+          </div>
         </header>
 
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
@@ -220,6 +285,27 @@ export function App() {
             </div>
           )}
 
+          {activeSection && activeSection.tabs.length > 1 && (
+            <>
+              <div className="section-heading">
+                <div className="section-heading__eyebrow">{activeSection.label}</div>
+                <h1 className="section-heading__title">{activeSection.question}</h1>
+                {activeSection.subtitle && <p className="section-heading__sub">{activeSection.subtitle}</p>}
+              </div>
+              <nav className="section-tabs" aria-label={`Seções de ${activeSection.label}`}>
+                {activeSection.tabs.map((tab) => (
+                  <NavLink
+                    key={tab.path}
+                    to={`/${tab.path}`}
+                    className={({ isActive }) => (isActive ? 'section-tab section-tab--active' : 'section-tab')}
+                  >
+                    {tab.label}
+                  </NavLink>
+                ))}
+              </nav>
+            </>
+          )}
+
           {!account.selectedId && !account.discoveryError ? (
             <div className="flex flex-col gap-3" aria-busy="true">
               <div className="skeleton h-24 w-full"></div>
@@ -227,18 +313,18 @@ export function App() {
             </div>
           ) : (
             <Suspense fallback={<div className="skeleton h-64 w-full" aria-busy="true" aria-label="Carregando"></div>}>
-            <Routes>
-              <Route path="/" element={<Navigate to="/visao-geral" replace />} />
-              {/* Telas já portadas para React */}
-              <Route path="/visao-geral" element={<Overview />} />
-              {/* As demais ainda são marcadores: a versão Oficial em Angular as oferece completas. */}
-              {NAV_GROUPS.flatMap((group) => group.items)
-                .filter((item) => item.path !== 'visao-geral')
-                .map((item) => (
-                  <Route key={item.path} path={`/${item.path}`} element={<Placeholder title={item.label} />} />
-                ))}
-              <Route path="*" element={<Navigate to="/visao-geral" replace />} />
-            </Routes>
+              <Routes>
+                <Route path="/" element={<Navigate to="/visao-geral" replace />} />
+                {/* Telas já portadas para React */}
+                <Route path="/visao-geral" element={<Overview />} />
+                {/* As demais ainda são marcadores: a versão Oficial em Angular as oferece completas. */}
+                {allRoutes
+                  .filter((item) => item.path !== 'visao-geral')
+                  .map((item) => (
+                    <Route key={item.path} path={`/${item.path}`} element={<Placeholder title={item.label} />} />
+                  ))}
+                <Route path="*" element={<Navigate to="/visao-geral" replace />} />
+              </Routes>
             </Suspense>
           )}
         </main>
@@ -280,41 +366,40 @@ export function App() {
           </div>
 
           <nav className={`grow overflow-y-auto pb-4 ${collapsed ? 'px-0 py-3' : 'px-2'}`} aria-label="Navegação principal" data-open-help="navegacao">
-            {NAV_GROUPS.map((group, index) =>
-              collapsed ? (
-                <div key={group.title}>
-                  {index > 0 && <div className="nav-group-divider" aria-hidden="true"></div>}
-                  <ul className="m-0 flex w-full list-none flex-col items-center gap-1.5 p-0">
-                    {group.items.map((item) => (
-                      <li key={item.path} className="flex w-full justify-center">
-                        <div className="tooltip tooltip-right flex justify-center" data-tip={item.label}>
-                          <NavLink
-                            to={`/${item.path}`}
-                            onClick={closeDrawer}
-                            className={({ isActive }) => (isActive ? 'retracted-item retracted-active' : 'retracted-item')}
-                            title={item.label}
-                            aria-label={item.label}
-                          >
-                            <Icon name={item.icon} size="md" />
-                          </NavLink>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                <ul key={group.title} className="menu w-full gap-1">
-                  <li className="menu-title">{group.title}</li>
-                  {group.items.map((item) => (
-                    <li key={item.path}>
-                      <NavLink to={`/${item.path}`} onClick={closeDrawer} className={({ isActive }) => (isActive ? 'menu-active' : '')}>
-                        <Icon name={item.icon} size="sm" />
-                        <span>{item.label}</span>
+            {collapsed ? (
+              <ul className="m-0 flex w-full list-none flex-col items-center gap-1.5 p-0">
+                {NAV_SECTIONS.map((item) => (
+                  <li key={item.path} className="flex w-full justify-center">
+                    <div className="tooltip tooltip-right flex justify-center" data-tip={item.label}>
+                      <NavLink
+                        to={`/${item.path}`}
+                        onClick={closeDrawer}
+                        className={activeSection?.path === item.path ? 'retracted-item retracted-active' : 'retracted-item'}
+                        title={item.label}
+                        aria-label={item.label}
+                      >
+                        <Icon name={item.icon} size="md" />
                       </NavLink>
-                    </li>
-                  ))}
-                </ul>
-              ),
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <ul className="menu w-full gap-1">
+                {NAV_SECTIONS.map((item) => (
+                  <li key={item.path}>
+                    <NavLink
+                      to={`/${item.path}`}
+                      onClick={closeDrawer}
+                      className={activeSection?.path === item.path ? 'menu-active' : ''}
+                      aria-current={activeSection?.path === item.path ? 'page' : undefined}
+                    >
+                      <Icon name={item.icon} size="sm" />
+                      <span>{item.label}</span>
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
             )}
           </nav>
 

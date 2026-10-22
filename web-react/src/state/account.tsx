@@ -1,5 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { DATE_RANGE_OPTIONS, previousWindow, resolveWindow, type DateRangeOption, type DateWindow } from '@shared/domain/dates';
+import {
+  DATE_RANGE_OPTIONS,
+  previousWindow,
+  resolveWindow,
+  validateCustomRange,
+  type CustomRange,
+  type DateRangeOption,
+  type DateWindow,
+} from '@shared/domain/dates';
 import type { AccountRef } from '@shared/domain/models';
 import { accounts as fetchAccounts } from '../lib/api';
 import { setManagerIds } from '../lib/http';
@@ -9,6 +17,7 @@ import { readJson, readString, writeString } from '../lib/storage';
 const KEY_ACCOUNTS = 'gads_saved_accounts';
 const KEY_SELECTED = 'gads_selected_account_id';
 const KEY_RANGE = 'gads_date_range';
+const KEY_CUSTOM = 'gads_date_custom';
 
 export const digitsOnly = (value: string): string => (value ?? '').replace(/\D/g, '');
 
@@ -18,8 +27,14 @@ function loadAccounts(): AccountRef[] {
   return Array.isArray(saved) ? saved.filter((a) => digitsOnly(a?.id ?? '') !== '9999999999') : [];
 }
 
+function loadCustom(): CustomRange | null {
+  const saved = readJson<CustomRange | null>(KEY_CUSTOM, null);
+  return saved && !validateCustomRange(saved.from, saved.to) ? saved : null;
+}
+
 function loadRange(): DateRangeOption {
   const v = readString(KEY_RANGE) as DateRangeOption;
+  if (v === 'CUSTOM' && !loadCustom()) return 'LAST_30_DAYS';
   return DATE_RANGE_OPTIONS.some((o) => o.value === v) ? v : 'LAST_30_DAYS';
 }
 
@@ -33,6 +48,7 @@ export interface AccountContextValue {
   selected: AccountRef | null;
   range: DateRangeOption;
   rangeLabel: string;
+  customRange: CustomRange | null;
   window: DateWindow;
   previous: DateWindow;
   discovering: boolean;
@@ -40,6 +56,7 @@ export interface AccountContextValue {
   discover(): void;
   select(id: string): void;
   setRange(range: DateRangeOption): void;
+  setCustomRange(from: string, to: string): string | null;
 }
 
 const AccountContext = createContext<AccountContextValue | null>(null);
@@ -48,6 +65,7 @@ const AccountContext = createContext<AccountContextValue | null>(null);
 export function AccountProvider({ children }: { children: ReactNode }) {
   const [accounts, setAccounts] = useState<AccountRef[]>(loadAccounts);
   const [selectedId, setSelectedId] = useState<string>(() => digitsOnly(readString(KEY_SELECTED)));
+  const [customRange, setCustomRangeState] = useState<CustomRange | null>(loadCustom);
   const [range, setRangeState] = useState<DateRangeOption>(loadRange);
   const [discovering, setDiscovering] = useState(false);
   const [discoveryError, setDiscoveryError] = useState<string | null>(null);
@@ -114,8 +132,19 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     writeString(KEY_RANGE, next);
   }, []);
 
+  const setCustomRange = useCallback((from: string, to: string): string | null => {
+    const error = validateCustomRange(from, to);
+    if (error) return error;
+    const next = { from, to };
+    setCustomRangeState(next);
+    writeString(KEY_CUSTOM, JSON.stringify(next));
+    setRangeState('CUSTOM');
+    writeString(KEY_RANGE, 'CUSTOM');
+    return null;
+  }, []);
+
   /** Sem depender da lista de contas: a janela só muda quando o período muda. */
-  const window = useMemo(() => resolveWindow(range), [range]);
+  const window = useMemo(() => resolveWindow(range, new Date(), customRange), [range, customRange]);
   const previous = useMemo(() => previousWindow(window), [window]);
 
   const value = useMemo<AccountContextValue>(() => {
@@ -126,6 +155,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       selected,
       range,
       rangeLabel: DATE_RANGE_OPTIONS.find((o) => o.value === range)?.label ?? range,
+      customRange,
       window,
       previous,
       discovering,
@@ -133,8 +163,9 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       discover,
       select,
       setRange,
+      setCustomRange,
     };
-  }, [accounts, selectedId, range, window, previous, discovering, discoveryError, discover, select, setRange]);
+  }, [accounts, selectedId, range, customRange, window, previous, discovering, discoveryError, discover, select, setRange, setCustomRange]);
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>;
 }

@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import { AUTHOR } from '@shared/brand';
 import { App } from './App';
-import { NAV_GROUPS } from './nav';
+import { NAV_SECTIONS } from './nav';
 import { mockApi, renderWithProviders } from './test-utils';
 
 describe('App (React)', () => {
@@ -11,14 +11,14 @@ describe('App (React)', () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  it('mostra a marca e todos os itens do menu, como no Angular', async () => {
+  it('mostra a marca e todos os destinos principais de decisão, como no Angular', async () => {
     renderWithProviders(<App />, '/');
     expect(screen.getAllByAltText('OpenAds').length).toBeGreaterThan(0);
-    for (const item of NAV_GROUPS.flatMap((group) => group.items)) {
+    for (const item of NAV_SECTIONS) {
       expect(screen.getAllByText(item.label).length).toBeGreaterThan(0);
     }
-    // A primeira rota carrega sob demanda e pode disputar CPU com o build Angular.
-    await screen.findByRole('heading', { name: 'Visão geral' }, { timeout: 5000 });
+    // A primeira rota carrega sob demanda e exibe o heading principal de decisão.
+    await screen.findByRole('heading', { name: 'O seu dinheiro está sendo bem usado?' }, { timeout: 5000 });
   });
 
   it('mantém o crédito de autoria exigido pela licença', () => {
@@ -27,7 +27,7 @@ describe('App (React)', () => {
   });
 
   it('mostra o marcador das telas ainda não portadas', async () => {
-    renderWithProviders(<App />, '/funil');
+    renderWithProviders(<App />, '/campanhas');
     expect(await screen.findByText(/ainda não foi portada/i)).toBeInTheDocument();
   });
 

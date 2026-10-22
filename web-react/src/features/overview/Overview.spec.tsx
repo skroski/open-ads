@@ -30,25 +30,23 @@ describe('Overview (React)', () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => vi.unstubAllGlobals());
 
-  it('mostra investimento, funil e saúde dos dados a partir das consultas à API', async () => {
+  it('mostra investimento, fluxo do investimento e veredito executivo', async () => {
     mockApi(rowsFor);
     renderWithProviders(<Overview />);
 
     expect(await screen.findByText('Investimento')).toBeInTheDocument();
     // 250.000.000 micros = R$ 250,00 (mesma conta do Angular, via normalizador compartilhado).
-    expect(screen.getByText(/R\$\s*250,00/, { selector: '.stat-value' })).toBeInTheDocument();
-    expect(screen.getByText('Funil do período')).toBeInTheDocument();
-    const health = screen.getByText('Saúde dos dados').closest('section')!;
-    expect(within(health).getByText('1 campanhas lidas')).toBeInTheDocument();
-    expect(within(health).getByText('Google Ads conectado')).toBeInTheDocument();
+    expect(screen.getByText(/R\$\s*250,00/, { selector: '.overview-kpi__value' })).toBeInTheDocument();
+    expect(screen.getByText('Fluxo do investimento')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Veredito executivo' })).toBeInTheDocument();
   });
 
   it('diz que o estágio não tem fonte em vez de inventar zero', async () => {
     mockApi(rowsFor);
     renderWithProviders(<Overview />);
     await screen.findByText('Investimento');
-    expect(screen.getByText('Indisponível: importe os leads do CRM')).toBeInTheDocument();
-    expect(screen.getByText('Receita e ROI só existem com vendas do CRM')).toBeInTheDocument();
+    expect(screen.getByText(/A visão termina em/i)).toBeInTheDocument();
+    expect(screen.getByText('Indisponível · CRM não conectado')).toBeInTheDocument();
   });
 
   it('mostra o erro da API com a opção de tentar de novo', async () => {

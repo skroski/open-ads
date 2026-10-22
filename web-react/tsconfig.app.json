@@ -17,6 +17,6 @@
     "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
     "paths": { "@shared/*": ["../web/src/app/*"] }
   },
-  "include": ["src", "../web/src/app/domain", "../web/src/app/brand.ts"],
+  "include": ["src", "../web/src/app/domain", "../web/src/app/brand.ts", "../web/src/app/nav.ts", "../web/src/app/shared/icons.ts"],
   "exclude": ["../web/src/app/**/*.spec.ts"]
 }
