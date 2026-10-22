@@ -102,7 +102,7 @@ export const AdsQueries = {
    */
   pmaxAssetGroups: (w: DateWindow): string => `
     SELECT asset_group.id, asset_group.name, asset_group.ad_strength,
-           asset_group.asset_coverage, asset_group.primary_status,
+           asset_group.primary_status,
            campaign.id, campaign.name, ${METRICS}
     FROM asset_group
     WHERE ${between(w)} AND asset_group.status != 'REMOVED'

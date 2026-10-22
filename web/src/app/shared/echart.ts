@@ -62,11 +62,13 @@ export class EChart {
         const dark = this.theme.resolved() === 'dark';
         const option = this.option();
         if (!this.chart) {
-          this.chart = init(this.el().nativeElement, undefined, { renderer: 'canvas' });
+          const dom = this.el().nativeElement;
+          if (dom.clientWidth === 0 && dom.clientHeight === 0) return;
+          this.chart = init(dom, undefined, { renderer: 'canvas' });
           this.chart.on('click', (p) =>
             this.pick.emit({ name: String(p.name ?? ''), seriesName: p.seriesName, dataIndex: p.dataIndex ?? 0 }),
           );
-          resize.observe(this.el().nativeElement);
+          resize.observe(dom);
         }
         const text = dark ? '#bbbcbe' : '#5d6367';
         const line = dark ? 'rgba(255,255,255,.12)' : '#e6e6e6';

@@ -24,7 +24,14 @@ export class Dataset<T, P extends object = object> {
   private readonly loaded = signal<number | null>(null);
   private readonly resourceRef: ResourceRef<T | undefined>;
 
-  readonly value = computed<T | undefined>(() => this.resourceRef.value());
+  readonly value = computed<T | undefined>(() => {
+    if (this.resourceRef.error()) return undefined;
+    try {
+      return this.resourceRef.value();
+    } catch {
+      return undefined;
+    }
+  });
   readonly loading = computed(() => this.wanted() && this.resourceRef.isLoading());
   readonly error = computed<string | null>(() => {
     const e = this.resourceRef.error();
