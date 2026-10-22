@@ -81,9 +81,9 @@ interface Group {
   template: `
     <app-page-header data-open-help="historico-introducao"
       group="Inteligência"
-      lead="Histórico"
+      lead="Auditoria"
       title="e aprendizado"
-      subtitle="O que foi mudado, quando, e o que aconteceu depois. O painel avisa de regressões e guarda o que você aprendeu."
+      subtitle="O que foi mudado, quando, e o que aconteceu depois. O painel avisa de regressões e guarda o que você aprendeu para não repetir decisões no escuro."
       [exportData]="exportData()"
     />
 

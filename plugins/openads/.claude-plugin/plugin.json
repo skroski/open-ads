@@ -1,7 +1,7 @@
 {
   "name": "openads",
-  "version": "1.0.0",
-  "description": "Consulte e analise Google Ads em português com dados da API oficial.",
+  "version": "1.1.0",
+  "description": "Diagnostique desperdícios e oportunidades no Google Ads em português, com dados da API oficial.",
   "author": {
     "name": "Daniel Ribeiro Skroski"
   },

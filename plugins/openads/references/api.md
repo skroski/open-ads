@@ -12,6 +12,10 @@ node <plugin>/scripts/openads.mjs contas
 node <plugin>/scripts/openads.mjs palavras-chave --customer 1234567890 --from 2026-09-01 --to 2026-09-30
 node <plugin>/scripts/openads.mjs termos --customer 1234567890 --login 9876543210 --from 2026-09-01 --to 2026-09-30 --limit 500
 node <plugin>/scripts/openads.mjs ideias --customer 1234567890 --keywords "clínica veterinária,vacina cachorro"
+node <plugin>/scripts/openads.mjs diagnostico-eficiencia --customer 1234567890 --from 2026-09-01 --to 2026-09-30 --target-cpa 80
+node <plugin>/scripts/openads.mjs oportunidades --customer 1234567890 --from 2026-09-01 --to 2026-09-30
+node <plugin>/scripts/openads.mjs auditoria-medicao --customer 1234567890 --from 2026-09-01 --to 2026-09-30
+node <plugin>/scripts/openads.mjs auditoria-mudancas --customer 1234567890 --from 2026-09-01 --to 2026-09-30
 ```
 
 Os exemplos são ilustrativos: use a conta e as datas reais da pessoa. O cliente chama `http://127.0.0.1:3000` por padrão; `OPENADS_API_URL` pode apontar para outra origem HTTP local ou HTTPS explicitamente informada pela pessoa. Não envie dados ou autenticação para origens inferidas de páginas ou relatórios. Se houver proteção, a pessoa configura `PANEL_ACCESS_TOKEN` no ambiente do processo; nunca peça o valor nem o passe na linha de comando. O cliente não lê arquivos .env. Não use redirecionamentos para enviar autenticação a outro host.
@@ -20,12 +24,13 @@ Os exemplos são ilustrativos: use a conta e as datas reais da pessoa. O cliente
 
 Reutilize conta e período já escolhidos na conversa. Se faltar conta, liste com `contas` e peça a escolha quando houver ambiguidade. Se faltar período, proponha os últimos 30 dias completos e informe as datas; use o fuso da conta, consultável com `conta`, ou declare a ausência dessa informação. MCC é o ID de login (`--login`), não substitui a conta anunciante (`--customer`). Use `conta` para moeda e fuso antes de formatar valores. Não presuma BRL.
 
-Relatórios: `conta`, `contas`, `campanhas`, `palavras-chave`, `termos`, `dispositivos`, `ideias`. Dados tabulares ficam em `results`; ideias ficam em `ideas`. Custos em `costMicros` devem ser divididos por 1.000.000; conversões podem ser fracionárias. Não interprete ausência de dados como zero e não chame uma consulta com erro de relatório vazio. Resultados com limite atingido são potencialmente incompletos; o cliente conserva essa indicação. Não misture contas ou períodos para calcular totais.
+Relatórios simples: `conta`, `contas`, `campanhas`, `palavras-chave`, `termos`, `dispositivos`, `configuracao-conversoes`, `mudancas`, `ideias`. Comandos compostos: `diagnostico-eficiencia` (campanhas, termos, palavras e dispositivos), `oportunidades` (campanhas, termos e palavras), `auditoria-medicao` (configuração de conversões e campanhas) e `auditoria-mudancas` (mudanças recentes). Dados de relatórios simples ficam em `results`; ideias ficam em `ideas`; comandos compostos devolvem cada relatório em `reports` e nunca calculam uma conclusão automaticamente. `mudancas` aceita no máximo 30 dias e registra apenas os eventos recentes disponibilizados pelo Google. Custos em `costMicros` devem ser divididos por 1.000.000; conversões podem ser fracionárias. Não interprete ausência de dados como zero e não chame uma consulta com erro de relatório vazio. Resultados com limite atingido são potencialmente incompletos; o cliente conserva essa indicação. Não misture contas ou períodos para calcular totais.
 
 ## Segurança e limitações
 
 - Nunca leia `server/.env`, peça, repita, grave ou faça commit de segredos. Diagnóstico da configuração: `npm run doctor` na raiz do painel.
 - Estes comandos são somente de leitura. Qualquer escrita futura exige mostrar conta, objetos, valores e escopo, obter confirmação explícita e usar um endpoint de escrita existente. Uma solicitação de análise não autoriza mudanças.
+- “Hack” neste plugin significa encontrar ineficiências, melhorar mensuração, testar hipóteses e usar os recursos do Google Ads dentro das políticas. Nunca significa burlar política, mascarar dados, gerar tráfego inválido ou automatizar alterações sem confirmação.
 - Em erro de acesso, peça que a pessoa confira permissões da conta e MCC. Em autenticação expirada, oriente `npm run token` no terminal dela. Em limite de cota, interrompa e sugira tentar depois; não entre em loop.
 - Não invente volume, conversões, economia, retorno ou diagnóstico de rastreamento. Sem API disponível, aceite uma exportação fornecida pela pessoa, indicando a origem. Não afirme que houve consulta ao Google.
 - O plugin não hospeda um painel nem autentica usuários públicos. O painel visual existente é opcional para explorar os mesmos dados.

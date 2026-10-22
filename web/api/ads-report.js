@@ -10,6 +10,19 @@ const REPORTS = {
   'palavras-chave': { resource: 'keyword_view', fields: `campaign.id, campaign.name, ad_group.id, ad_group.name, ad_group_criterion.keyword.text, ad_group_criterion.keyword.match_type, ad_group_criterion.status, ad_group_criterion.quality_info.quality_score, ${METRICS}` },
   termos: { resource: 'search_term_view', fields: `campaign.id, campaign.name, ad_group.id, ad_group.name, search_term_view.search_term, ${METRICS}` },
   dispositivos: { resource: 'campaign', fields: `segments.device, ${METRICS}` },
+  'configuracao-conversoes': {
+    resource: 'conversion_action',
+    fields: 'conversion_action.id, conversion_action.name, conversion_action.category, conversion_action.type, conversion_action.status, conversion_action.primary_for_goal, conversion_action.include_in_conversions_metric, conversion_action.counting_type, conversion_action.value_settings.default_value, conversion_action.value_settings.always_use_default_value',
+    dated: false,
+  },
+  mudancas: {
+    resource: 'change_event',
+    fields: 'change_event.change_date_time, change_event.change_resource_type, change_event.resource_change_operation, change_event.changed_fields, change_event.user_email, change_event.client_type, change_event.campaign, change_event.ad_group',
+    dateField: 'change_event.change_date_time',
+    timestamp: true,
+    maxRangeDays: 30,
+    orderBy: 'change_event.change_date_time DESC',
+  },
 };
 
 function date(value) {
@@ -28,9 +41,17 @@ export function buildReport(body) {
   const from = dated ? date(body.from) : null;
   const to = dated ? date(body.to) : null;
   if (dated && from > to) throw new HttpError(400, 'A data inicial deve ser anterior ou igual à final.');
-  const where = dated ? ` WHERE segments.date BETWEEN '${from}' AND '${to}'` : '';
+  const rangeDays = dated ? Math.floor((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000) + 1 : 0;
+  if (definition.maxRangeDays && rangeDays > definition.maxRangeDays) {
+    throw new HttpError(400, `Este relatório aceita no máximo ${definition.maxRangeDays} dias.`);
+  }
+  const dateField = definition.dateField ?? 'segments.date';
+  const end = definition.timestamp ? `${to} 23:59:59` : to;
+  const start = definition.timestamp ? `${from} 00:00:00` : from;
+  const where = dated ? ` WHERE ${dateField} BETWEEN '${start}' AND '${end}'` : '';
+  const orderBy = dated ? definition.orderBy ?? 'metrics.cost_micros DESC' : '';
   return {
-    query: `SELECT ${definition.fields} FROM ${definition.resource}${where}${dated ? ' ORDER BY metrics.cost_micros DESC' : ''} LIMIT ${limit}`,
+    query: `SELECT ${definition.fields} FROM ${definition.resource}${where}${orderBy ? ` ORDER BY ${orderBy}` : ''} LIMIT ${limit}`,
     period: dated ? { from, to } : null,
     limit,
   };

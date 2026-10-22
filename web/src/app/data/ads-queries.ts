@@ -95,6 +95,30 @@ export const AdsQueries = {
     ORDER BY metrics.cost_micros DESC
     LIMIT 500`,
 
+  /**
+   * Performance Max é estruturada por grupos de recursos, não por grupos de
+   * anúncios. Métricas são do período e servem para investigação, não para
+   * atribuir causalidade a um recurso isolado.
+   */
+  pmaxAssetGroups: (w: DateWindow): string => `
+    SELECT asset_group.id, asset_group.name, asset_group.ad_strength,
+           asset_group.asset_coverage, asset_group.primary_status,
+           campaign.id, campaign.name, ${METRICS}
+    FROM asset_group
+    WHERE ${between(w)} AND asset_group.status != 'REMOVED'
+    ORDER BY metrics.cost_micros DESC
+    LIMIT 500`,
+
+  /** Inventário e desempenho observado dos recursos usados por grupos PMax. */
+  pmaxAssets: (w: DateWindow): string => `
+    SELECT campaign.id, asset_group.id, asset_group_asset.asset,
+           asset_group_asset.field_type, asset_group_asset.primary_status,
+           asset_group_asset.status, ${METRICS}
+    FROM asset_group_asset
+    WHERE ${between(w)} AND asset_group_asset.status != 'REMOVED'
+    ORDER BY metrics.cost_micros DESC
+    LIMIT 2000`,
+
   conversionActions: (): string => `
     SELECT conversion_action.id, conversion_action.name, conversion_action.category,
            conversion_action.type, conversion_action.status, conversion_action.primary_for_goal,

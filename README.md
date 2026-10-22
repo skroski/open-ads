@@ -13,12 +13,16 @@ Painel de análise de Google Ads que separa **desperdício real** de **gasto que
 - **Desperdícios:** classifica termos, palavras-chave, campanhas, dispositivos e horários em *Desperdício*, *Caro*, *Bom*, *Sem dados* e *Rastreamento*, com filtros por categoria e exportação em CSV. Gasto em termo que já está negativado também conta como desperdício.
 - **Qualidade do funil:** cruza conversões do Google Ads com os leads e vendas que você importa (CSV).
 - **Intenção e páginas:** confere se cada busca cai numa página que fala do mesmo assunto.
-- **Conteúdo, Plano de ação e Histórico:** pautas, tarefas priorizadas e o efeito medido de cada mudança.
+- **Central de oportunidades:** junta oportunidades de economia, crescimento, medição e experimentos em uma fila priorizada por evidência e confiança, com mapa visual da fila. Criar um plano não altera a conta; marcar uma ação aplicada registra a decisão na Auditoria.
+- **Laboratório de experimentos:** transforma mudanças de página, criativo, conteúdo, lance ou estratégia em hipóteses rastreáveis, com método, melhora mínima, gráfico do ciclo e aprendizado final.
+- **Auditoria e aprendizado:** importa as mudanças recentes disponíveis no Google Ads, preserva a memória local além de 30 dias e compara o antes/depois com alertas de regressão.
 
 **Operação no Google Ads**
 - **Termos de pesquisa** e **Palavras negativas:** cobertura de negativas entre campanhas (incluindo listas compartilhadas e grupos de anúncios) e inclusão em lote, sempre com confirmação.
 - **Palavras-chave:** Índice de Qualidade, aderência à página de destino e sugestões por campanha.
 - **Campanhas** e **Dispositivos e redes:** comparação com o período anterior.
+- **Radar Performance Max:** grupos de recursos, força do anúncio, cobertura e composição dos recursos, com gráficos de investimento, conversões e recursos limitados. É diagnóstico de leitura — não atribuição causal automática.
+- **Planejador de crescimento:** seleção de ideias do Planejador oficial com volume de busca e faixa média de lance, além de uma curva de cenários baseada em CTR/conversão observados e cobertura assumida. A tela deixa explícito que não é previsão de receita nem promessa de resultado.
 
 **Sistema**
 - **Rastreamento:** inventário somente de leitura de contas, contêineres, espaços de trabalho, tags, acionadores e variáveis do Google Tag Manager. A tela cruza a configuração sanitizada com as landing pages dos anúncios, separa fatos de hipóteses e registra um histórico local de mudanças. A fonte é escolhida por conta no navegador e não há criação, publicação ou alteração de tags.
@@ -27,9 +31,19 @@ Painel de análise de Google Ads que separa **desperdício real** de **gasto que
 
 ## Comandos OpenAds para assistentes
 
-Use comandos como `/openads:analise-palavras-chave`, `/openads:analise-termos` e `/openads:analise-campanhas` para consultar a API oficial em português, sem escrever GAQL. O plugin utiliza a API do painel já configurada; a interface visual é opcional.
+Use comandos como `/openads:diagnostico-eficiencia`, `/openads:oportunidades`, `/openads:analise-palavras-chave`, `/openads:analise-termos` e `/openads:analise-campanhas` para consultar a API oficial em português, sem escrever GAQL. O plugin utiliza a API do painel já configurada; a interface visual é opcional.
 
-Veja [como ativar o plugin e usar os dez comandos](docs/OPENADS.md).
+Além das análises por dimensão, ele inclui `/openads:auditoria-medicao` e `/openads:auditoria-mudancas`, para revisar se a conta está medindo o que importa e entender alterações recentes. Os comandos são somente de leitura: eles priorizam evidências, contramedidas e experimentos para revisão humana — nunca aplicam alterações automaticamente.
+
+| Objetivo | Comandos |
+|---|---|
+| Começar | `/openads:ajuda`, `/openads:contas`, `/openads:visao-geral` |
+| Diagnosticar eficiência | `/openads:diagnostico-eficiencia`, `/openads:analise-desperdicios`, `/openads:analise-campanhas`, `/openads:analise-dispositivos`, `/openads:analise-termos` |
+| Encontrar crescimento | `/openads:oportunidades`, `/openads:analise-palavras-chave`, `/openads:pesquisa-palavras-chave` |
+| Validar dados e decisões | `/openads:auditoria-medicao`, `/openads:auditoria-mudancas` |
+| Preparar ação com segurança | `/openads:sugestao-negativas` |
+
+Veja [como ativar o plugin e usar os 14 comandos](docs/OPENADS.md).
 
 ## Sumário
 

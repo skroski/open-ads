@@ -1,13 +1,14 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { GoogleAdsApi } from '../data/google-ads.api';
-import { DATE_RANGE_OPTIONS, DateRangeOption, previousWindow, resolveWindow } from '../domain/dates';
+import { CustomRange, DATE_RANGE_OPTIONS, DateRangeOption, previousWindow, resolveWindow, validateCustomRange } from '../domain/dates';
 import { AccountRef } from '../domain/models';
 import { ManagerIds } from './manager-ids';
 
 const KEY_ACCOUNTS = 'gads_saved_accounts';
 const KEY_SELECTED = 'gads_selected_account_id';
 const KEY_RANGE = 'gads_date_range';
+const KEY_CUSTOM = 'gads_date_custom';
 
 export const digitsOnly = (value: string): string => (value ?? '').replace(/\D/g, '');
 
@@ -41,7 +42,9 @@ export class AccountStore {
   readonly discovering = signal(false);
   readonly discoveryError = signal<string | null>(null);
 
-  readonly window = computed(() => resolveWindow(this.range()));
+  readonly customRange = signal<CustomRange | null>(this.loadCustom());
+
+  readonly window = computed(() => resolveWindow(this.range(), new Date(), this.customRange()));
   readonly previous = computed(() => previousWindow(this.window()));
   readonly rangeLabel = computed(
     () => DATE_RANGE_OPTIONS.find((o) => o.value === this.range())?.label ?? this.range(),
@@ -180,6 +183,21 @@ export class AccountStore {
     write(KEY_RANGE, range);
   }
 
+  /** Aplica um intervalo de datas livre; devolve a mensagem de erro, ou null quando aplicou. */
+  setCustomRange(from: string, to: string): string | null {
+    const error = validateCustomRange(from, to);
+    if (error) return error;
+    this.customRange.set({ from, to });
+    write(KEY_CUSTOM, JSON.stringify({ from, to }));
+    this.setRange('CUSTOM');
+    return null;
+  }
+
+  private loadCustom(): CustomRange | null {
+    const saved = readJson<CustomRange | null>(KEY_CUSTOM, null);
+    return saved && !validateCustomRange(saved.from, saved.to) ? saved : null;
+  }
+
   private loadAccounts(): AccountRef[] {
     const saved = readJson<AccountRef[]>(KEY_ACCOUNTS, []);
     // Remove o exemplo fictício que versões anteriores gravavam como conta de teste.
@@ -197,6 +215,7 @@ export class AccountStore {
   private loadRange(): DateRangeOption {
     try {
       const v = localStorage.getItem(KEY_RANGE) as DateRangeOption | null;
+      if (v === 'CUSTOM' && !this.loadCustom()) return 'LAST_30_DAYS';
       return v && DATE_RANGE_OPTIONS.some((o) => o.value === v) ? v : 'LAST_30_DAYS';
     } catch {
       return 'LAST_30_DAYS';

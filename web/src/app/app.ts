@@ -1,67 +1,22 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
-import { NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AUTHOR, BRAND, DONATION } from './brand';
 import { AccountStore } from './core/account.store';
 import { LocalDb } from './core/local-db';
 import { ToastService } from './core/toast.service';
 import { Workspace } from './core/workspace';
-import { DATE_RANGE_OPTIONS, DateRangeOption, DateWindow } from './domain/dates';
+import { DATE_RANGE_OPTIONS, DateRangeOption, DateWindow, isoDate } from './domain/dates';
 import { AccountModal } from './shared/account-modal';
 import { BatchNegativeModal } from './shared/batch-negative-modal';
 import { Icon } from './shared/icon';
-import { IconName } from './shared/icons';
+import { NAV_SECTIONS, sectionForUrl } from './nav';
 import { Logo } from './shared/logo';
 import { AppModal } from './shared/modal';
 import { ThemeToggle } from './shared/theme-toggle';
 import { Toasts } from './shared/toasts';
 import { HELP_JOURNEYS, journeyForUrl } from './help/onboarding-journey';
 import { OpenHelpEngine, PreRenderedVoiceProvider } from './help/open-help';
-
-interface NavItem {
-  path: string;
-  label: string;
-  icon: IconName;
-}
-
-interface NavGroup {
-  title: string;
-  items: NavItem[];
-}
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    title: 'Inteligência',
-    items: [
-      { path: 'visao-geral', label: 'Visão geral', icon: 'home' },
-      { path: 'eficiencia', label: 'Eficiência da mídia', icon: 'target' },
-      { path: 'funil', label: 'Qualidade do funil', icon: 'funnel' },
-      { path: 'desperdicios', label: 'Desperdícios', icon: 'ban' },
-      { path: 'intencao', label: 'Intenção e páginas', icon: 'link' },
-      { path: 'conteudo', label: 'Conteúdo', icon: 'document' },
-      { path: 'acoes', label: 'Plano de ação', icon: 'clipboard' },
-      { path: 'historico', label: 'Histórico e aprendizado', icon: 'history' },
-    ],
-  },
-  {
-    title: 'Operação no Google Ads',
-    items: [
-      { path: 'termos', label: 'Termos de pesquisa', icon: 'search' },
-      { path: 'negativas', label: 'Palavras negativas', icon: 'shield' },
-      { path: 'palavras', label: 'Palavras-chave', icon: 'tag' },
-      { path: 'campanhas', label: 'Campanhas', icon: 'folder' },
-      { path: 'dispositivos', label: 'Dispositivos e redes', icon: 'desktop' },
-    ],
-  },
-  {
-    title: 'Sistema',
-    items: [
-      { path: 'rastreamento', label: 'Rastreamento', icon: 'tag' },
-      { path: 'configuracoes', label: 'Configurações', icon: 'cog' },
-      { path: 'ajuda-instalacao', label: 'Ajuda de instalação', icon: 'question' },
-    ],
-  },
-];
 
 @Component({
   selector: 'app-root',
@@ -90,8 +45,10 @@ export class App {
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
-  protected readonly groups = NAV_GROUPS;
-  protected readonly ranges = DATE_RANGE_OPTIONS;
+  protected readonly navItems = NAV_SECTIONS;
+  private readonly url = signal(this.router.url);
+  protected readonly activeSection = computed(() => sectionForUrl(this.url()));
+  protected readonly presetRanges = DATE_RANGE_OPTIONS.filter((o) => o.value !== 'CUSTOM');
   protected readonly accountModalOpen = signal(false);
   protected readonly donationModalOpen = signal(false);
   protected readonly sidebarCollapsed = signal<boolean>(this.readStoredSidebarCollapsed());
@@ -117,6 +74,14 @@ export class App {
     return `Dados atualizados há ${h} h`;
   });
 
+  /** Fontes ativas, mantidas na faixa de contexto sem alegar integrações ausentes. */
+  protected readonly sourceSummary = computed(() => {
+    const sources = ['Google Ads'];
+    if (this.ws.ga4Status().configured) sources.push('GA4');
+    if (this.ws.searchConsoleStatus().configured) sources.push('Search Console');
+    return sources.join(' · ');
+  });
+
   constructor() {
     const timer = setInterval(() => this.now.set(Date.now()), 30_000);
     const destroyRef = inject(DestroyRef);
@@ -124,6 +89,9 @@ export class App {
       clearInterval(timer);
       this.help.destroy();
     });
+    this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe((event) => this.url.set(event.urlAfterRedirects));
     this.router.events.pipe(filter((event): event is NavigationStart => event instanceof NavigationStart)).subscribe(() => this.help.stop(false));
   }
 
@@ -135,6 +103,20 @@ export class App {
     this.closeDrawer();
     this.help.setJourney(journeyForUrl(this.router.url));
     void this.help.start(event.currentTarget as HTMLElement);
+  }
+
+  protected readonly customFrom = signal(this.account.customRange()?.from ?? '');
+  protected readonly customTo = signal(this.account.customRange()?.to ?? '');
+  protected readonly customError = signal<string | null>(null);
+  protected readonly todayIso = isoDate(new Date());
+
+  protected applyCustom(): void {
+    const error = this.account.setCustomRange(this.customFrom(), this.customTo());
+    this.customError.set(error);
+    if (!error) {
+      const menu = this.periodMenu()?.nativeElement;
+      if (menu) menu.open = false;
+    }
   }
 
   protected pickRange(value: DateRangeOption): void {

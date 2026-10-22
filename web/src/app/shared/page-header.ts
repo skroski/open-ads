@@ -9,7 +9,7 @@ export interface ExportData {
 }
 
 /**
- * Cabeçalho padrão das telas: grupo (rótulo pequeno), título com destaque opcional,
+ * Cabeçalho de cada tela dentro de uma área (o h1 da página é o título da área, no shell): título, subtítulo
  * descrição e um espaço à direita para ações (ex.: Atualizar, Exportar).
  */
 @Component({
@@ -17,22 +17,17 @@ export interface ExportData {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Icon],
   template: `
-    <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <header class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div class="min-w-0">
-        @if (group()) {
-          <div class="mb-2 font-display text-xs font-semibold uppercase tracking-[0.09em] text-base-content/60">
-            {{ group() }}
-          </div>
-        }
-        <h1 class="text-3xl leading-tight sm:text-4xl">
+        <h2 class="text-2xl leading-tight font-semibold">
           @if (lead()) {
-            <strong>{{ lead() }}</strong> {{ title() }}
+            {{ lead() }} {{ title() }}
           } @else {
-            <strong>{{ title() }}</strong>
+            {{ title() }}
           }
-        </h1>
+        </h2>
         @if (subtitle()) {
-          <p class="mt-2 max-w-3xl text-base text-base-content/70 text-pretty">{{ subtitle() }}</p>
+          <p class="mt-1 max-w-3xl text-sm text-base-content/70 text-pretty">{{ subtitle() }}</p>
         }
       </div>
       <div class="flex flex-wrap items-center gap-2">

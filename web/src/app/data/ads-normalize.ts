@@ -18,6 +18,8 @@ import {
   NetworkRow,
   Perf,
   PlacementRow,
+  PmaxAssetGroupRow,
+  PmaxAssetRow,
   QualityRating,
   RegionRow,
   SearchTermRow,
@@ -299,6 +301,32 @@ export function normalizePlacements(rows: Raw[]): PlacementRow[] {
     type: str(r.detailPlacementView?.placementType),
     targetUrl: str(r.detailPlacementView?.targetUrl),
     campaignId: str(r.campaign?.id),
+    ...perf(r),
+  }));
+}
+
+/** Recursos e grupos PMax são normalizados sem inferir atribuição causal. */
+export function normalizePmaxAssetGroups(rows: Raw[]): PmaxAssetGroupRow[] {
+  return rows.map((r) => ({
+    id: str(r.assetGroup?.id),
+    name: str(r.assetGroup?.name),
+    campaignId: str(r.campaign?.id),
+    campaignName: str(r.campaign?.name),
+    adStrength: str(r.assetGroup?.adStrength),
+    assetCoverage: str(r.assetGroup?.assetCoverage),
+    primaryStatus: str(r.assetGroup?.primaryStatus),
+    ...perf(r),
+  }));
+}
+
+export function normalizePmaxAssets(rows: Raw[]): PmaxAssetRow[] {
+  return rows.map((r) => ({
+    assetGroupId: str(r.assetGroup?.id),
+    campaignId: str(r.campaign?.id),
+    asset: str(r.assetGroupAsset?.asset),
+    fieldType: str(r.assetGroupAsset?.fieldType),
+    primaryStatus: str(r.assetGroupAsset?.primaryStatus),
+    status: str(r.assetGroupAsset?.status),
     ...perf(r),
   }));
 }

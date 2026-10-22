@@ -112,6 +112,31 @@ export interface PlacementRow extends Perf {
   campaignId: string;
 }
 
+/**
+ * Grupo de recursos de Performance Max. O Google não expõe grupos de anúncios
+ * tradicionais para PMax; este é o nível em que a composição dos recursos é
+ * administrada e avaliada.
+ */
+export interface PmaxAssetGroupRow extends Perf {
+  id: string;
+  name: string;
+  campaignId: string;
+  campaignName: string;
+  adStrength: string;
+  assetCoverage: string;
+  primaryStatus: string;
+}
+
+/** Recurso associado a um grupo PMax, com métricas do período selecionado. */
+export interface PmaxAssetRow extends Perf {
+  assetGroupId: string;
+  campaignId: string;
+  asset: string;
+  fieldType: string;
+  primaryStatus: string;
+  status: string;
+}
+
 export interface ConversionActionInfo {
   id: string;
   name: string;
