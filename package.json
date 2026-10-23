@@ -23,7 +23,7 @@
     "check:react": "npm --prefix web-react test && npm --prefix web-react run build"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.133.0"
+    "@anthropic-ai/sdk": "^0.135.0"
   },
   "engines": {
     "node": ">=20.6"
