@@ -16,6 +16,7 @@ import { projectKeywordExpansion } from '../../domain/growth-projection';
 import { KeywordCategory, KeywordQuality, KeywordRow, MatchType, QualityRating } from '../../domain/models';
 import { DataState } from '../../shared/data-state';
 import { EChart } from '../../shared/echart';
+import { InvestmentTips } from './investment-tips';
 import { Icon } from '../../shared/icon';
 import { KEYWORD_CATEGORY_CLASS, KEYWORD_CATEGORY_LABEL, MATCH_CLASS, MATCH_LABEL, formatMatch } from '../../shared/labels';
 import { AppModal } from '../../shared/modal';
@@ -30,7 +31,7 @@ const PAGE_SIZE = 100;
 @Component({
   selector: 'app-keywords-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, PercentPipe, AppModal, DataState, EChart, FormField, FormRoot, Icon, PageHeader, ThSort],
+  imports: [CurrencyPipe, DecimalPipe, PercentPipe, AppModal, DataState, EChart, FormField, FormRoot, Icon, InvestmentTips, PageHeader, ThSort],
   template: `
     <app-page-header data-open-help="palavras-introducao"
       group="Operação no Google Ads"
@@ -72,6 +73,8 @@ const PAGE_SIZE = 100;
             </div>
           </div>
         </div>
+
+        <app-investment-tips />
 
         <section class="card card-border bg-base-100" data-open-help="palavras-pagina">
           <div class="card-body gap-4">

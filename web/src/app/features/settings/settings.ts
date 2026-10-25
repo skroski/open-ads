@@ -55,7 +55,7 @@ function rulesToText(r: AuditRules): { brand: string; unqualified: string; quali
             <h2 class="card-title text-base"><app-icon name="tag" size="sm" /> Regras de classificação dos termos</h2>
             <p class="text-sm text-base-content/70">
               Definem como cada busca e palavra-chave é classificada. A correspondência é por palavra inteira:
-              "ia" não casa com "odontologia". Separe por vírgula ou por linha.
+              "ia" não casa com "fantasia". Separe por vírgula ou por linha.
             </p>
           </div>
           <form [formRoot]="rulesForm" class="grid gap-4 md:grid-cols-2">

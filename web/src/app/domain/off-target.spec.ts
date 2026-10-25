@@ -41,10 +41,10 @@ const hour = (weekday: number, h: number, cost: number): HourRow => ({
 function input(over: Partial<OffTargetInput> = {}): OffTargetInput {
   return {
     terms: [
-      term('vaga de emprego dentista', 120, { category: 'UNQUALIFIED', categoryReason: 'Contém "emprego", da lista de termos sem intenção de compra.' }),
-      term('vaga de emprego dentista', 30, { category: 'UNQUALIFIED', categoryReason: 'Contém "emprego", da lista de termos sem intenção de compra.', campaignId: '2' }),
-      term('curso de implante', 80, { category: 'UNQUALIFIED', alreadyNegative: true }),
-      term('implante dentário', 500, { category: 'QUALIFIED', conversions: 5 }),
+      term('vaga de emprego vendedor', 120, { category: 'UNQUALIFIED', categoryReason: 'Contém "emprego", da lista de termos sem intenção de compra.' }),
+      term('vaga de emprego vendedor', 30, { category: 'UNQUALIFIED', categoryReason: 'Contém "emprego", da lista de termos sem intenção de compra.', campaignId: '2' }),
+      term('curso de corrida', 80, { category: 'UNQUALIFIED', alreadyNegative: true }),
+      term('tênis de corrida', 500, { category: 'QUALIFIED', conversions: 5 }),
     ],
     regions: [region('1001', 'Curitiba', 600), region('2001', 'Manaus', 90), region('2002', 'Belém', 10)],
     hours: [hour(1, 10, 300), hour(1, 22, 40), hour(6, 10, 60)],
@@ -93,8 +93,8 @@ describe('computeOffTarget', () => {
 describe('computeOffTarget — sugestões da IA', () => {
   const terms = [
     ...input().terms,
-    term('aparelho dental infantil', 70),
-    term('ortodontia criança', 25),
+    term('tênis infantil escolar', 70),
+    term('sapato criança', 25),
   ];
 
   it('ficam à parte, não entram na faixa e só valem para termos reais e ainda não apanhados', () => {
@@ -102,14 +102,14 @@ describe('computeOffTarget — sugestões da IA', () => {
       input({
         terms,
         ai: [
-          { term: 'aparelho dental infantil', reason: 'Contraria "ortodontia infantil".', evidence: ['x2', 's1'] },
+          { term: 'tênis infantil escolar', reason: 'Contraria "calçado infantil".', evidence: ['x2', 's1'] },
           { term: 'termo inexistente', reason: 'x', evidence: ['x1'] },
-          { term: 'vaga de emprego dentista', reason: 'já vem da regra', evidence: ['x1'] },
-          { term: 'curso de implante', reason: 'já é negativa', evidence: ['x1'] },
+          { term: 'vaga de emprego vendedor', reason: 'já vem da regra', evidence: ['x1'] },
+          { term: 'curso de corrida', reason: 'já é negativa', evidence: ['x1'] },
         ],
       }),
     );
-    expect(r.toConfirm.items.map((i) => i.label)).toEqual(['aparelho dental infantil']);
+    expect(r.toConfirm.items.map((i) => i.label)).toEqual(['tênis infantil escolar']);
     expect(r.toConfirm.cost).toBe(70);
     expect(r.floor).toBe(150);
     expect(r.ceiling).toBe(350);

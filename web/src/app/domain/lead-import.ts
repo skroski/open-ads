@@ -258,8 +258,8 @@ export function normalizeRows(
 /** CSV de exemplo para baixar e preencher. */
 export const SAMPLE_CSV = [
   'data_contato;etapa;campanha;valor_venda;margem_pct;id_crm;termo;regiao;data_fechamento;motivo_perda;minutos_primeira_resposta',
-  '2026-09-20;ganho;Campanha Acme - Pesquisa;3000;50;L-1001;software clinica odontologica;SP;2026-10-02;;12',
-  '2026-09-21;qualificado;Campanha Acme - Pesquisa;;;L-1002;ia odontologica;SP;;;8',
+  '2026-09-20;ganho;Campanha Acme - Pesquisa;3000;50;L-1001;software de gestao;SP;2026-10-02;;12',
+  '2026-09-21;qualificado;Campanha Acme - Pesquisa;;;L-1002;ia para vendas;SP;;;8',
   '2026-09-22;desqualificado;Acme Display;;;L-1003;;MG;;sem perfil;240',
 ].join('\n');
 

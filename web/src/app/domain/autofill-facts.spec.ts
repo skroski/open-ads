@@ -1,4 +1,4 @@
-import { buildFactSheet, buildTermReviewFacts } from './autofill-facts';
+import { buildFactSheet, buildTermReviewFacts, buildThemeFacts } from './autofill-facts';
 import { AdRow, CampaignRow, ConversionActionInfo } from './models';
 
 const camp = (name: string, cost: number, extra: Partial<CampaignRow> = {}): CampaignRow => ({
@@ -44,10 +44,10 @@ const action = (name: string): ConversionActionInfo => ({
 describe('buildFactSheet', () => {
   const facts = buildFactSheet({
     campaigns: [camp('Barata', 10), camp('Cara', 1234.5), camp('Removida', 9999, { status: 'REMOVED' })],
-    ads: [ad('Cara', ['Implante 24h', 'Agende hoje'], 30), ad('Cara', ['Implante 24h', 'Agende hoje'], 5), ad('Barata', ['Clareamento'], 1)],
+    ads: [ad('Cara', ['Tênis 24h', 'Agende hoje'], 30), ad('Cara', ['Tênis 24h', 'Agende hoje'], 5), ad('Barata', ['Sandália'], 1)],
     terms: [
-      { term: 'implante dentario', conversions: 3 },
-      { term: 'implante dentario', conversions: 2 },
+      { term: 'tenis de corrida', conversions: 3 },
+      { term: 'tenis de corrida', conversions: 2 },
       { term: 'sem conversao', conversions: 0 },
     ],
     ambiguousActions: [action('Evento 7')],
@@ -67,7 +67,7 @@ describe('buildFactSheet', () => {
   });
 
   it('soma conversões por termo e ignora termos sem conversão', () => {
-    expect(facts.find((f) => f.id === 't1')?.text).toBe('Termo de busca que converteu: "implante dentario" (5 conversões)');
+    expect(facts.find((f) => f.id === 't1')?.text).toBe('Termo de busca que converteu: "tenis de corrida" (5 conversões)');
     expect(facts.filter((f) => f.id.startsWith('t'))).toHaveLength(1);
   });
 
@@ -83,12 +83,27 @@ describe('buildFactSheet', () => {
 describe('buildTermReviewFacts', () => {
   it('só inclui campos de contexto preenchidos, com ids x1… e termos s1…', () => {
     const facts = buildTermReviewFacts(
-      { offer: 'Implantes', notOffer: '', idealCustomer: 'Adultos', notCustomer: '' },
+      { offer: 'Tênis', notOffer: '', idealCustomer: 'Adultos', notCustomer: '' },
       [{ term: 'aparelho infantil', clicks: 12, cost: 30.5 }],
     );
     expect(facts.map((f) => f.id)).toEqual(['x1', 'x2', 's1']);
-    expect(facts[0].text).toBe('O que a empresa vende: Implantes');
+    expect(facts[0].text).toBe('O que a empresa vende: Tênis');
     expect(facts[1].text).toBe('Cliente ideal: Adultos');
     expect(facts[2].text).toBe('Termo de busca "aparelho infantil": 12 cliques, R$ 30,50 gastos, 0 conversões');
+  });
+});
+
+describe('buildThemeFacts', () => {
+  it('junta o contexto (x) aos fatos da conta, sem passar de 60 fatos', () => {
+    const campaigns = Array.from({ length: 30 }, (_, i) => camp(`C${i}`, i + 1));
+    const ads = Array.from({ length: 30 }, (_, i) => ad(`C${i}`, [`Título ${i}`], i));
+    const terms = Array.from({ length: 30 }, (_, i) => ({ term: `termo ${i}`, conversions: i + 1 }));
+    const facts = buildThemeFacts(
+      { offer: 'Tênis', notOffer: 'a', idealCustomer: 'b', notCustomer: 'c' },
+      { campaigns, ads, terms },
+    );
+    expect(facts.slice(0, 4).map((f) => f.id)).toEqual(['x1', 'x2', 'x3', 'x4']);
+    expect(facts.length).toBeLessThanOrEqual(60);
+    expect(new Set(facts.map((f) => f.id)).size).toBe(facts.length);
   });
 });

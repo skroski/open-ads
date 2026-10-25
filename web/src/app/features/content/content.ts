@@ -299,7 +299,7 @@ const INTENTS: SearchIntent[] = ['INFORMATIONAL', 'COMMERCIAL', 'TRANSACTIONAL',
         </fieldset>
         <fieldset class="fieldset">
           <legend class="fieldset-legend">Público</legend>
-          <input type="text" class="input w-full" placeholder="Ex.: donos de clínica" [formField]="contentForm.audience" />
+          <input type="text" class="input w-full" placeholder="Ex.: quem compra ou decide a compra" [formField]="contentForm.audience" />
         </fieldset>
         <fieldset class="fieldset">
           <legend class="fieldset-legend">Intenção da busca</legend>

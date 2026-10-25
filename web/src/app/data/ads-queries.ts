@@ -24,6 +24,42 @@ export const AdsQueries = {
     ORDER BY metrics.cost_micros DESC
     LIMIT 200`,
 
+  /**
+   * Desempenho de Display por perfil demográfico. Cada visão vem de uma consulta (o Google não deixa juntar
+   * idade, gênero, renda e situação parental). Perfis excluídos voltam com métricas zeradas.
+   */
+  demographics: (w: DateWindow, dimension: 'AGE' | 'GENDER' | 'INCOME' | 'PARENTAL'): string => {
+    const d = {
+      AGE: ['age_range_view', 'age_range'],
+      GENDER: ['gender_view', 'gender'],
+      INCOME: ['income_range_view', 'income_range'],
+      PARENTAL: ['parental_status_view', 'parental_status'],
+    }[dimension];
+    return `
+    SELECT campaign.id, ad_group.id, ad_group_criterion.negative, ad_group_criterion.bid_modifier,
+           ad_group_criterion.${d[1]}.type, ${METRICS}
+    FROM ${d[0]}
+    WHERE ${between(w)} AND campaign.advertising_channel_type = 'DISPLAY'`;
+  },
+
+  displayAdGroups: (): string => `
+    SELECT campaign.id, ad_group.id, ad_group.name, ad_group.optimized_targeting_enabled
+    FROM ad_group
+    WHERE campaign.advertising_channel_type = 'DISPLAY' AND ad_group.status = 'ENABLED' AND campaign.status != 'REMOVED'`,
+
+  /**
+   * Parcela de impressões e orçamento por campanha. As parcelas só vêm para Pesquisa e Shopping; as outras
+   * campanhas voltam sem esses campos. Sem segmento de data nas colunas: o período inteiro numa linha só.
+   */
+  impressionShare: (w: DateWindow): string => `
+    SELECT campaign.id, campaign.name, campaign.status, campaign.advertising_channel_type, campaign_budget.amount_micros,
+           ${METRICS}, metrics.search_impression_share, metrics.search_budget_lost_impression_share,
+           metrics.search_rank_lost_impression_share
+    FROM campaign
+    WHERE ${between(w)} AND campaign.status != 'REMOVED'
+    ORDER BY metrics.cost_micros DESC
+    LIMIT 200`,
+
   /** Série diária por campanha: base para rastreamento, maturação e efeito de mudanças. */
   daily: (w: DateWindow): string => `
     SELECT campaign.id, campaign.name, segments.date, ${METRICS}

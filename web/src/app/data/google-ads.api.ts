@@ -81,6 +81,18 @@ export class GoogleAdsApi {
     );
   }
 
+  /** Exclui ou reinclui um perfil demográfico nos grupos de uma campanha de Display. `preview` só valida. */
+  displayDemographics(
+    payload: { campaignId: string; dimension: string; segment: string; change: 'exclude' | 'include'; step: 'preview' | 'apply' },
+    customerId?: string,
+  ): Observable<{ success: boolean; applied: boolean; unchanged?: boolean; adGroups: number; totalOperations: number }> {
+    return this.http.post<{ success: boolean; applied: boolean; unchanged?: boolean; adGroups: number; totalOperations: number }>(
+      '/api/display-demographics',
+      payload,
+      { headers: this.headers(customerId) },
+    );
+  }
+
   addNegative(
     campaignId: string,
     text: string,

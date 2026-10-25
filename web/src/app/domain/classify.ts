@@ -55,8 +55,6 @@ export const DEFAULT_AUDIT_RULES: AuditRules = {
     'site',
     'automacao',
     'ia',
-    'clinica',
-    'consultorio',
   ],
   competitorTerms: [
     'rd station',

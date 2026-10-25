@@ -45,7 +45,7 @@ Exemplos de pedidos:
 ```text
 /openads:analise-palavras-chave analise setembro de 2026 da conta 1234567890
 /openads:analise-termos quais buscas consumiram mais verba neste mês?
-/openads:pesquisa-palavras-chave encontre ideias para clínica veterinária em Curitiba
+/openads:pesquisa-palavras-chave encontre ideias para a minha categoria de produto em Curitiba
 /openads:diagnostico-eficiencia nos últimos 30 dias; minha meta de CPA é R$ 80
 /openads:oportunidades onde economizar sem reduzir as conversões?
 /openads:auditoria-medicao estou otimizando para as conversões certas?

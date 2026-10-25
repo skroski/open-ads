@@ -30,6 +30,20 @@ export const FORECAST = {
   seasonWeeks: 8,
 } as const;
 
+/** Limiares das dicas de campanha e de teste de palavras (parcelas de impressão vão de 0 a 1). */
+export const TIPS = {
+  /** Perda por orçamento a partir da qual vale falar em mais verba. */
+  minLostBudget: 0.05,
+  /** Perda por ranking a partir da qual o ajuste é lance e qualidade. */
+  minLostRank: 0.2,
+  /** Abaixo disto o Google informa "menos de 10%" sem o valor exato: não dá para projetar. */
+  minShare: 0.1,
+  /** Conversões que um teste de palavra precisa gerar para a leitura ter alguma força. */
+  testConversions: 10,
+  /** Cliques mínimos de uma campanha para entrar na faixa de CPC. */
+  minClicksForCpc: 10,
+} as const;
+
 /** Exigência mínima de dados por recurso. Janela comum: `SUFFICIENCY_WINDOW_DAYS` dias. */
 export const SUFFICIENCY_WINDOW_DAYS = 90;
 

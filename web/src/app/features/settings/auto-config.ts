@@ -38,8 +38,8 @@ const CONFIDENCE_LABEL: Record<ConfidenceLevel, string> = {
 };
 
 const CONTEXT_FIELDS: ReadonlyArray<{ key: keyof BusinessContext; label: string; hint: string }> = [
-  { key: 'offer', label: 'O que você vende', hint: 'Ex.: implantes e clareamento dentário para adultos.' },
-  { key: 'notOffer', label: 'O que você NÃO vende ou não atende', hint: 'Ex.: não faz ortodontia infantil nem atende convênios.' },
+  { key: 'offer', label: 'O que você vende', hint: 'Descreva em uma frase o que a empresa vende.' },
+  { key: 'notOffer', label: 'O que você NÃO vende ou não atende', hint: 'Produtos, serviços ou públicos que a empresa não atende.' },
   { key: 'idealCustomer', label: 'Cliente ideal', hint: 'Quem você quer atender.' },
   { key: 'notCustomer', label: 'Quem não é cliente', hint: 'Ex.: quem procura vaga de emprego, curso ou preço de atacado.' },
 ];

@@ -6,6 +6,9 @@ import {
   normalizeAccount,
   normalizeAds,
   normalizeCampaignLocations,
+  normalizeCampaignShares,
+  normalizeDemographics,
+  normalizeDisplayAdGroups,
   normalizeCampaigns,
   normalizeChanges,
   normalizeConversionActions,
@@ -43,6 +46,7 @@ import {
   SearchConsoleQueryRow,
   SearchTermRow,
   SourceStatus,
+  DemographicDimension,
 } from '../domain/models';
 import { AccountStore } from './account.store';
 import { BusinessConfigStore } from './business-config.store';
@@ -117,6 +121,24 @@ export class Workspace {
 
   readonly campaigns = new Dataset(this.byWindow, async (p) =>
     normalizeCampaigns(await this.run(AdsQueries.campaigns(p.w), p.id)),
+  );
+
+  /** Parcela de impressões e orçamento por campanha (Pesquisa e Shopping). */
+  readonly impressionShare = new Dataset(this.byWindow, async (p) =>
+    normalizeCampaignShares(await this.run(AdsQueries.impressionShare(p.w), p.id)),
+  );
+
+  /** Perfil demográfico das campanhas de Display: idade, gênero, renda e situação parental. */
+  readonly demographics = new Dataset(this.byWindow, async (p) => {
+    const dims: DemographicDimension[] = ['AGE', 'GENDER', 'INCOME', 'PARENTAL'];
+    const parts = await Promise.all(
+      dims.map(async (d) => normalizeDemographics(d, await this.run(AdsQueries.demographics(p.w, d), p.id))),
+    );
+    return parts.flat();
+  });
+
+  readonly displayAdGroups = new Dataset(this.byAccount, async (p) =>
+    normalizeDisplayAdGroups(await this.run(AdsQueries.displayAdGroups(), p.id)),
   );
 
   readonly previousCampaigns = new Dataset(this.byPrevious, async (p) =>

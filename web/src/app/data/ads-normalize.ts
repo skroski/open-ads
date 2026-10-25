@@ -3,6 +3,10 @@ import {
   AdRow,
   CampaignLocation,
   CampaignRow,
+  CampaignShareRow,
+  DemographicDimension,
+  DemographicRow,
+  DisplayAdGroupRow,
   ChannelType,
   ConversionActionInfo,
   ConversionBreakdownRow,
@@ -92,6 +96,59 @@ export function normalizeCampaigns(rows: Raw[]): CampaignRow[] {
     status: str(r.campaign?.status),
     channel: channelOf(str(r.campaign?.advertisingChannelType)),
     ...perf(r),
+  }));
+}
+
+/** Parcela entre 0 e 1, ou null quando o Google não informa (campo ausente ou fora do intervalo). */
+function share(value: unknown): number | null {
+  if (value === undefined || value === null || value === '') return null;
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 && n <= 1 ? n : null;
+}
+
+export function normalizeCampaignShares(rows: Raw[]): CampaignShareRow[] {
+  return rows.map((r) => {
+    const micros = num(r.campaignBudget?.amountMicros);
+    return {
+      id: str(r.campaign?.id),
+      name: str(r.campaign?.name),
+      status: str(r.campaign?.status),
+      channel: channelOf(str(r.campaign?.advertisingChannelType)),
+      ...perf(r),
+      dailyBudget: micros > 0 ? micros / 1_000_000 : null,
+      searchShare: share(r.metrics?.searchImpressionShare),
+      lostBudget: share(r.metrics?.searchBudgetLostImpressionShare),
+      lostRank: share(r.metrics?.searchRankLostImpressionShare),
+    };
+  });
+}
+
+const DEMOGRAPHIC_FIELD = { AGE: 'ageRange', GENDER: 'gender', INCOME: 'incomeRange', PARENTAL: 'parentalStatus' } as const;
+
+export function normalizeDemographics(dimension: DemographicDimension, rows: Raw[]): DemographicRow[] {
+  const field = DEMOGRAPHIC_FIELD[dimension];
+  return rows
+    .map((r) => {
+      const bid = r.adGroupCriterion?.bidModifier;
+      return {
+        dimension,
+        segment: str(r.adGroupCriterion?.[field]?.type),
+        campaignId: str(r.campaign?.id),
+        adGroupId: str(r.adGroup?.id),
+        excluded: r.adGroupCriterion?.negative === true,
+        bidModifier: bid === undefined || bid === null ? null : num(bid),
+        ...perf(r),
+      };
+    })
+    .filter((r) => r.segment);
+}
+
+export function normalizeDisplayAdGroups(rows: Raw[]): DisplayAdGroupRow[] {
+  return rows.map((r) => ({
+    id: str(r.adGroup?.id),
+    name: str(r.adGroup?.name),
+    campaignId: str(r.campaign?.id),
+    optimizedTargeting: r.adGroup?.optimizedTargetingEnabled !== false,
   }));
 }
 

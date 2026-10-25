@@ -3,9 +3,9 @@
 // (número fora da ficha e evidência inexistente são descartados). Não altera nada na conta de
 // anúncios. Opcional: sem ANTHROPIC_API_KEY responde { configured: false }.
 //
-// Corpo: { facts: [{ id, text }], context?: boolean, ambiguous?: string[], terms?: string[] }
+// Corpo: { facts: [{ id, text }], context?: boolean, ambiguous?: string[], terms?: string[], themes?: boolean }
 // (fatos de contexto do negócio têm id "x…"; são obrigatórios ao avaliar termos)
-// Resposta: { configured, reason?, context?, stages?, termVerdicts?, dropped? }
+// Resposta: { configured, reason?, context?, stages?, termVerdicts?, themes?, dropped? }
 
 import { HttpError, endpoint } from './_lib/http.js';
 import { DEFAULT_MODEL, assertSameOriginJson, createLimiter } from './_lib/explain.js';
@@ -60,7 +60,7 @@ export default endpoint(async ({ body, headers }) => {
     const out = readOutput(message, req);
     return out.reason
       ? { configured: true, reason: out.reason, dropped: out.dropped ?? 0 }
-      : { configured: true, context: out.context, stages: out.stages, termVerdicts: out.termVerdicts, dropped: out.dropped };
+      : { configured: true, context: out.context, stages: out.stages, termVerdicts: out.termVerdicts, themes: out.themes, dropped: out.dropped };
   } catch (err) {
     throw toHttpError(err, Anthropic);
   }

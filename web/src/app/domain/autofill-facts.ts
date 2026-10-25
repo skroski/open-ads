@@ -102,3 +102,12 @@ export function buildTermReviewFacts(
   );
   return facts;
 }
+
+/**
+ * Fatos para a IA propor temas de palavra-chave: o contexto do negócio (x1…) mais campanhas, anúncios e
+ * termos que converteram. Sem as ações de conversão, para caber no limite de fatos do servidor.
+ */
+export function buildThemeFacts(context: BusinessContext, src: Omit<FactSources, 'ambiguousActions' | 'conversionBreakdown'>): Fact[] {
+  const contextFacts = buildTermReviewFacts(context, []);
+  return [...contextFacts, ...buildFactSheet({ ...src, ambiguousActions: [], conversionBreakdown: [] })];
+}

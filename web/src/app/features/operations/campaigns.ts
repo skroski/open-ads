@@ -9,6 +9,7 @@ import { ExportData, PageHeader } from '../../shared/page-header';
 import { Insights } from '../../core/insights';
 import { brl } from '../../domain/format';
 import { wasteCategory } from '../../domain/waste';
+import { DisplayDemographics } from './display-demographics';
 import { EChart, VERDICT_COLOR } from '../../shared/echart';
 import { Kpi } from '../../shared/kpi';
 import { ThSort, SortDirection } from '../../shared/th-sort';
@@ -28,7 +29,7 @@ interface Row extends CampaignRow {
 @Component({
   selector: 'app-campaigns-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CurrencyPipe, DecimalPipe, PercentPipe, DataState, EChart, Kpi, PageHeader, ThSort],
+  imports: [CurrencyPipe, DecimalPipe, PercentPipe, DataState, DisplayDemographics, EChart, Kpi, PageHeader, ThSort],
   template: `
     <app-page-header data-open-help="campanhas-introducao"
       group="Operação no Google Ads"
@@ -66,6 +67,8 @@ interface Row extends CampaignRow {
           </div>
         </section>
       }
+
+      <app-display-demographics />
 
       <div class="flex flex-col gap-3" data-open-help="campanhas-tabela">
         <div class="flex flex-wrap items-center justify-between gap-2">

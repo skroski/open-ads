@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 import { MAX_FACTS, allowedNumbers, normalizeFacts, numbersAreGrounded, numbersIn, validEvidence } from './fact-guard.js';
 
 const facts = normalizeFacts([
-  { id: 'c1', text: 'Campanha "Implante dentário" gastou R$ 1.200,50 e teve 18 conversões.' },
-  { id: 'a1', text: 'Título do anúncio: Clínica 24 horas em Curitiba' },
+  { id: 'c1', text: 'Campanha "Tênis de corrida" gastou R$ 1.200,50 e teve 18 conversões.' },
+  { id: 'a1', text: 'Título do anúncio: Loja 24 horas em Curitiba' },
 ]);
 
 test('normalizeFacts exige lista, ids simples e únicos, e limita a quantidade', () => {

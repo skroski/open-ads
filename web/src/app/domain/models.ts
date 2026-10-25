@@ -39,6 +39,44 @@ export interface CampaignRow extends Perf {
   channel: ChannelType;
 }
 
+export type DemographicDimension = 'AGE' | 'GENDER' | 'INCOME' | 'PARENTAL';
+
+/** Desempenho de uma campanha de Display por perfil demográfico, num grupo de anúncios. */
+export interface DemographicRow extends Perf {
+  dimension: DemographicDimension;
+  /** Tipo do Google Ads (ex.: AGE_RANGE_25_34, MALE, PARENT). */
+  segment: string;
+  campaignId: string;
+  adGroupId: string;
+  /** O perfil está excluído da segmentação deste grupo. */
+  excluded: boolean;
+  /** Ajuste de lance do perfil (1 = sem ajuste), quando houver. */
+  bidModifier: number | null;
+}
+
+export interface DisplayAdGroupRow {
+  id: string;
+  name: string;
+  campaignId: string;
+  /** Com a segmentação otimizada ligada, o Google pode entregar além dos perfis escolhidos. */
+  optimizedTargeting: boolean;
+}
+
+/**
+ * Campanha com a parcela de impressões do Google Ads. As parcelas (0 a 1) só existem em campanhas de
+ * Pesquisa e Shopping; fora delas, e quando o Google não informa, ficam nulas.
+ */
+export interface CampaignShareRow extends CampaignRow {
+  /** Orçamento diário (R$). */
+  dailyBudget: number | null;
+  /** Parcela das impressões possíveis que a campanha de fato recebeu. */
+  searchShare: number | null;
+  /** Parcela perdida por orçamento insuficiente. */
+  lostBudget: number | null;
+  /** Parcela perdida por ranking (lance e qualidade do anúncio ou da página). */
+  lostRank: number | null;
+}
+
 export interface DailyRow extends Perf {
   date: string; // YYYY-MM-DD
   campaignId: string;
@@ -675,7 +713,7 @@ export interface PageAudit {
 }
 
 export interface Ga4PageRow {
-  /** Caminho da página (ex.: "/ia-para-clinicas/"). */
+  /** Caminho da página (ex.: "/guia-de-compra/"). */
   path: string;
   sessions: number;
   engagedSessions: number;

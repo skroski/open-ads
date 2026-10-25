@@ -11,7 +11,7 @@ node <plugin>/scripts/openads.mjs ajuda
 node <plugin>/scripts/openads.mjs contas
 node <plugin>/scripts/openads.mjs palavras-chave --customer 1234567890 --from 2026-09-01 --to 2026-09-30
 node <plugin>/scripts/openads.mjs termos --customer 1234567890 --login 9876543210 --from 2026-09-01 --to 2026-09-30 --limit 500
-node <plugin>/scripts/openads.mjs ideias --customer 1234567890 --keywords "clínica veterinária,vacina cachorro"
+node <plugin>/scripts/openads.mjs ideias --customer 1234567890 --keywords "seu produto,sua categoria"
 node <plugin>/scripts/openads.mjs diagnostico-eficiencia --customer 1234567890 --from 2026-09-01 --to 2026-09-30 --target-cpa 80
 node <plugin>/scripts/openads.mjs oportunidades --customer 1234567890 --from 2026-09-01 --to 2026-09-30
 node <plugin>/scripts/openads.mjs auditoria-medicao --customer 1234567890 --from 2026-09-01 --to 2026-09-30

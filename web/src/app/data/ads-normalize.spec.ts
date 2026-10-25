@@ -8,6 +8,9 @@ import {
   normalizeAdGroupNegatives,
   normalizeAds,
   normalizeCampaignLocations,
+  normalizeCampaignShares,
+  normalizeDemographics,
+  normalizeDisplayAdGroups,
   normalizeCampaigns,
   normalizeChanges,
   normalizeConversionActions,
@@ -380,5 +383,64 @@ describe('localização e alterações', () => {
     expect(a).toMatchObject({ at: '2026-10-01 14:30:05', changedFields: ['amount_micros', 'name'], campaignId: '55', adGroupId: undefined });
     expect(b.changedFields).toEqual(['status']);
     expect(b.campaignId).toBeUndefined();
+  });
+});
+
+describe('normalizeCampaignShares', () => {
+  it('lê as parcelas de impressão e o orçamento diário', () => {
+    const [c] = normalizeCampaignShares([
+      {
+        campaign: { id: '1', name: 'Pesquisa', status: 'ENABLED', advertisingChannelType: 'SEARCH' },
+        campaignBudget: { amountMicros: '32000000' },
+        metrics: {
+          impressions: '1937',
+          clicks: '81',
+          costMicros: '202960000',
+          conversions: 33,
+          searchImpressionShare: 0.12,
+          searchBudgetLostImpressionShare: 0.09,
+          searchRankLostImpressionShare: 0.78,
+        },
+      },
+    ]);
+    expect(c).toMatchObject({ id: '1', channel: 'SEARCH', dailyBudget: 32, searchShare: 0.12, lostBudget: 0.09, lostRank: 0.78, clicks: 81 });
+    expect(c.cost).toBeCloseTo(202.96);
+  });
+
+  it('campanha sem parcelas (Display) fica com nulos, e valores fora de 0–1 são ignorados', () => {
+    const [d, odd] = normalizeCampaignShares([
+      { campaign: { id: '2', name: 'Display', advertisingChannelType: 'DISPLAY' }, metrics: { impressions: '10' } },
+      { campaign: { id: '3', name: 'X', advertisingChannelType: 'SEARCH' }, metrics: { searchImpressionShare: 7 } },
+    ]);
+    expect(d).toMatchObject({ searchShare: null, lostBudget: null, lostRank: null, dailyBudget: null });
+    expect(odd.searchShare).toBeNull();
+  });
+});
+
+describe('normalizeDemographics e normalizeDisplayAdGroups', () => {
+  it('lê o tipo do campo de cada dimensão, o estado de exclusão e o ajuste de lance', () => {
+    const rows = normalizeDemographics('AGE', [
+      { campaign: { id: '1' }, adGroup: { id: '10' }, adGroupCriterion: { negative: true, ageRange: { type: 'AGE_RANGE_18_24' } }, metrics: {} },
+      {
+        campaign: { id: '1' },
+        adGroup: { id: '10' },
+        adGroupCriterion: { ageRange: { type: 'AGE_RANGE_25_34' }, bidModifier: 1.2 },
+        metrics: { impressions: '100', clicks: '5', costMicros: '7500000', conversions: 1 },
+      },
+      { campaign: { id: '1' }, adGroup: { id: '10' }, adGroupCriterion: {}, metrics: {} },
+    ]);
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ dimension: 'AGE', segment: 'AGE_RANGE_18_24', excluded: true, bidModifier: null, clicks: 0 });
+    expect(rows[1]).toMatchObject({ segment: 'AGE_RANGE_25_34', excluded: false, bidModifier: 1.2, clicks: 5, cost: 7.5 });
+    expect(normalizeDemographics('PARENTAL', [{ campaign: { id: '1' }, adGroup: { id: '1' }, adGroupCriterion: { parentalStatus: { type: 'PARENT' } } }])[0].segment).toBe('PARENT');
+  });
+
+  it('grupos de Display: segmentação otimizada ligada por padrão', () => {
+    const [a, b] = normalizeDisplayAdGroups([
+      { campaign: { id: '1' }, adGroup: { id: '10', name: 'G1', optimizedTargetingEnabled: true } },
+      { campaign: { id: '1' }, adGroup: { id: '11', name: 'G2', optimizedTargetingEnabled: false } },
+    ]);
+    expect(a.optimizedTargeting).toBe(true);
+    expect(b.optimizedTargeting).toBe(false);
   });
 });

@@ -1,7 +1,7 @@
 /**
  * Utilitários de texto para casar termos de busca, anúncios e páginas.
  * Tudo é feito em palavras inteiras (e não com `includes`), porque um termo curto
- * como "ia" casaria com "odontologia" e contaminaria qualquer classificação.
+ * como "ia" casaria com "fantasia" e contaminaria qualquer classificação.
  */
 
 const STOPWORDS = new Set([
@@ -25,7 +25,7 @@ export function tokens(value: string): string[] {
   return n ? n.split(' ') : [];
 }
 
-/** Remove o plural simples ("clinicas" → "clinica") para comparações tolerantes. */
+/** Remove o plural simples ("lojas" → "loja") para comparações tolerantes. */
 export function stem(token: string): string {
   if (token.length > 3 && token.endsWith('s')) return token.slice(0, -1);
   return token;
@@ -130,7 +130,7 @@ export function normalizeUrl(url: string): string {
   }
 }
 
-/** Palavras do caminho de uma URL ("/ia-para-clinicas/" → ["ia","clinica"]). */
+/** Palavras do caminho de uma URL ("/guia-de-compra/" → ["guia","compra"]). */
 export function urlWords(url: string): string[] {
   try {
     const u = new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`);
