@@ -20,6 +20,7 @@ import { Diagnosis, DiagnosisTone } from '../../shared/diagnosis';
 import { EChart } from '../../shared/echart';
 import { BADGE_TONE, CATEGORY, CategoryInfo } from '../../shared/waste-category';
 import { Kpi } from '../../shared/kpi';
+import { OffTarget } from './off-target';
 import { ExportData, PageHeader } from '../../shared/page-header';
 import type { EChartsCoreOption } from 'echarts/core';
 
@@ -75,6 +76,7 @@ function forTotals(dimension: WasteDimension, rows: readonly WasteRow[]): WasteR
     EChart,
     Icon,
     Kpi,
+    OffTarget,
     PageHeader,
     VerdictBadge,
   ],
@@ -103,6 +105,8 @@ function forTotals(dimension: WasteDimension, rows: readonly WasteRow[]): WasteR
         [hasData]="!!insights.funnel()"
         (retry)="ws.reloadAll()"
       >
+        <app-off-target />
+
         <!-- Recorte e categoria -->
         <section class="card card-border bg-base-100" data-open-help="desperdicios-recorte">
           <div class="card-body gap-4">

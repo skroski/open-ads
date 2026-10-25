@@ -222,4 +222,18 @@ export class IntegrationsApi {
   explain(payload: unknown): Observable<{ configured: boolean; reason?: string; text?: string }> {
     return this.http.post<{ configured: boolean; reason?: string; text?: string }>('/api/explain', payload);
   }
+
+  autofill(payload: unknown): Observable<AutofillResponse> {
+    return this.http.post<AutofillResponse>('/api/autofill', payload);
+  }
+}
+
+export interface AutofillResponse {
+  configured: boolean;
+  reason?: string;
+  context?: Partial<Record<'offer' | 'notOffer' | 'idealCustomer' | 'notCustomer', { text: string; evidence: string[] }>>;
+  stages?: Array<{ name: string; stage: 'CLICK' | 'INTERACTION' | 'CONTACT' | 'QUALIFIED' | 'PROPOSAL' | 'SALE'; reason: string; evidence: string[] }>;
+  termVerdicts?: Array<{ term: string; reason: string; evidence: string[] }>;
+  /** Itens que a guarda do servidor descartou por não terem base nos fatos. */
+  dropped?: number;
 }

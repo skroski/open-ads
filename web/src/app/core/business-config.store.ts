@@ -1,7 +1,7 @@
 import { Injectable, inject, linkedSignal } from '@angular/core';
 import { DEFAULT_AUDIT_RULES } from '../domain/classify';
 import { defaultBusinessConfig, mergeConfig } from '../domain/config';
-import { AuditRules, BusinessConfig, BusinessGoal, FunnelStage } from '../domain/models';
+import { AuditRules, BusinessConfig, BusinessContext, BusinessGoal, FunnelStage, ParamKey } from '../domain/models';
 import { AccountStore } from './account.store';
 
 const configKey = (accountId: string): string => `gads_biz_config_${accountId || 'default'}`;
@@ -51,20 +51,49 @@ export class BusinessConfigStore {
     computation: (id) => loadRules(id),
   });
 
-  update(patch: Partial<BusinessConfig>): void {
+  /** `manual` marca como "informado por você" os parâmetros que a pessoa acabou de editar. */
+  update(patch: Partial<BusinessConfig>, manual: readonly ParamKey[] = []): void {
     this.config.update((c) => {
-      const next = mergeConfig({ ...c, ...patch });
+      const paramStatus = { ...c.paramStatus, ...(patch.paramStatus ?? {}) };
+      for (const key of manual) paramStatus[key] = 'MANUAL';
+      const next = mergeConfig({ ...c, ...patch, paramStatus });
       writeJson(configKey(this.account.selectedId()), next);
       return next;
     });
   }
 
   updateGoal(patch: Partial<BusinessGoal>): void {
-    this.update({ goal: { ...this.config().goal, ...patch } });
+    const current = this.config().goal;
+    const manual: ParamKey[] = [];
+    if (patch.goalStage !== undefined && patch.goalStage !== current.goalStage) manual.push('goalStage');
+    if (patch.targetCostPerGoal !== undefined && patch.targetCostPerGoal !== current.targetCostPerGoal) {
+      manual.push('targetCostPerGoal');
+    }
+    this.update({ goal: { ...current, ...patch } }, manual);
   }
 
   setMapping(actionName: string, stage: FunnelStage | 'IGNORE'): void {
-    this.update({ mapping: { ...this.config().mapping, [actionName]: stage } });
+    this.update({ mapping: { ...this.config().mapping, [actionName]: stage } }, ['mapping']);
+  }
+
+  /** Etapa aceita a partir de uma sugestão: conta como confirmada, não como digitada. */
+  confirmMapping(actionName: string, stage: FunnelStage): void {
+    const c = this.config();
+    this.update({
+      mapping: { ...c.mapping, [actionName]: stage },
+      paramStatus: { ...c.paramStatus, mapping: 'CONFIRMED' },
+    });
+  }
+
+  /** Aplica uma configuração já calculada (ex.: sugestões aceitas). */
+  replaceConfig(next: BusinessConfig): void {
+    const merged = mergeConfig(next);
+    this.config.set(merged);
+    writeJson(configKey(this.account.selectedId()), merged);
+  }
+
+  saveContext(context: BusinessContext): void {
+    this.update({ context });
   }
 
   saveRules(rules: AuditRules): void {

@@ -11,6 +11,7 @@ import { parseTermList } from '../../domain/classify';
 import { AuditRules, ServiceHours } from '../../domain/models';
 import { Icon } from '../../shared/icon';
 import { PageHeader } from '../../shared/page-header';
+import { AutoConfigPanel } from './auto-config';
 
 const WEEKDAYS: ReadonlyArray<{ key: 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'; label: string; n: number }> = [
   { key: 'mon', label: 'Seg', n: 1 },
@@ -34,7 +35,7 @@ function rulesToText(r: AuditRules): { brand: string; unqualified: string; quali
 @Component({
   selector: 'app-settings-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormField, FormRoot, Icon, PageHeader, RouterLink],
+  imports: [AutoConfigPanel, FormField, FormRoot, Icon, PageHeader, RouterLink],
   template: `
     <app-page-header data-open-help="configuracoes-introducao"
       group="Sistema"
@@ -44,6 +45,9 @@ function rulesToText(r: AuditRules): { brand: string; unqualified: string; quali
     />
 
     <div class="flex flex-col gap-block">
+      <!-- Auto-preenchimento e contexto do negócio -->
+      <app-auto-config />
+
       <!-- Regras de auditoria -->
       <section class="card card-border bg-base-100" data-open-help="configuracoes-regras">
         <div class="card-body gap-4">
@@ -341,7 +345,7 @@ export class SettingsPage {
     const has = area.regionIds.includes(id);
     const regionIds = has ? area.regionIds.filter((x) => x !== id) : [...area.regionIds, id];
     const regionNames = { ...area.regionNames, [id]: name };
-    this.cfg.update({ serviceArea: { regionIds, regionNames } });
+    this.cfg.update({ serviceArea: { regionIds, regionNames } }, ['serviceArea']);
   }
 
   // ── Horário de atendimento
@@ -375,14 +379,14 @@ export class SettingsPage {
         action: async () => {
           const v = this.hoursValue();
           if (!v.enabled) {
-            this.cfg.update({ serviceHours: null });
+            this.cfg.update({ serviceHours: null }, ['serviceHours']);
           } else {
             const hours: ServiceHours = {
               startHour: v.start,
               endHour: v.end,
               weekdays: WEEKDAYS.filter((d) => v[d.key]).map((d) => d.n),
             };
-            this.cfg.update({ serviceHours: hours });
+            this.cfg.update({ serviceHours: hours }, ['serviceHours']);
           }
           this.toast.success('Horário de atendimento salvo.');
           return undefined;
@@ -401,11 +405,16 @@ export class SettingsPage {
     submission: {
       action: async () => {
         const v = this.integrationValue();
-        this.cfg.update({
-          ga4PropertyId: v.ga4.trim().replace(/^properties\//, ''),
-          searchConsoleSite: v.site.trim(),
-          domains: parseTermList(v.domains).map((d) => d.replace(/^https?:\/\//, '').replace(/\/.*$/, '')),
-        });
+        const domains = parseTermList(v.domains).map((d) => d.replace(/^https?:\/\//, '').replace(/\/.*$/, ''));
+        const changed = domains.join('\n') !== this.cfg.config().domains.join('\n');
+        this.cfg.update(
+          {
+            ga4PropertyId: v.ga4.trim().replace(/^properties\//, ''),
+            searchConsoleSite: v.site.trim(),
+            domains,
+          },
+          changed ? ['domains'] : [],
+        );
         this.toast.success('Integrações salvas.');
         return undefined;
       },
@@ -430,9 +439,11 @@ export class SettingsPage {
       submission: {
         action: async () => {
           const v = this.thresholdValue();
-          this.cfg.update({
-            thresholds: { zeroResultAlpha: v.alpha / 100, minClicks: v.minClicks, aboveTargetFactor: v.factor },
-          });
+          const changed = v.minClicks !== this.cfg.config().thresholds.minClicks;
+          this.cfg.update(
+            { thresholds: { zeroResultAlpha: v.alpha / 100, minClicks: v.minClicks, aboveTargetFactor: v.factor } },
+            changed ? ['minClicks'] : [],
+          );
           this.toast.success('Rigor atualizado.');
           return undefined;
         },

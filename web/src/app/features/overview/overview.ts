@@ -12,6 +12,7 @@ import { FunnelStage, STAGE_LABEL } from '../../domain/models';
 import { ConfidenceBadge } from '../../shared/badges';
 import { DataState } from '../../shared/data-state';
 import { EChart } from '../../shared/echart';
+import { ForecastChart } from '../../shared/forecast-chart';
 import { Icon } from '../../shared/icon';
 import { IconName } from '../../shared/icons';
 
@@ -75,7 +76,7 @@ const DECISION_LABEL: Record<string, string> = {
 @Component({
   selector: 'app-overview',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ConfidenceBadge, DataState, EChart, Icon],
+  imports: [RouterLink, ConfidenceBadge, DataState, EChart, ForecastChart, Icon],
   template: `
     <header class="overview-heading" data-open-help="visao-geral-introducao">
       <div class="overview-eyebrow">Hoje · {{ account.rangeLabel() }}</div>
@@ -242,6 +243,14 @@ const DECISION_LABEL: Record<string, string> = {
             </section>
           }
 
+          <section class="overview-evolution" aria-label="Previsão dos próximos dias">
+            <app-forecast-chart
+              [daily]="ws.daily.value() ?? []"
+              [end]="ws.dailyWindow().to"
+              [trackingBroken]="trackingBroken()"
+            />
+          </section>
+
           <details class="overview-media-metrics">
             <summary>Ver métricas de mídia</summary>
             <div>
@@ -269,6 +278,11 @@ export class Overview {
   protected readonly config = this.cfg.config;
   protected readonly goalLabel = computed(() => STAGE_LABEL[this.config().goal.goalStage].toLowerCase());
   protected readonly top = computed(() => this.insights.openRecommendations().slice(0, 5));
+
+  /** Falha de medição em andamento na conta toda: bloqueia previsões que dependem de conversão. */
+  protected readonly trackingBroken = computed(() =>
+    this.insights.outages().some((outage) => outage.scope === 'ACCOUNT' && outage.ongoing),
+  );
 
   protected readonly outagesInPeriod = computed(() => {
     const from = this.account.window().from;

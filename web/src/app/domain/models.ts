@@ -354,6 +354,34 @@ export interface Thresholds {
   aboveTargetFactor: number;
 }
 
+/** Contexto em linguagem livre: ajuda a separar o que combina com o negócio do que o Google entrega por engano. */
+export interface BusinessContext {
+  /** O que a empresa vende. */
+  offer: string;
+  /** O que a empresa NÃO vende ou não atende. */
+  notOffer: string;
+  /** Quem é o cliente ideal. */
+  idealCustomer: string;
+  /** Quem não é cliente. */
+  notCustomer: string;
+}
+
+/** Parâmetros que o painel sabe sugerir a partir dos dados da conta. */
+export type ParamKey =
+  | 'mapping'
+  | 'goalStage'
+  | 'targetCostPerGoal'
+  | 'serviceArea'
+  | 'serviceHours'
+  | 'minClicks'
+  | 'domains';
+
+/**
+ * Estado gravado de um parâmetro. Sem entrada, vale o padrão (ou o valor antigo,
+ * tratado como manual). "Sugerido" nunca é gravado: só existe na tela, até a pessoa decidir.
+ */
+export type ParamStatus = 'CONFIRMED' | 'MANUAL';
+
 export interface BusinessConfig {
   goal: BusinessGoal;
   mapping: ConversionMapping;
@@ -367,6 +395,9 @@ export interface BusinessConfig {
   /** Caminhos relativos escolhidos na API do Google Tag Manager, por conta Ads. */
   gtmContainerPath: string;
   gtmWorkspacePath: string;
+  context: BusinessContext;
+  /** Parâmetros já decididos pela pessoa; o auto-preenchimento nunca os sobrescreve. */
+  paramStatus: Partial<Record<ParamKey, ParamStatus>>;
 }
 
 // ───────────────────────── Evidência, veredito e recomendação ─────────────────────────
