@@ -11,6 +11,16 @@ updates:
     groups:
       angular:
         patterns: ["@angular/*"]
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: npm
+    directory: /web-react
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: monthly }

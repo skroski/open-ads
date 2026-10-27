@@ -19,8 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -35,8 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -50,12 +50,32 @@ jobs:
         run: npm run build
         working-directory: web
 
+  react:
+    name: Painel React (testes e build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web-react/package-lock.json
+      - run: npm ci
+        working-directory: web-react
+      - name: Testes
+        run: npm test
+        working-directory: web-react
+      - name: Build de produção
+        run: npm run build
+        working-directory: web-react
+
   secrets:
     name: Segredos fora do Git
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Arquivos que nunca devem ser versionados
         run: |
           bad=$(git ls-files | grep -E '(^|/)\.env($|\.)|client_secret.*\.json|\.pem$|\.key$' | grep -v '\.env\.example$' || true)
@@ -63,7 +83,7 @@ jobs:
       - name: Padrões de chaves no código
         run: |
           pattern='GOCSPX-[A-Za-z0-9_-]{20,}|1//[0-9A-Za-z_-]{40,}|sk-ant-[A-Za-z0-9_-]{20,}|AIza[0-9A-Za-z_-]{35}'
-          if git grep -nIE "$pattern" -- . ':!package-lock.json' ':!web/package-lock.json'; then
+          if git grep -nIE "$pattern" -- . ':!package-lock.json' ':!web/package-lock.json' ':!web-react/package-lock.json'; then
             echo "Possível chave encontrada acima. Remova do código e gere uma nova."; exit 1
           fi
 
@@ -73,10 +93,12 @@ jobs:
     timeout-minutes: 5
     continue-on-error: true   # informa vulnerabilidades sem travar o PR
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - run: npm audit --omit=dev --audit-level=high
       - run: npm audit --omit=dev --audit-level=high
         working-directory: web
+      - run: npm audit --omit=dev --audit-level=high
+        working-directory: web-react
