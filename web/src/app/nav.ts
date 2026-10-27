@@ -71,6 +71,7 @@ export const NAV_SECTIONS: NavSection[] = [
     tabs: [
       { path: 'acoes', label: 'Plano de ação' },
       { path: 'negativas', label: 'Palavras negativas' },
+      { path: 'publico-display', label: 'Público do Display' },
       { path: 'experimentos', label: 'Experimentos' },
       { path: 'historico', label: 'Auditoria' },
     ],

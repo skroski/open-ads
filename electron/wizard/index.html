@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenAds · Assistente de Instalação</title>
+  <link rel="stylesheet" href="./wizard.css" />
+</head>
+<body>
+
+  <!-- Header Superior -->
+  <header class="wizard-header px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center text-xl font-bold tracking-tight">
+        <span class="text-primary font-black text-2xl">Open</span>
+        <span class="text-base-content text-2xl">Ads</span>
+      </div>
+      <span class="badge badge-neutral badge-sm font-mono">Desktop Installer</span>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <span id="header-status-badge" class="badge badge-soft badge-info text-xs">Instalação</span>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-nav-doctor">🩺 Diagnóstico</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-nav-help">📖 Ajuda</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-nav-donation">☕ Apoiar</button>
+      <button type="button" class="btn btn-circle btn-ghost btn-sm ml-2" id="btn-toggle-theme" title="Alternar tema">🌓</button>
+    </div>
+  </header>
+
+  <!-- Container Principal -->
+  <main class="wizard-container">
+
+    <!-- Indicador de Passos daisyUI -->
+    <ul class="steps steps-horizontal w-full my-4">
+      <li class="step step-primary" data-step="1">Início</li>
+      <li class="step" data-step="2">Cliente OAuth</li>
+      <li class="step" data-step="3">Autorização</li>
+      <li class="step" data-step="4">Conta Ads</li>
+      <li class="step" data-step="5">Opcionais</li>
+      <li class="step" data-step="6">Conclusão</li>
+    </ul>
+
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <!-- PASSO 1: Boas-vindas -->
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <section class="step-pane active" id="pane-step-1">
+      <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card-body">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="badge badge-primary badge-soft font-semibold">Passo Inicial</span>
+            <span class="text-xs text-base-content/60">Versão 1.0.0</span>
+          </div>
+
+          <h1 class="card-title text-2xl font-bold mb-1">Bem-vindo ao OpenAds Desktop</h1>
+          <p class="text-base-content/80 text-sm leading-relaxed mb-6">
+            O assistente oficial para instalar e configurar o OpenAds no seu computador com total segurança e sem precisar lidar com linhas de comando no terminal.
+          </p>
+
+          <!-- 3 Destaques em Cartões -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="card bg-base-200 border border-base-300 p-4">
+              <div class="text-2xl mb-2">🛡️</div>
+              <h3 class="font-bold text-sm mb-1">100% Local e Privado</h3>
+              <p class="text-xs text-base-content/70">
+                Suas chaves e dados nunca saem desta máquina. Ficam salvos estritamente no arquivo local <code class="text-xs">server/.env</code>.
+              </p>
+            </div>
+
+            <div class="card bg-base-200 border border-base-300 p-4">
+              <div class="text-2xl mb-2">⚡</div>
+              <h3 class="font-bold text-sm mb-1">Assistente com 1 Clique</h3>
+              <p class="text-xs text-base-content/70">
+                Arraste o arquivo JSON do Google Cloud e autorize no navegador. O assistente cuida de todo o resto.
+              </p>
+            </div>
+
+            <div class="card bg-base-200 border border-base-300 p-4">
+              <div class="text-2xl mb-2">📊</div>
+              <h3 class="font-bold text-sm mb-1">Auditoria Avançada</h3>
+              <p class="text-xs text-base-content/70">
+                Detecte desperdício de verba, analise termos de busca, lances, funil de conversão e conecte GA4 e Search Console.
+              </p>
+            </div>
+          </div>
+
+          <!-- Alerta de Pré-requisitos -->
+          <div role="alert" class="alert alert-info alert-soft mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div>
+              <h4 class="font-bold text-xs uppercase tracking-wide">Pré-requisitos do Google Cloud</h4>
+              <p class="text-xs mt-1">
+                Você precisará de uma conta Google com acesso ao Google Ads e acesso ao console do Google Cloud (gratuito) para gerar o arquivo do cliente OAuth.
+              </p>
+            </div>
+          </div>
+
+          <!-- Ações do Passo 1 -->
+          <div class="card-actions justify-end mt-4">
+            <button type="button" class="btn btn-outline" id="btn-guide-step1">Ver Roteiro Detalhado</button>
+            <button type="button" class="btn btn-primary px-8" id="btn-next-step1">Iniciar Configuração →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <!-- PASSO 2: Cliente OAuth (Google Cloud) -->
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <section class="step-pane" id="pane-step-2">
+      <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card-body">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="badge badge-primary badge-soft font-semibold">Passo 1 de 5</span>
+            <span class="text-xs text-base-content/60">Credenciais OAuth 2.0</span>
+          </div>
+
+          <h2 class="card-title text-xl font-bold mb-1">Cliente OAuth do Google Cloud</h2>
+          <p class="text-base-content/80 text-sm mb-6">
+            Para o painel se comunicar com a Google Ads API, é necessário o Client ID e Client Secret do seu próprio projeto.
+          </p>
+
+          <!-- Dropzone de JSON -->
+          <div class="dropzone mb-6" id="json-dropzone">
+            <div class="flex flex-col items-center gap-2">
+              <svg class="w-12 h-12 text-primary opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+              </svg>
+              <h3 class="font-bold text-base mt-1">Arraste o arquivo JSON do Google Cloud aqui</h3>
+              <p class="text-xs text-base-content/60 max-w-md">
+                O arquivo baixado no Google Cloud Console com nome tipo <code class="text-xs">client_secret_*.json</code>
+              </p>
+              <button type="button" class="btn btn-outline btn-sm mt-3" id="btn-browse-json">
+                Selecionar arquivo do computador...
+              </button>
+            </div>
+          </div>
+
+          <!-- Mensagem de Arquivo Reconhecido -->
+          <div id="json-success-banner" class="alert alert-success alert-soft mb-6 hidden">
+            <svg class="w-5 h-5 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div>
+              <span class="font-bold text-xs uppercase">Arquivo JSON Lido com Sucesso!</span>
+              <p class="text-xs mt-0.5" id="json-preview-text">Client ID detectado.</p>
+            </div>
+          </div>
+
+          <!-- Preenchimento Manual Alternativo -->
+          <div class="collapse collapse-arrow bg-base-200 border border-base-300 rounded-box mb-6">
+            <input type="checkbox" id="toggle-manual-credentials" />
+            <div class="collapse-title text-sm font-semibold">
+              Ou preencher Client ID e Secret manualmente
+            </div>
+            <div class="collapse-content space-y-4 pt-2">
+              <fieldset class="fieldset">
+                <legend class="fieldset-legend text-xs font-semibold">Client ID do Google</legend>
+                <input type="text" class="input input-bordered w-full font-mono text-xs" id="input-client-id" placeholder="Ex: 123456789-abcdef.apps.googleusercontent.com" />
+                <p class="label text-xs text-base-content/60">Termina obrigatoriamente em <code class="text-xs">.apps.googleusercontent.com</code></p>
+              </fieldset>
+
+              <fieldset class="fieldset">
+                <legend class="fieldset-legend text-xs font-semibold">Client Secret</legend>
+                <div class="join w-full">
+                  <input type="password" class="input input-bordered join-item w-full font-mono text-xs" id="input-client-secret" placeholder="Ex: GOCSPX-..." />
+                  <button type="button" class="btn join-item" id="btn-toggle-secret-visibility" title="Mostrar/ocultar chave">👁️</button>
+                </div>
+                <p class="label text-xs text-base-content/60">Nunca compartilhe este valor com terceiros.</p>
+              </fieldset>
+            </div>
+          </div>
+
+          <!-- Ajuda Rápida Google Cloud -->
+          <div role="alert" class="alert alert-warning alert-soft text-xs">
+            <svg class="w-5 h-5 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            <div>
+              <span class="font-bold">Ainda não criou o cliente no Google Cloud?</span>
+              <p class="mt-0.5">
+                Vá em <strong>APIs e Serviços → Credenciais → Criar Credenciais → ID do cliente OAuth</strong>.
+                Recomendado escolher <strong>"App para computador"</strong>. Se escolher "Aplicativo da Web", configure a URL de redirecionamento para <code class="text-xs">http://localhost:8787/oauth2callback</code>.
+              </p>
+              <button type="button" class="btn btn-xs btn-link p-0 text-primary mt-1" id="btn-open-cloud-console">
+                Abrir Google Cloud Console no navegador ↗
+              </button>
+            </div>
+          </div>
+
+          <!-- Rodapé de Ações -->
+          <div class="wizard-footer">
+            <button type="button" class="btn btn-ghost" id="btn-prev-step2">← Voltar</button>
+            <button type="button" class="btn btn-primary" id="btn-next-step2">Avançar para Autorização →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <!-- PASSO 3: Autorização Google (OAuth) -->
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <section class="step-pane" id="pane-step-3">
+      <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card-body">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="badge badge-primary badge-soft font-semibold">Passo 2 de 5</span>
+            <span class="text-xs text-base-content/60">Permissões e Token</span>
+          </div>
+
+          <h2 class="card-title text-xl font-bold mb-1">Autorizar Acesso às Contas do Google</h2>
+          <p class="text-base-content/80 text-sm mb-6">
+            O assistente abrirá seu navegador para você entrar com sua conta Google e conceder a permissão de leitura dos relatórios.
+          </p>
+
+          <!-- Seleção de Escopos -->
+          <div class="bg-base-200 border border-base-300 rounded-box p-4 mb-6 space-y-3">
+            <h3 class="font-bold text-xs uppercase tracking-wide text-base-content/70">Permissões que serão solicitadas:</h3>
+
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked disabled class="checkbox checkbox-primary checkbox-sm" />
+              <div class="text-xs">
+                <span class="font-bold">Google Ads API</span>
+                <span class="badge badge-xs badge-neutral ml-1">Obrigatório</span>
+                <p class="text-base-content/60">Leitura de métricas, campanhas, lances e termos de busca.</p>
+              </div>
+            </label>
+
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" id="check-scope-extras" checked class="checkbox checkbox-primary checkbox-sm" />
+              <div class="text-xs">
+                <span class="font-bold">Google Analytics 4, Search Console e Tag Manager</span>
+                <span class="badge badge-xs badge-info ml-1">Recomendado</span>
+                <p class="text-base-content/60">Permite auditar tráfego de páginas, termos orgânicos e contêineres de tag sem precisar de novo login depois.</p>
+              </div>
+            </label>
+          </div>
+
+          <!-- Status de Token Existente -->
+          <div id="existing-token-box" class="alert alert-info alert-soft mb-6 hidden">
+            <svg class="w-5 h-5 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div class="flex-1 flex items-center justify-between">
+              <div>
+                <span class="font-bold text-xs">Já existe um Refresh Token gravado</span>
+                <p class="text-xs mt-0.5">Você pode manter o token atual ou gerar um novo se ele expirou.</p>
+              </div>
+              <button type="button" class="btn btn-xs btn-outline" id="btn-keep-token">Manter Token Atual</button>
+            </div>
+          </div>
+
+          <!-- Botão Principal de Conexão -->
+          <div class="flex flex-col items-center justify-center py-6 px-4 bg-base-200/50 border border-dashed border-base-300 rounded-box mb-6">
+            <button type="button" class="btn btn-primary btn-lg gap-3 px-8" id="btn-start-google-auth">
+              <svg class="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              Conectar com a Conta Google
+            </button>
+            <p class="text-xs text-base-content/60 mt-3 text-center">
+              O assistente escuta a resposta na porta local <code class="text-xs">http://localhost:8787/oauth2callback</code>
+            </p>
+          </div>
+
+          <!-- Feedback de Autorização Concluída -->
+          <div id="oauth-success-banner" class="alert alert-success alert-soft mb-6 hidden">
+            <svg class="w-5 h-5 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div>
+              <span class="font-bold text-xs uppercase">Autorização Concluída com Sucesso!</span>
+              <p class="text-xs mt-0.5">O Refresh Token foi gerado e validado pelo Google.</p>
+            </div>
+          </div>
+
+          <!-- Mensagem de Erro se houver -->
+          <div id="oauth-error-banner" class="alert alert-error alert-soft mb-6 hidden">
+            <svg class="w-5 h-5 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div>
+              <span class="font-bold text-xs uppercase" id="oauth-error-title">Falha na autorização</span>
+              <p class="text-xs mt-0.5" id="oauth-error-text">Ocorreu um erro durante a autorização.</p>
+            </div>
+          </div>
+
+          <!-- Dica Importante sobre App Não Verificado -->
+          <div role="alert" class="alert alert-info alert-soft text-xs">
+            <svg class="w-5 h-5 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div>
+              <span class="font-bold">Aviso comum do Google: "O Google não verificou este app"</span>
+              <p class="mt-0.5">
+                Isso é 100% esperado, pois é o seu próprio aplicativo pessoal recém-criado. Basta clicar em <strong>Avançado → Acessar (não seguro)</strong> e marcar todas as caixas de permissão.
+              </p>
+            </div>
+          </div>
+
+          <!-- Rodapé de Ações -->
+          <div class="wizard-footer">
+            <button type="button" class="btn btn-ghost" id="btn-prev-step3">← Voltar</button>
+            <button type="button" class="btn btn-primary" id="btn-next-step3" disabled>Avançar para Escolha da Conta →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <!-- PASSO 4: Escolha da Conta do Google Ads -->
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <section class="step-pane" id="pane-step-4">
+      <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card-body">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="badge badge-primary badge-soft font-semibold">Passo 3 de 5</span>
+            <span class="text-xs text-base-content/60">Seleção de Conta</span>
+          </div>
+
+          <h2 class="card-title text-xl font-bold mb-1">Escolha a Conta do Google Ads</h2>
+          <p class="text-base-content/80 text-sm mb-4">
+            Identificamos as seguintes contas acessíveis pelo seu login. Escolha qual deve abrir como padrão no painel:
+          </p>
+
+          <!-- Área de Contas Carregadas -->
+          <div id="accounts-loading" class="flex flex-col items-center justify-center py-10 space-y-3">
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+            <p class="text-xs text-base-content/70">Consultando contas na Google Ads API v25...</p>
+          </div>
+
+          <div id="accounts-container" class="space-y-2 mb-6 max-h-72 overflow-y-auto pr-1 hidden">
+            <!-- Inserido dinamicamente via JS -->
+          </div>
+
+          <!-- Entrada Manual de Customer ID -->
+          <div class="collapse collapse-arrow bg-base-200 border border-base-300 rounded-box mb-6">
+            <input type="checkbox" id="toggle-manual-account" />
+            <div class="collapse-title text-xs font-semibold">
+              Digitar Customer ID manualmente (se não estiver na lista)
+            </div>
+            <div class="collapse-content space-y-3 pt-2">
+              <fieldset class="fieldset">
+                <legend class="fieldset-legend text-xs font-semibold">Customer ID (10 dígitos)</legend>
+                <input type="text" class="input input-bordered w-full font-mono text-xs" id="input-customer-id" placeholder="Ex: 123-456-7890 ou 1234567890" />
+                <p class="label text-xs text-base-content/60">Localizado no canto superior direito do Google Ads.</p>
+              </fieldset>
+            </div>
+          </div>
+
+          <!-- MCC de Login (se aplicável) -->
+          <div class="bg-base-200 border border-base-300 rounded-box p-4 mb-6">
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend text-xs font-semibold">ID do MCC / Conta de Administrador (Opcional)</legend>
+              <input type="text" class="input input-bordered w-full font-mono text-xs" id="input-login-customer-id" placeholder="Ex: 987-654-3210 (ou deixe vazio se o acesso for direto)" />
+              <p class="label text-xs text-base-content/60">
+                Se você gerencia os clientes através de uma conta de administrador (MCC), informe o ID dela aqui para liberar a leitura.
+              </p>
+            </fieldset>
+          </div>
+
+          <!-- Botão e Feedback de Teste de Conexão -->
+          <div class="flex items-center gap-3 mb-6">
+            <button type="button" class="btn btn-outline btn-sm" id="btn-test-account-conn">
+              Testar Conexão com a Conta
+            </button>
+            <div id="account-test-result" class="text-xs"></div>
+          </div>
+
+          <!-- Rodapé de Ações -->
+          <div class="wizard-footer">
+            <button type="button" class="btn btn-ghost" id="btn-prev-step4">← Voltar</button>
+            <button type="button" class="btn btn-primary" id="btn-next-step4" disabled>Avançar para Opcionais →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <!-- PASSO 5: Opcionais e Segurança -->
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <section class="step-pane" id="pane-step-5">
+      <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card-body">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="badge badge-primary badge-soft font-semibold">Passo 4 de 5</span>
+            <span class="text-xs text-base-content/60">Ajustes Opcionais</span>
+          </div>
+
+          <h2 class="card-title text-xl font-bold mb-1">Ajustes Opcionais e Proteção de Rede</h2>
+          <p class="text-base-content/80 text-sm mb-6">
+            Você pode pular qualquer um destes campos e preenchê-los mais tarde.
+          </p>
+
+          <div class="space-y-5 mb-6">
+            <!-- Domínios do Site -->
+            <fieldset class="fieldset bg-base-200 border border-base-300 rounded-box p-4">
+              <legend class="fieldset-legend text-xs font-semibold">Domínios do Site para Auditoria de Páginas</legend>
+              <input type="text" class="input input-bordered w-full text-xs" id="input-allowed-hosts" placeholder="Ex: seusite.com.br, loja.seusite.com.br" />
+              <p class="label text-xs text-base-content/60">
+                Separe por vírgula. O painel audita a velocidade e tags das páginas desses domínios.
+              </p>
+            </fieldset>
+
+            <!-- Chave Anthropic IA -->
+            <fieldset class="fieldset bg-base-200 border border-base-300 rounded-box p-4">
+              <legend class="fieldset-legend text-xs font-semibold">Chave de IA (Anthropic Claude API)</legend>
+              <input type="password" class="input input-bordered w-full font-mono text-xs" id="input-anthropic-key" placeholder="Ex: sk-ant-api03-..." />
+              <p class="label text-xs text-base-content/60">
+                Opcional. Gera hipóteses e explicações automáticas dos relatórios com IA. Paga por uso diretamente à Anthropic.
+              </p>
+            </fieldset>
+
+            <!-- Token de Rede Local -->
+            <fieldset class="fieldset bg-base-200 border border-base-300 rounded-box p-4">
+              <legend class="fieldset-legend text-xs font-semibold">Código de Proteção em Rede Local (LAN / Wi-Fi)</legend>
+              <div class="join w-full">
+                <input type="text" class="input input-bordered join-item w-full font-mono text-xs" id="input-panel-token" placeholder="Deixe em branco para uso individual local" />
+                <button type="button" class="btn join-item text-xs" id="btn-gen-panel-token">Gerar Token Seguro</button>
+              </div>
+              <p class="label text-xs text-base-content/60">
+                Se você for abrir o painel em outros computadores do seu escritório pela rede interna, defina um código para proteger os dados.
+              </p>
+            </fieldset>
+          </div>
+
+          <!-- Rodapé de Ações -->
+          <div class="wizard-footer">
+            <button type="button" class="btn btn-ghost" id="btn-prev-step5">← Voltar</button>
+            <button type="button" class="btn btn-primary" id="btn-next-step5">Concluir e Validar →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <!-- PASSO 6: Diagnóstico e Conclusão -->
+    <!-- ───────────────────────────────────────────────────────────── -->
+    <section class="step-pane" id="pane-step-6">
+      <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card-body">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="badge badge-success badge-soft font-semibold">Instalação Concluída</span>
+            <span class="text-xs text-base-content/60">Tudo Pronto</span>
+          </div>
+
+          <h2 class="card-title text-2xl font-bold mb-1">🎉 Tudo Pronto para Decolar!</h2>
+          <p class="text-base-content/80 text-sm mb-6">
+            Suas credenciais foram salvas localmente em <code class="text-xs">server/.env</code>. O diagnóstico do sistema confirmou que está tudo operacional.
+          </p>
+
+          <!-- Checklist de Diagnóstico -->
+          <div class="bg-base-200 border border-base-300 rounded-box p-5 mb-6 space-y-3" id="doctor-checklist-container">
+            <div class="flex items-center gap-2">
+              <span class="loading loading-spinner loading-sm text-primary"></span>
+              <span class="text-xs">Executando diagnóstico final do sistema...</span>
+            </div>
+          </div>
+
+          <!-- Resumo da Instalação -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="card bg-base-200 border border-base-300 p-4">
+              <span class="text-xs text-base-content/60 font-semibold uppercase">Conta Selecionada</span>
+              <span class="text-base font-bold text-primary mt-1" id="summary-account-id">-</span>
+              <span class="text-xs text-base-content/70" id="summary-account-name">-</span>
+            </div>
+
+            <div class="card bg-base-200 border border-base-300 p-4">
+              <span class="text-xs text-base-content/60 font-semibold uppercase">Servidor Local</span>
+              <span class="text-base font-bold text-success mt-1">127.0.0.1:3000 / 4200</span>
+              <span class="text-xs text-base-content/70">Executando isolado no seu computador</span>
+            </div>
+          </div>
+
+          <!-- Botões de Ação Final -->
+          <div class="flex flex-col sm:flex-row gap-3 justify-end pt-4 border-t border-base-300">
+            <button type="button" class="btn btn-outline" id="btn-reconfigure-wizard">
+              Revisar Configurações
+            </button>
+            <button type="button" class="btn btn-outline" id="btn-open-external-browser">
+              🌐 Abrir no Navegador Web
+            </button>
+            <button type="button" class="btn btn-primary px-8" id="btn-launch-desktop">
+              🚀 Abrir Painel OpenAds
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ───────────────────────────────────────────────────────────── -->
+  <!-- MODAL: Diagnóstico Completo (Doctor) -->
+  <!-- ───────────────────────────────────────────────────────────── -->
+  <dialog id="modal-doctor" class="modal">
+    <div class="modal-box max-w-2xl bg-base-100 border border-base-300">
+      <h3 class="font-bold text-lg mb-2">🩺 Diagnóstico do OpenAds (npm run doctor)</h3>
+      <p class="text-xs text-base-content/70 mb-4">
+        Verifica Node.js, dependências, arquivos de configuração, portas e conexão ao vivo com a Google Ads API.
+      </p>
+
+      <div class="space-y-2 mb-6" id="modal-doctor-results">
+        <div class="flex items-center gap-2 py-4">
+          <span class="loading loading-spinner loading-md text-primary"></span>
+          <span class="text-xs">Realizando verificações...</span>
+        </div>
+      </div>
+
+      <div class="modal-action">
+        <button type="button" class="btn btn-sm btn-outline" id="btn-run-doctor-again">Repetir Diagnóstico</button>
+        <form method="dialog">
+          <button class="btn btn-sm">Fechar</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ───────────────────────────────────────────────────────────── -->
+  <!-- MODAL: Apoio e Doação Pix -->
+  <!-- ───────────────────────────────────────────────────────────── -->
+  <dialog id="modal-donation" class="modal">
+    <div class="modal-box max-w-lg bg-base-100 border border-base-300">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="text-3xl">☕</div>
+        <div>
+          <h3 class="font-bold text-lg">Apoio e Colaboração</h3>
+          <p class="text-xs text-base-content/70">OpenAds criado por Daniel Skroski</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-base-content/80 leading-relaxed mb-4">
+        O OpenAds é 100% gratuito e de código aberto (GPL-2.0-or-later). Se este sistema te ajudou a economizar e otimizar campanhas, qualquer apoio contribui para manter a ferramenta ativa e evoluindo!
+      </p>
+
+      <div class="bg-base-200 border border-base-300 rounded-box p-4 mb-4">
+        <span class="text-xs font-semibold text-base-content/60 uppercase">Chave Pix (Telefone)</span>
+        <div class="flex items-center justify-between mt-1">
+          <code class="text-sm font-bold text-primary" id="donation-pix-key">41999865410</code>
+          <button type="button" class="btn btn-xs btn-outline" id="btn-copy-pix">Copiar Chave</button>
+        </div>
+        <p class="text-[11px] text-base-content/60 mt-1">Beneficiário: Daniel Skroski</p>
+      </div>
+
+      <div class="flex items-center justify-between text-xs text-base-content/70 mb-4">
+        <span>Consultoria ou dúvidas:</span>
+        <button type="button" class="btn btn-xs btn-link p-0 text-primary" id="btn-open-whatsapp">
+          Conversar no WhatsApp (41) 99986-5410 ↗
+        </button>
+      </div>
+
+      <div class="modal-action">
+        <form method="dialog">
+          <button class="btn btn-sm">Fechar</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ───────────────────────────────────────────────────────────── -->
+  <!-- MODAL: Ajuda e Guia -->
+  <!-- ───────────────────────────────────────────────────────────── -->
+  <dialog id="modal-help" class="modal">
+    <div class="modal-box max-w-2xl bg-base-100 border border-base-300">
+      <h3 class="font-bold text-lg mb-2">📖 Guia Rápido de Instalação</h3>
+      <div class="text-xs space-y-3 leading-relaxed text-base-content/80">
+        <p>
+          O OpenAds foi projetado para rodar direto no seu computador. Para conectar à Google Ads API:
+        </p>
+        <ol class="list-decimal pl-5 space-y-2">
+          <li><strong>Crie um projeto no Google Cloud Console:</strong> acesse <code class="text-xs">console.cloud.google.com</code> com o mesmo e-mail do Google Ads.</li>
+          <li><strong>Ative a Google Ads API:</strong> busque por "Google Ads API" na biblioteca e clique em Ativar.</li>
+          <li><strong>Configure o Consentimento:</strong> marque como "Externo", adicione seu e-mail como Usuário de Teste e clique em <em>Publicar App</em>.</li>
+          <li><strong>Crie a Credencial:</strong> crie um ID do cliente OAuth do tipo <strong>"App para computador"</strong> e baixe o arquivo JSON.</li>
+          <li><strong>Conecte no Wizard:</strong> arraste o JSON para o Passo 2 deste assistente e clique em Autorizar.</li>
+        </ol>
+      </div>
+      <div class="modal-action">
+        <button type="button" class="btn btn-sm btn-outline" id="btn-open-full-install-guide">
+          Abrir INSTALL.md Completo ↗
+        </button>
+        <form method="dialog">
+          <button class="btn btn-sm">Fechar</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Script do Wizard -->
+  <script src="./wizard.js"></script>
+</body>
+</html>

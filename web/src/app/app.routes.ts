@@ -46,6 +46,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/opportunities/opportunities').then((m) => m.OpportunitiesPage),
   },
   {
+    path: 'publico-display',
+    title: `Público do Display · ${TITLE}`,
+    loadComponent: () => import('./features/display-audience/display-audience').then((m) => m.DisplayAudiencePage),
+  },
+  {
     path: 'experimentos',
     title: `Laboratório de experimentos · ${TITLE}`,
     loadComponent: () => import('./features/experiments/experiments').then((m) => m.ExperimentsPage),

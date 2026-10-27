@@ -1,4 +1,5 @@
 <app-page-header
+  data-open-help="eficiencia-introducao"
   group="Inteligência"
   title="Eficiência da mídia"
   subtitle="Entenda onde seu investimento merece atenção e qual é o próximo passo, sem cortar o que pode trazer bons clientes."
@@ -11,7 +12,7 @@
   [hasData]="!!insights.funnel()"
   (retry)="ws.reloadAll()"
 >
-  <section class="card card-border bg-base-100" aria-label="Escolha o que analisar">
+  <section class="card card-border bg-base-100" aria-label="Escolha o que analisar" data-open-help="eficiencia-recorte">
     <div class="card-body gap-5">
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="flex min-w-0 flex-col gap-2 font-medium">
@@ -65,6 +66,7 @@
   <section
     class="card card-border border-primary/30 bg-base-100"
     aria-labelledby="efficiency-summary"
+    data-open-help="eficiencia-resumo"
   >
     <div class="card-body gap-5">
       <div class="flex items-start gap-3">
@@ -227,7 +229,7 @@
     </div>
   </details>
 
-  <section aria-labelledby="efficiency-priorities" class="flex flex-col gap-4">
+  <section aria-labelledby="efficiency-priorities" class="flex flex-col gap-4" data-open-help="eficiencia-prioridades">
     <div>
       <h2 id="efficiency-priorities" class="text-2xl font-semibold">Onde olhar primeiro</h2>
       <p class="mt-1 text-base-content/70">

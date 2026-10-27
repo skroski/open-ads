@@ -94,6 +94,7 @@ const DECISION_LABEL: Record<string, string> = {
         <div class="overview-stack">
           <section
             aria-label="Veredito executivo"
+            data-open-help="visao-geral-veredito"
             class="overview-verdict"
             [class.overview-verdict--attention]="verdict().tone === 'attention'"
             [class.overview-verdict--risk]="verdict().tone === 'risk'"
@@ -126,7 +127,7 @@ const DECISION_LABEL: Record<string, string> = {
             </dl>
           </section>
 
-          <section aria-label="Métricas essenciais" class="overview-kpis">
+          <section aria-label="Métricas essenciais" class="overview-kpis" data-open-help="visao-geral-metricas">
             @for (kpi of kpis(); track kpi.label) {
               <article class="overview-kpi" [class.overview-kpi--unavailable]="kpi.unavailable">
                 <div class="overview-kpi__label">{{ kpi.label }}</div>
@@ -142,7 +143,7 @@ const DECISION_LABEL: Record<string, string> = {
             }
           </section>
 
-          <section class="overview-flow" aria-labelledby="flow-title">
+          <section class="overview-flow" aria-labelledby="flow-title" data-open-help="visao-geral-fluxo">
             <div class="overview-section-heading">
               <div>
                 <h2 id="flow-title">Fluxo do investimento</h2>

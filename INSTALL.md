@@ -22,8 +22,11 @@ Este guia leva você do zero até o painel rodando no seu computador, mesmo sem 
 
 | Opção | Papel | Tecnologias |
 |---|---|---|
-| **Angular** | **Versão Oficial**, completa neste repositório (pasta `web/`) | Angular 22, Tailwind CSS 4, daisyUI 5, ECharts 6 |
+| **Electron Desktop** | **Aplicativo Desktop Oficial**, com assistente gráfico (Wizard) para instalação amigável | Electron 45, daisyUI 5, Tailwind 4, Node.js |
+| **Angular** | **Versão Web Oficial**, completa neste repositório (pasta `web/`) | Angular 22, Tailwind CSS 4, daisyUI 5, ECharts 6 |
 | **React com Vite** | Versão alternativa compatível, independente (não é migração do Angular) | React, Vite, TypeScript, Tailwind CSS 4, daisyUI 5, ECharts 6 |
+
+> 💡 **Novo:** prefere instalar com um assistente visual sem precisar digitar no terminal? Use `npm run desktop`. Se o arquivo `server/.env` ainda não estiver configurado, o aplicativo abre direto no **Wizard visual passo a passo** (arraste o JSON do Google Cloud, autorize em 1 clique e escolha a conta). Para abrir o painel web tradicional, siga as etapas abaixo.
 
 Você deseja instalar a versão Oficial em Angular ou a versão React com Vite? Se não tiver preferência, use **Angular**. As Etapas 1, 2 e 4 a 7 são iguais nas duas versões; só mudam a **Etapa 3** (dependências) e a **Etapa 8** (abrir o painel). A API, o `server/.env` e o `npm run setup` são os mesmos. Nunca misture os comandos de uma versão na outra. Detalhes para quem desenvolve: [.claude/skills/instalar-painel/react.md](.claude/skills/instalar-painel/react.md).
 
@@ -194,6 +197,7 @@ No topo do painel, clique no nome da conta para abrir **Contas de clientes**.
 - **Cliente com acesso direto:** o cliente convida o seu e-mail em *Google Ads → Administrador → Acesso e segurança*. Depois, informe o **Customer ID** dele (10 dígitos, no canto superior direito do Google Ads).
 - **Cliente gerenciado por um MCC (conta de administrador):** vincule a conta do cliente ao seu MCC. No painel, informe o Customer ID e o **ID do MCC**, ou use **Importar clientes de um MCC** para trazer todos de uma vez.
 - Cada conta guarda as próprias metas, regras, mapeamento do funil e histórico neste navegador. Use **Configurações → Backup** para levar a configuração para outro computador.
+- Em qualquer tela, o botão **Ajuda** do cabeçalho abre um tour guiado com texto e narração. O guia de instalação fica em **Configurações → Ajuda de instalação**.
 - Cadastre os **termos de marca** de cada cliente em **Configurações → Regras de classificação**, para buscas pela marca não serem tratadas como desperdício.
 
 ## Problemas comuns

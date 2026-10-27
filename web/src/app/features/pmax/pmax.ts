@@ -113,6 +113,7 @@ const DEMO_ASSETS: PmaxAssetRow[] = [
   imports: [CurrencyPipe, DecimalPipe, EChart, Icon, PageHeader, RouterLink],
   template: `
     <app-page-header
+      data-open-help="pmax-introducao"
       group="Operação no Google Ads"
       title="Radar Performance Max"
       subtitle="Supervisione a saúde dos grupos de recursos, força criativa e o desempenho observado no período multicanal."
@@ -370,7 +371,7 @@ const DEMO_ASSETS: PmaxAssetRow[] = [
     @else {
       <div class="flex flex-col gap-block">
         <!-- Indicadores Chave -->
-        <div class="stats stats-vertical w-full border border-base-300 bg-base-100 sm:stats-horizontal shadow-sm">
+        <div class="stats stats-vertical w-full border border-base-300 bg-base-100 sm:stats-horizontal shadow-sm" data-open-help="pmax-indicadores">
           <div class="stat">
             <div class="stat-title">Grupos de recursos</div>
             <div class="stat-value text-2xl">{{ groups().length }}</div>
@@ -432,7 +433,7 @@ const DEMO_ASSETS: PmaxAssetRow[] = [
         }
 
         <!-- Tabela de Grupos de Recursos -->
-        <section class="card card-border bg-base-100 shadow-sm">
+        <section class="card card-border bg-base-100 shadow-sm" data-open-help="pmax-grupos">
           <div class="card-body gap-4 p-4 sm:p-6">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
@@ -482,7 +483,7 @@ const DEMO_ASSETS: PmaxAssetRow[] = [
         </section>
 
         <!-- Tabela de Composição dos Recursos -->
-        <section class="card card-border bg-base-100 shadow-sm">
+        <section class="card card-border bg-base-100 shadow-sm" data-open-help="pmax-recursos">
           <div class="card-body gap-4 p-4 sm:p-6">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>

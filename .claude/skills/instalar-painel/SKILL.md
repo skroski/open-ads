@@ -312,12 +312,19 @@ Documents/
 
 Só declare a instalação ou a mudança concluída quando todos os itens da stack escolhida passarem. Rode os comandos e mostre o resultado à pessoa.
 
+### Ajuda guiada (Angular)
+O botão **Ajuda** abre a jornada da tela atual (`web/src/app/help/onboarding-journey.json`; alvos em `data-open-help`). Mudou o layout, o texto ou o alvo de uma tela? Confira que todo `target` existe no código, aumente o `version` da jornada, atualize `onboarding-journey.spec.ts` e peça à pessoa para rodar `npm run help:audio` no terminal dela (a chave do Fish Audio fica só em `server/.env`; nunca peça nem leia). Não gere áudio sem a configuração local.
+
+### Navegação atual
+Seis áreas (`web/src/app/nav.ts`): Hoje, Investimento, Oportunidades, Medição e funil, Ações e aprendizado, Configurações. Telas de dimensão são abas das áreas; o guia de instalação fica em **Configurações → Ajuda de instalação**. O período aceita intervalo personalizado.
+
 ### Comuns às duas stacks
 - [ ] `node -v` ≥ 22.
 - [ ] `npm run doctor` sem problemas (só mostra nomes das variáveis, nunca valores).
 - [ ] `npm run check:api` e `npm run test:api` passam (a API é compartilhada; se editou `api/`, rode `npm run sync:api` antes).
 - [ ] Nenhuma chave, `.env` ou JSON de cliente OAuth no `git status`.
 - [ ] Painel abre em **http://localhost:4200** e carrega dados da conta (não só a tela vazia).
+- [ ] O botão **Ajuda** abre a jornada da tela atual e nenhum alvo `data-open-help` da jornada está faltando.
 - [ ] Textos em português do Brasil e números com fonte indicada.
 
 ### Angular (Oficial)

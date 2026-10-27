@@ -26,6 +26,30 @@ export interface KeywordIdeasResult {
   error?: string;
 }
 
+export type AudienceMode = 'RESTRICT' | 'OBSERVE' | 'EXISTING';
+
+export interface DisplayAdGroupState {
+  id: string;
+  name: string;
+  optimizedTargeting: boolean;
+  restrictions: Array<{ targetingDimension: string; bidOnly: boolean }>;
+  audiences: string[];
+}
+
+export interface DisplayAudienceState {
+  campaignName: string;
+  adGroups: DisplayAdGroupState[];
+}
+
+export interface DisplayAudienceRequest {
+  action: 'inspect' | 'preview' | 'apply';
+  campaignId: string;
+  name?: string;
+  keywords?: string[];
+  urls?: string[];
+  mode?: AudienceMode;
+}
+
 export interface MutationResult {
   success: boolean;
   result?: unknown;
@@ -79,6 +103,10 @@ export class GoogleAdsApi {
       },
       { headers: this.headers(customerId) },
     );
+  }
+
+  displayAudience(payload: DisplayAudienceRequest, customerId?: string): Observable<DisplayAudienceState & { success?: boolean; applied?: boolean; adGroups?: number }> {
+    return this.http.post<DisplayAudienceState & { success?: boolean; applied?: boolean; adGroups?: number }>('/api/display-audience', payload, { headers: this.headers(customerId) });
   }
 
   /** Exclui ou reinclui um perfil demográfico nos grupos de uma campanha de Display. `preview` só valida. */

@@ -27,6 +27,7 @@ import { PageHeader } from '../../shared/page-header';
   imports: [Icon, PageHeader],
   template: `
     <app-page-header
+      data-open-help="rastreamento-introducao"
       group="Sistema"
       title="Rastreamento"
       subtitle="Confira a configuração registrada no Google Tag Manager antes de otimizar campanhas. Esta integração apenas lê dados: ela não altera nem publica tags."
@@ -43,7 +44,7 @@ import { PageHeader } from '../../shared/page-header';
     </app-page-header>
 
     <div class="flex flex-col gap-block">
-      <section class="card card-border bg-base-100">
+      <section class="card card-border bg-base-100" data-open-help="rastreamento-fonte">
         <div class="card-body gap-4">
           <div>
             <h2 class="card-title text-base"><app-icon name="plug" size="sm" /> Fonte selecionada</h2>
@@ -99,7 +100,7 @@ import { PageHeader } from '../../shared/page-header';
       </section>
 
       @if (snapshot(); as data) {
-        <section class="grid gap-4 md:grid-cols-3" aria-label="Resumo do espaço de trabalho">
+        <section class="grid gap-4 md:grid-cols-3" aria-label="Resumo do espaço de trabalho" data-open-help="rastreamento-resumo">
           <article class="stat rounded-box border border-base-300 bg-base-100">
             <div class="stat-title">Tags</div>
             <div class="stat-value text-primary">{{ data.tags.length }}</div>
@@ -118,7 +119,7 @@ import { PageHeader } from '../../shared/page-header';
         </section>
 
         @if (report(); as health) {
-          <section class="card card-border bg-base-100">
+          <section class="card card-border bg-base-100" data-open-help="rastreamento-saude">
             <div class="card-body gap-4">
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>

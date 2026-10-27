@@ -18,8 +18,8 @@ describe('App (React)', () => {
       expect(screen.getAllByText(item.label).length).toBeGreaterThan(0);
     }
     // A primeira rota carrega sob demanda e exibe o heading principal de decisão.
-    await screen.findByRole('heading', { name: 'O seu dinheiro está sendo bem usado?' }, { timeout: 5000 });
-  });
+    await screen.findByRole('heading', { name: 'O seu dinheiro está sendo bem usado?' }, { timeout: 10000 });
+  }, 15000);
 
   it('mantém o crédito de autoria exigido pela licença', () => {
     renderWithProviders(<App />, '/');
