@@ -2,7 +2,10 @@ import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormField, FormRoot, form, max, min, required } from '@angular/forms/signals';
 import { ActivatedRoute } from '@angular/router';
-import { ChangesStore, HypothesesStore, LearningsStore } from '../../core/collections';
+import { firstValueFrom } from 'rxjs';
+import { ChangesStore, HypothesesStore, LearningsStore, RecStatesStore } from '../../core/collections';
+import { Insights } from '../../core/insights';
+import { IntegrationsApi } from '../../data/integrations.api';
 import { AccountStore } from '../../core/account.store';
 import { ToastService } from '../../core/toast.service';
 import { Workspace } from '../../core/workspace';
@@ -16,6 +19,7 @@ import {
   LearningVerdict,
 } from '../../domain/models';
 import { today } from '../../domain/dates';
+import { hypothesisFromRecommendation, pickForAutoDraft } from '../../domain/hypothesis-draft';
 import { EChart } from '../../shared/echart';
 import { Icon } from '../../shared/icon';
 import { AppModal } from '../../shared/modal';
@@ -51,16 +55,18 @@ const changeKindOf = (kind: HypothesisKind): ChangeKind =>
   imports: [DecimalPipe, AppModal, EChart, FormField, FormRoot, Icon, PageHeader],
   template: `
     <app-page-header
+      data-open-help="experimentos-introducao"
       group="Inteligência"
       title="Laboratório de experimentos"
       subtitle="Transforme uma ideia em hipótese, defina como ela será validada e registre o resultado. O laboratório não muda nada na sua conta de anúncios."
       [exportData]="exportData()"
     >
+      <button type="button" class="btn btn-secondary btn-sm" [disabled]="autoBusy()" (click)="autoMagic()" title="Cria rascunhos de hipótese a partir das oportunidades abertas. Nada é enviado ao Google Ads."><app-icon name="sparkles" size="sm" /> Auto mágico</button>
       <button type="button" class="btn btn-primary btn-sm" (click)="openCreate()"><app-icon name="plus" size="sm" /> Nova hipótese</button>
     </app-page-header>
 
     <div class="flex flex-col gap-block">
-      <section class="card card-border bg-base-100">
+      <section class="card card-border bg-base-100" data-open-help="experimentos-metodo">
         <div class="card-body gap-4">
           <div class="grid gap-4 text-sm md:grid-cols-3">
             <div><div class="font-semibold">1. Desenhe</div><p class="mt-1 text-base-content/70">Declare o que será alterado, o resultado esperado e por quê.</p></div>
@@ -74,7 +80,7 @@ const changeKindOf = (kind: HypothesisKind): ChangeKind =>
         </div>
       </section>
 
-      <div class="stats stats-vertical w-full border border-base-300 bg-base-100 sm:stats-horizontal">
+      <div class="stats stats-vertical w-full border border-base-300 bg-base-100 sm:stats-horizontal" data-open-help="experimentos-indicadores">
         @for (item of statusItems; track item.key) {
           <div class="stat"><div class="stat-title">{{ item.label }}</div><div class="stat-value text-2xl">{{ count(item.key) }}</div></div>
         }
@@ -89,7 +95,7 @@ const changeKindOf = (kind: HypothesisKind): ChangeKind =>
         </section>
       }
 
-      <section class="card card-border bg-base-100">
+      <section class="card card-border bg-base-100" data-open-help="experimentos-hipoteses">
         <div class="card-body gap-4 p-4 sm:p-6">
           <div class="flex flex-wrap gap-2">
             @for (item of statusItems; track item.key) {
@@ -102,7 +108,7 @@ const changeKindOf = (kind: HypothesisKind): ChangeKind =>
               <li class="rounded-box border border-base-300 p-4 sm:p-5">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div class="min-w-0">
-                    <div class="flex flex-wrap gap-2"><span class="badge badge-soft">{{ kindLabel(h.kind) }}</span><span class="badge badge-soft" [class]="statusClass(h.status)">{{ statusLabel(h.status) }}</span><span class="badge badge-ghost">{{ methodLabel(h.method) }}</span></div>
+                    <div class="flex flex-wrap gap-2"><span class="badge badge-soft">{{ kindLabel(h.kind) }}</span><span class="badge badge-soft" [class]="statusClass(h.status)">{{ statusLabel(h.status) }}</span><span class="badge badge-ghost">{{ methodLabel(h.method) }}</span>@if (h.origin === 'AI') { <span class="badge badge-secondary badge-soft"><app-icon name="sparkles" size="sm" /> Sugerido pela IA</span> }</div>
                     <h2 class="mt-3 text-base font-semibold">{{ h.title }}</h2>
                     <p class="mt-1 max-w-3xl text-sm text-base-content/75">{{ h.statement }}</p>
                   </div>
@@ -123,6 +129,14 @@ const changeKindOf = (kind: HypothesisKind): ChangeKind =>
                   <div><div class="text-xs font-semibold uppercase tracking-wide text-base-content/60">Campanha</div><p>{{ campaignName(h.campaignId) }}</p></div>
                   <div><div class="text-xs font-semibold uppercase tracking-wide text-base-content/60">Início</div><p>{{ h.startedAt ?? 'Ainda não registrado' }}</p></div>
                 </div>
+                @if (h.metric || h.risk || h.alternative) {
+                  <div class="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+                    @if (h.metric) { <div><div class="text-xs font-semibold uppercase tracking-wide text-base-content/60">Métrica de decisão</div><p>{{ h.metric }}</p></div> }
+                    @if (h.risk) { <div><div class="text-xs font-semibold uppercase tracking-wide text-base-content/60">Risco / limite</div><p>{{ h.risk }}</p></div> }
+                    @if (h.alternative) { <div><div class="text-xs font-semibold uppercase tracking-wide text-base-content/60">Alternativa a comparar</div><p>{{ h.alternative }}</p></div> }
+                  </div>
+                  <p class="mt-2 text-xs text-base-content/60">Texto gerado pela IA com base nas evidências das oportunidades; confira antes de usar.</p>
+                }
                 @if (h.conclusion) { <p class="mt-4 rounded-box bg-base-200 p-3 text-sm"><strong>Conclusão:</strong> {{ h.conclusion }}</p> }
               </li>
             } @empty {
@@ -165,7 +179,11 @@ export class ExperimentsPage {
   private readonly account = inject(AccountStore);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
+  private readonly insights = inject(Insights);
+  private readonly recStates = inject(RecStatesStore);
+  private readonly integrations = inject(IntegrationsApi);
 
+  protected readonly autoBusy = signal(false);
   protected readonly campaigns = computed(() => this.ws.campaigns.value() ?? []);
   protected readonly kindItems = (Object.keys(KIND) as HypothesisKind[]).map((key) => ({ key, label: KIND[key] }));
   protected readonly statusItems: ReadonlyArray<{ key: 'ALL' | HypothesisStatus; label: string }> = [
@@ -223,6 +241,7 @@ export class ExperimentsPage {
 
   constructor() {
     this.ws.campaigns.need();
+    this.insights.needCore();
     const title = this.route.snapshot.queryParamMap.get('title');
     const statement = this.route.snapshot.queryParamMap.get('statement');
     if (title || statement) {
@@ -260,6 +279,51 @@ export class ExperimentsPage {
     } as Omit<Hypothesis, 'id' | 'accountId'>);
     this.createOpen.set(false);
     this.toast.success('Hipótese salva. Revise e execute a mudança fora do painel antes de marcar que está no ar.');
+  }
+
+  /**
+   * Cria rascunhos a partir das oportunidades abertas. Se a IA estiver configurada, ela reescreve cada
+   * hipótese usando só as evidências do painel; sem ela, vale o texto determinístico. Nada vai ao Google Ads.
+   */
+  protected async autoMagic(): Promise<void> {
+    if (this.autoBusy()) return;
+    const picked = pickForAutoDraft(this.insights.recommendations(), this.hypotheses.items().map((h) => h.title));
+    if (!picked.length) {
+      this.toast.info('Nenhuma oportunidade aberta sem hipótese. Atualize os dados ou revise a Central de oportunidades.');
+      return;
+    }
+    this.autoBusy.set(true);
+    try {
+      let ai = new Map<string, { statement: string; metric: string; risk: string; alternative: string }>();
+      let aiNote = '';
+      try {
+        const res = await firstValueFrom(
+          this.integrations.hypotheses({
+            items: picked.map((r) => ({
+              id: r.id, title: r.title, problem: r.problem, action: r.action, validation: r.validation,
+              evidence: r.evidence.map((e) => `${e.text} (fonte: ${e.source})`),
+            })),
+          }),
+        );
+        if (res.items) ai = new Map(res.items.map((i) => [i.id, i]));
+        else aiNote = res.reason ?? '';
+      } catch {
+        aiNote = 'A IA não respondeu; usei os rascunhos padrão.';
+      }
+      for (const r of picked) {
+        const draft = hypothesisFromRecommendation(r, new Date().toISOString());
+        const extra = ai.get(r.id);
+        await this.hypotheses.add(
+          extra
+            ? { ...draft, statement: extra.statement, origin: 'AI', metric: extra.metric || undefined, risk: extra.risk || undefined, alternative: extra.alternative || undefined }
+            : { ...draft, origin: 'RULES' },
+        );
+        await this.recStates.setStatus(r.id, 'ACCEPTED');
+      }
+      this.toast.success(`${picked.length} hipótese(s) criada(s) como rascunho${ai.size ? ' com apoio da IA' : ''}. Revise antes de executar.${aiNote ? ` ${aiNote}` : ''}`);
+    } finally {
+      this.autoBusy.set(false);
+    }
   }
 
   protected async start(h: Hypothesis): Promise<void> {

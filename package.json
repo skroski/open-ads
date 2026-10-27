@@ -4,7 +4,12 @@
   "license": "GPL-2.0-or-later",
   "private": true,
   "type": "module",
+  "main": "electron/main.mjs",
   "scripts": {
+    "desktop": "electron .",
+    "desktop:setup": "electron . --wizard",
+    "electron": "electron .",
+    "electron:setup": "electron . --wizard",
     "start": "node scripts/dev.mjs",
     "start:react": "node scripts/dev.mjs react",
     "setup": "node scripts/setup.mjs",
@@ -27,5 +32,8 @@
   },
   "engines": {
     "node": ">=20.6"
+  },
+  "devDependencies": {
+    "electron": "^45.0.0"
   }
 }

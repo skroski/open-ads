@@ -60,10 +60,15 @@ export const AUTHOR = {
   name: 'Daniel Skroski',
 };
 
-/** Apoio e doações voluntárias ao projeto OpenAds. */
+/** Apoio, consultoria e colaboração no projeto OpenAds. */
 export const DONATION = {
   pixKey: '41999865410',
   pixType: 'Telefone',
+  whatsapp: '5541999865410',
+  whatsappFormatted: '(41) 99986-5410',
+  whatsappUrl:
+    'https://wa.me/5541999865410?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20a%20consultoria%20do%20OpenAds.',
+  githubUrl: 'https://github.com/skroski/open-ads',
   message:
     'Qualquer valor, se este sistema te ajudou a economizar, ajuda para melhorar ainda mais. Nunca vai ser obrigação: o projeto é e sempre será 100% open source e gratuito!',
 };

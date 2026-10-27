@@ -8,8 +8,21 @@ Painel de análise de Google Ads que separa **desperdício real** de **gasto que
 
 ## O que ele faz
 
+O menu lateral tem seis áreas orientadas a decisão, e cada uma responde a uma pergunta. As telas de dimensão (campanhas, termos, palavras-chave etc.) viram abas dentro da área:
+
+| Área | Pergunta | Abas |
+|---|---|---|
+| **Hoje** | O seu dinheiro está sendo bem usado? | Veredito, métricas essenciais, fluxo do investimento e decisões prioritárias |
+| **Investimento** | Para onde o dinheiro está indo? | Visão do dinheiro, Campanhas, Termos de pesquisa, Palavras-chave, Dispositivos e redes, Performance Max |
+| **Oportunidades** | Onde agir primeiro? | Central, Economia, Intenção e páginas, Conteúdo |
+| **Medição e funil** | Posso confiar no que estou vendo? | Qualidade do funil, Rastreamento |
+| **Ações e aprendizado** | O que já fizemos e o que aprendemos? | Plano de ação, Palavras negativas, Experimentos, Auditoria |
+| **Configurações** | Qual é a régua do seu investimento? | Metas e conexões, Ajuda de instalação |
+
+O período de análise aceita atalhos (7, 30, 90 dias…) e um **intervalo de datas personalizado**, sempre comparado ao período anterior de mesma duração.
+
 **Inteligência**
-- **Visão geral:** investimento, conversões e evolução diária, com os desperdícios identificados no período.
+- **Hoje (Visão geral):** veredito executivo com motivo e próxima ação, métricas essenciais com fonte e confiança, fluxo do investimento até a venda e decisões prioritárias.
 - **Desperdícios:** classifica termos, palavras-chave, campanhas, dispositivos e horários em *Desperdício*, *Caro*, *Bom*, *Sem dados* e *Rastreamento*, com filtros por categoria e exportação em CSV. Gasto em termo que já está negativado também conta como desperdício.
 - **Qualidade do funil:** cruza conversões do Google Ads com os leads e vendas que você importa (CSV).
 - **Intenção e páginas:** confere se cada busca cai numa página que fala do mesmo assunto.
@@ -24,7 +37,7 @@ Painel de análise de Google Ads que separa **desperdício real** de **gasto que
 - **Radar Performance Max:** grupos de recursos, força do anúncio, cobertura e composição dos recursos, com gráficos de investimento, conversões e recursos limitados. É diagnóstico de leitura — não atribuição causal automática.
 - **Planejador de crescimento:** seleção de ideias do Planejador oficial com volume de busca e faixa média de lance, além de uma curva de cenários baseada em CTR/conversão observados e cobertura assumida. A tela deixa explícito que não é previsão de receita nem promessa de resultado.
 
-**Sistema**
+**Medição**
 - **Rastreamento:** inventário somente de leitura de contas, contêineres, espaços de trabalho, tags, acionadores e variáveis do Google Tag Manager. A tela cruza a configuração sanitizada com as landing pages dos anúncios, separa fatos de hipóteses e registra um histórico local de mudanças. A fonte é escolhida por conta no navegador e não há criação, publicação ou alteração de tags.
 
 **Para agências:** várias contas de clientes, acesso direto ou por MCC, e importação de todos os clientes de um MCC de uma vez. Metas, regras e histórico ficam separados por conta.
@@ -128,11 +141,11 @@ O guia completo, com o caminho de cada clique no Google e uma tabela de erros, e
 
 ## Ajuda guiada e narração
 
-Para instalar o Open Ads do zero, abra o [guia HTML passo a passo narrado](web/public/guia-instalacao.html). Dentro do painel, ele também fica em **Sistema → Ajuda de instalação**, logo abaixo de Configurações. O guia funciona de forma independente e acompanha o [INSTALL.md](INSTALL.md), com comandos copiáveis, links oficiais e áudio opcional.
+Para instalar o Open Ads do zero, abra o [guia HTML passo a passo narrado](web/public/guia-instalacao.html). Dentro do painel, ele também fica em **Configurações → Ajuda de instalação**. O guia funciona de forma independente e acompanha o [INSTALL.md](INSTALL.md), com comandos copiáveis, links oficiais e áudio opcional.
 
-O botão **Ajuda** do cabeçalho abre a jornada detalhada do módulo atual: Visão geral, Funil, Desperdícios, Intenção e páginas, Conteúdo, Plano de ação, Histórico, Termos, Negativas, Palavras-chave, Campanhas, Dispositivos ou Configurações. Cada jornada tem quatro etapas com texto completo e é narrada exclusivamente pelos MP3 gerados no Fish Audio. Se um arquivo estiver ausente ou não puder tocar, a ajuda continua disponível visualmente e permanece silenciosa — ela nunca usa a voz local do navegador.
+O botão **Ajuda** do cabeçalho abre a jornada detalhada da tela atual: Hoje, Eficiência (Investimento), Oportunidades, Funil, Desperdícios, Intenção e páginas, Conteúdo, Plano de ação, Experimentos, Histórico, Termos, Negativas, Palavras-chave, Campanhas, Dispositivos, Performance Max, Rastreamento ou Configurações. Cada jornada tem de quatro a cinco etapas com texto completo e é narrada exclusivamente pelos MP3 gerados no Fish Audio. Se um arquivo estiver ausente ou não puder tocar, a ajuda continua disponível visualmente e permanece silenciosa — ela nunca usa a voz local do navegador.
 
-Para gerar a narração fixa no Fish Audio, mantenha as configurações de voz somente no `server/.env` local e rode `npm run help:audio`. O comando cria todos os arquivos em `web/public/open-help/v<versão>/`; revise-os antes de publicar. A chave não é enviada ao navegador, não entra no build e não é necessária em produção para tocar os arquivos gerados.
+Para gerar a narração fixa no Fish Audio, mantenha as configurações de voz somente no `server/.env` local e rode `npm run help:audio`. O comando cria todos os arquivos em `web/public/open-help/v<versão>/`; revise-os antes de publicar. Sempre que o layout, o texto ou os alvos (`data-open-help`) de uma jornada mudarem, aumente o `version` dela em `web/src/app/help/onboarding-journey.json` e rode `npm run help:audio` (ou `npm run help:audio -- --step=<id> --force`); sem o MP3 novo, a etapa fica visível, porém silenciosa. A chave não é enviada ao navegador, não entra no build e não é necessária em produção para tocar os arquivos gerados.
 
 Para alterar uma jornada, edite [onboarding-journey.json](web/src/app/help/onboarding-journey.json), aumente a versão das jornadas alteradas e gere os áudios novamente. Para regenerar só uma etapa, use `npm run help:audio -- --step=funil-metas --force`; para todas, `npm run help:audio -- --force`. Para regenerar apenas o guia de instalação, use `npm run help:audio -- --guide=instalacao --force`.
 
@@ -206,14 +219,23 @@ Limitações conhecidas: valores em reais (BRL) e textos em português; o Planej
 
 **Posso usar com a minha marca?** Sim: troque nome, logo em texto e cores (veja [Personalizar](#personalizar)). Mantenha o crédito ao autor, como pede a licença.
 
-## Apoie o projeto
+## Apoie o projeto, consultoria e colaboração
 
-O OpenAds é e sempre será **100% gratuito e de código aberto**. Não há e nunca haverá qualquer obrigação de pagamento: é Open mesmo.
+O OpenAds é e sempre será **100% gratuito e de código aberto**. Não há e nunca haverá qualquer mensalidade ou obrigação de pagamento: é Open de verdade.
 
-Se este painel te ajudou a identificar desperdícios e economizar dinheiro com suas campanhas no Google Ads, você pode colaborar voluntariamente com qualquer valor para apoiar a evolução contínua da ferramenta:
+### 💚 Apoio e apadrinhamento de funcionalidades
+Se este painel te ajudou a identificar desperdícios e economizar dinheiro com suas campanhas no Google Ads, você pode colaborar voluntariamente via PIX. Além de apoiar a manutenção do projeto, você pode **apadrinhar novas funcionalidades**: tem uma métrica, relatório ou integração que você precisa com prioridade? Contribua e apadrinhe o desenvolvimento!
 
 - **Chave PIX (Telefone):** `41999865410`
 - **Mensagem:** *Qualquer valor ajuda para melhorar ainda mais. Muito obrigado pelo apoio!*
+
+### 🛠️ Instalação assistida e consultoria por hora
+Precisa de ajuda para instalar, configurar o Google Cloud Console, resolver consentimento OAuth ou quer botar o projeto em prática rapidamente na sua operação?
+Podemos ser contratados para prestar **consultoria por hora** com acompanhamento técnico dedicado.
+- **WhatsApp:** [(41) 99986-5410](https://wa.me/5541999865410?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20a%20consultoria%20do%20OpenAds.)
+
+### 💻 Desenvolvedores: colabore com o Open Source!
+Se você é desenvolvedor e está usando o código do projeto, não seja mala: fortaleça o ecossistema! Abra Pull Requests, envie correções, reporte issues e ajude a comunidade a construir uma ferramenta cada vez mais potente.
 
 ## Licença
 

@@ -219,6 +219,18 @@ export class IntegrationsApi {
       );
   }
 
+  hypotheses(payload: unknown): Observable<{
+    configured: boolean;
+    reason?: string;
+    items?: Array<{ id: string; statement: string; metric: string; risk: string; alternative: string }>;
+  }> {
+    return this.http.post<{
+      configured: boolean;
+      reason?: string;
+      items?: Array<{ id: string; statement: string; metric: string; risk: string; alternative: string }>;
+    }>('/api/hypotheses', payload);
+  }
+
   explain(payload: unknown): Observable<{ configured: boolean; reason?: string; text?: string }> {
     return this.http.post<{ configured: boolean; reason?: string; text?: string }>('/api/explain', payload);
   }

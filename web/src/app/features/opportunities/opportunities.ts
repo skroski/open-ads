@@ -5,7 +5,8 @@ import { ChangesStore, HypothesesStore, RecStatesStore } from '../../core/collec
 import { Insights, RecommendationView } from '../../core/insights';
 import { ToastService } from '../../core/toast.service';
 import { Workspace } from '../../core/workspace';
-import { ChangeEntry, ChangeKind, HypothesisKind, RecommendationCategory, RecommendationStatus } from '../../domain/models';
+import { hypothesisFromRecommendation } from '../../domain/hypothesis-draft';
+import { ChangeEntry, ChangeKind, RecommendationCategory, RecommendationStatus } from '../../domain/models';
 import {
   OpportunityCategory,
   OpportunityStatus,
@@ -49,6 +50,7 @@ interface OpportunityView {
   imports: [CurrencyPipe, ConfidenceBadge, DataState, EChart, EvidenceList, Icon, PageHeader],
   template: `
     <app-page-header
+      data-open-help="oportunidades-introducao"
       group="Inteligência"
       title="Central de oportunidades"
       subtitle="Uma fila única para economizar, crescer, corrigir a medição e testar hipóteses. Cada item preserva sua evidência; nenhuma alteração é enviada ao Google Ads daqui."
@@ -62,7 +64,7 @@ interface OpportunityView {
       (retry)="ws.reloadAll()"
     >
       <div class="flex flex-col gap-block">
-        <div class="stats stats-vertical w-full border border-base-300 bg-base-100 sm:stats-horizontal">
+        <div class="stats stats-vertical w-full border border-base-300 bg-base-100 sm:stats-horizontal" data-open-help="oportunidades-indicadores">
           @for (item of categories; track item.key) {
             <div class="stat">
               <div class="stat-figure text-base-content/50"><app-icon [name]="item.icon" /></div>
@@ -74,7 +76,7 @@ interface OpportunityView {
         </div>
 
         @if (opportunityChart(); as chart) {
-          <section class="card card-border bg-base-100">
+          <section class="card card-border bg-base-100" data-open-help="oportunidades-mapa">
             <div class="card-body gap-3 p-4 sm:p-6">
               <div><h2 class="text-base font-semibold">Mapa da fila de decisão</h2><p class="text-sm text-base-content/70">Quantidade de oportunidades por frente e situação. É uma visão de gestão da fila, não soma economia ou receita entre recomendações sobrepostas.</p></div>
               <app-echart [option]="chart" [height]="270" label="Oportunidades por frente e situação" />
@@ -82,7 +84,7 @@ interface OpportunityView {
           </section>
         }
 
-        <section class="card card-border bg-base-100">
+        <section class="card card-border bg-base-100" data-open-help="oportunidades-fila">
           <div class="card-body gap-4 p-4 sm:p-6">
             <div class="flex flex-wrap items-center gap-2">
               <select class="select select-sm" aria-label="Tipo de oportunidade" [value]="category()" (change)="category.set(value($event))">
@@ -243,17 +245,7 @@ export class OpportunitiesPage {
   }
 
   protected async createTest(r: RecommendationView): Promise<void> {
-    const kind: HypothesisKind = r.category === 'LANDING_PAGE' ? 'LANDING_URL' : r.category === 'CONTENT' ? 'CONTENT' : r.category === 'CAMPAIGN' ? 'BID' : 'OTHER';
-    await this.hypotheses.add({
-      createdAt: new Date().toISOString(),
-      kind,
-      title: `Validar: ${r.title}`,
-      statement: `Se executarmos “${r.action}”, esperamos melhorar o resultado definido para esta oportunidade, porque ${r.problem.toLowerCase()}`,
-      campaignId: r.entity?.type === 'campaign' ? r.entity.id : undefined,
-      method: 'EXPERIMENT',
-      status: 'DRAFT',
-      minLiftPct: 10,
-    });
+    await this.hypotheses.add(hypothesisFromRecommendation(r, new Date().toISOString()));
     await this.states.setStatus(r.id, 'ACCEPTED');
     this.toast.success('Plano criado localmente. Revise o desenho antes de alterar a conta de anúncios.');
     void this.router.navigate(['/experimentos']);

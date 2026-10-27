@@ -668,6 +668,12 @@ export interface Hypothesis {
   minLiftPct: number;
   baseline?: Snapshot;
   conclusion?: string;
+  /** "AI": texto reescrito pela IA a partir das evidências do painel; "RULES": regra determinística. */
+  origin?: 'RULES' | 'AI';
+  /** Métrica que decide o teste, risco/limite e alternativa mais barata (sugeridos pela IA). */
+  metric?: string;
+  risk?: string;
+  alternative?: string;
 }
 
 export type LearningVerdict = 'CONFIRMED' | 'REFUTED' | 'INCONCLUSIVE';

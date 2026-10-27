@@ -17,7 +17,7 @@ describe('navegação', () => {
 
   it('cobre todas as telas do roteador', () => {
     const covered = new Set([...NAV_SECTIONS.map((s) => s.path), ...NAV_SECTIONS.flatMap((s) => s.tabs.map((t) => t.path))]);
-    for (const p of ['visao-geral', 'funil', 'eficiencia', 'desperdicios', 'intencao', 'conteudo', 'acoes', 'oportunidades', 'experimentos', 'historico', 'termos', 'negativas', 'palavras', 'campanhas', 'performance-max', 'dispositivos', 'configuracoes', 'rastreamento', 'ajuda-instalacao']) {
+    for (const p of ['visao-geral', 'funil', 'eficiencia', 'desperdicios', 'intencao', 'conteudo', 'acoes', 'oportunidades', 'experimentos', 'historico', 'termos', 'negativas', 'publico-display', 'palavras', 'campanhas', 'performance-max', 'dispositivos', 'configuracoes', 'rastreamento', 'ajuda-instalacao']) {
       expect(covered.has(p)).toBe(true);
     }
   });

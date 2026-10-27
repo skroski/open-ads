@@ -1,0 +1,162 @@
+/* OpenAds Desktop Setup Wizard Styling */
+@import "./daisyui.css";
+
+/* Temas Oficiais do OpenAds: Light e Dark */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --color-base-100: #1f1f1f;
+  --color-base-200: #181818;
+  --color-base-300: #33373a;
+  --color-base-content: #ececec;
+  --color-primary: #f6bc03;
+  --color-primary-content: #1f1f1f;
+  --color-secondary: #5d6367;
+  --color-secondary-content: #ffffff;
+  --color-accent: #f58220;
+  --color-accent-content: #1f1f1f;
+  --color-neutral: #363d3f;
+  --color-neutral-content: #fefefe;
+  --color-info: #5aa0c8;
+  --color-info-content: #1f1f1f;
+  --color-success: #7ab648;
+  --color-success-content: #1f1f1f;
+  --color-warning: #f6bc03;
+  --color-warning-content: #1f1f1f;
+  --color-error: #e0584a;
+  --color-error-content: #1f1f1f;
+  --radius-selector: 0.375rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.5rem;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --color-base-100: #ffffff;
+  --color-base-200: #f3f2ee;
+  --color-base-300: #dedbd4;
+  --color-base-content: #1d1f21;
+  --color-primary: #f2a60d;
+  --color-primary-content: #1d1f21;
+  --color-secondary: #44494c;
+  --color-secondary-content: #ffffff;
+  --color-accent: #f58220;
+  --color-accent-content: #2b2b2b;
+  --color-neutral: #363d3f;
+  --color-neutral-content: #fefefe;
+  --color-info: #3d7ea6;
+  --color-info-content: #ffffff;
+  --color-success: #5c9c2f;
+  --color-success-content: #ffffff;
+  --color-warning: #f1a10b;
+  --color-warning-content: #2b2b2b;
+  --color-error: #c0392b;
+  --color-error-content: #ffffff;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-base-200);
+  color: var(--color-base-content);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header fixo */
+.wizard-header {
+  border-bottom: 1px solid var(--color-base-300);
+  background: var(--color-base-100);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+/* Área central do wizard */
+.wizard-container {
+  max-width: 860px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 2rem 1.5rem 4rem;
+  flex: 1;
+}
+
+/* Dropzone de upload */
+.dropzone {
+  border: 2px dashed var(--color-base-300);
+  border-radius: 0.75rem;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  transition: all 0.2s ease;
+  background-color: var(--color-base-200);
+  cursor: pointer;
+}
+
+.dropzone:hover,
+.dropzone.dragover {
+  border-color: var(--color-primary);
+  background-color: color-mix(in srgb, var(--color-primary) 8%, var(--color-base-200));
+}
+
+/* Passos visuais com transição suave */
+.step-pane {
+  display: none;
+  animation: fadeIn 0.25s ease forwards;
+}
+
+.step-pane.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Cartões de seleção de contas */
+.account-card {
+  cursor: pointer;
+  border: 1px solid var(--color-base-300);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  transition: all 0.15s ease;
+  background: var(--color-base-100);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.account-card:hover {
+  border-color: var(--color-primary);
+  background-color: color-mix(in srgb, var(--color-primary) 5%, var(--color-base-100));
+}
+
+.account-card.selected {
+  border-color: var(--color-primary);
+  background-color: color-mix(in srgb, var(--color-primary) 12%, var(--color-base-100));
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+/* Barra inferior de navegação */
+.wizard-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-base-300);
+}
+
+/* Código e prévia mono */
+code, pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}

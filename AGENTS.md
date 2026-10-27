@@ -21,6 +21,8 @@ Há duas stacks: **Angular (versão Oficial, `web/`)** e **React com Vite (alter
 ```bash
 npm run install:all      # dependências (raiz + web)
 npm run setup            # assistente de chaves → server/.env
+npm run desktop          # abre aplicativo desktop Electron (com Wizard na 1ª execução)
+npm run desktop:setup    # abre o Wizard para reconfigurar chaves no desktop
 npm start                # API :3000 + painel Angular :4200
 npm run install:react    # dependências do painel React (web-react/)
 npm run start:react      # API :3000 + painel React :4200

@@ -253,30 +253,83 @@ function rulesToText(r: AuditRules): { brand: string; unqualified: string; quali
         </div>
       </section>
 
-      <!-- Apoie o projeto -->
+      <!-- Apoie o projeto, consultoria e colaboração -->
       <section class="card card-border bg-base-100">
         <div class="card-body gap-4">
           <div>
-            <h2 class="card-title text-base">
+            <h2 class="card-title text-base flex items-center gap-2">
               <app-icon name="heart" class="text-error" size="sm" /> Apoie o desenvolvimento do OpenAds
+              <span class="badge badge-xs badge-success badge-soft font-mono">100% Open Source</span>
             </h2>
             <p class="text-sm text-base-content/70">
-              O OpenAds é 100% gratuito e open source (GPL-2.0). Nunca haverá obrigação ou cobrança de qualquer tipo.
-              Se este sistema te ajudou a identificar desperdícios e economizar dinheiro no Google Ads, qualquer contribuição ajuda a manter e melhorar o projeto ainda mais.
+              O OpenAds é 100% gratuito e open source (GPL-2.0). Nunca haverá mensalidade ou cobrança obrigatória.
+              Se este painel te ajudou a identificar desperdícios e economizar verba no Google Ads, colabore voluntariamente ou apadrinhe novas funcionalidades!
             </p>
           </div>
 
-          <div class="rounded-box border border-base-300 bg-base-200/50 p-4 max-w-md">
-            <div class="text-xs font-semibold uppercase tracking-wider text-base-content/60">Chave PIX ({{ donation.pixType }})</div>
-            <div class="mt-2 flex items-center justify-between gap-3">
-              <code class="font-mono text-base font-bold text-base-content selection:bg-primary/20">{{ donation.pixKey }}</code>
-              <button type="button" class="btn btn-sm btn-primary" (click)="copyPix()">
-                <app-icon name="copy" size="xs" /> Copiar chave
-              </button>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Chave PIX e Apadrinhamento -->
+            <div class="rounded-box border border-base-300 bg-base-200/50 p-4 space-y-3">
+              <div class="flex items-center gap-2 text-xs font-semibold text-base-content">
+                <app-icon name="sparkles" size="xs" class="text-warning" />
+                <span>Instalou e está economizando? Apoie via PIX</span>
+              </div>
+              <p class="text-xs text-base-content/70 leading-relaxed">
+                Sua colaboração ajuda a manter as atualizações e viabiliza novas implementações. Quer um recurso sob medida ou prioritário? Você pode <strong>apadrinhar funcionalidades</strong>!
+              </p>
+              <div class="rounded-lg border border-base-300 bg-base-100 p-3 flex items-center justify-between gap-3">
+                <div>
+                  <div class="text-[10px] font-semibold uppercase tracking-wider text-base-content/60">Chave PIX ({{ donation.pixType }})</div>
+                  <code class="font-mono text-base font-bold text-base-content selection:bg-primary/20">{{ donation.pixKey }}</code>
+                </div>
+                <button type="button" class="btn btn-sm btn-primary" (click)="copyPix()">
+                  <app-icon name="copy" size="xs" /> Copiar chave
+                </button>
+              </div>
             </div>
-            <p class="mt-2 text-xs text-base-content/60">
-              Muito obrigado pela colaboração voluntária! ❤️
-            </p>
+
+            <!-- Consultoria e Desenvolvedores -->
+            <div class="space-y-3">
+              <!-- Consultoria por hora -->
+              <div class="rounded-box border border-primary/25 bg-primary/5 p-4 space-y-2">
+                <div class="flex items-center gap-2 text-xs font-semibold text-primary">
+                  <app-icon name="chat" size="xs" />
+                  <span>Precisa de ajuda para instalar? Consultoria por hora</span>
+                </div>
+                <p class="text-xs text-base-content/75 leading-relaxed">
+                  Travou no Google Cloud Console, OAuth ou precisa de apoio para botar o projeto em prática na sua operação? <strong>Podemos ser contratados para consultoria por hora</strong> com acompanhamento direto.
+                </p>
+                <a
+                  [href]="donation.whatsappUrl"
+                  target="_blank"
+                  rel="noopener"
+                  class="btn btn-xs btn-outline btn-primary gap-1.5"
+                >
+                  <app-icon name="phone" size="xs" />
+                  <span>WhatsApp: {{ donation.whatsappFormatted }}</span>
+                </a>
+              </div>
+
+              <!-- Dev open source callout -->
+              <div class="rounded-box border border-base-300 bg-base-200/40 p-3 space-y-1.5">
+                <div class="text-xs font-semibold text-base-content flex items-center gap-2">
+                  <app-icon name="desktop" size="xs" class="text-info" />
+                  <span>É desenvolvedor? Colabore com o projeto Open Source, não seja mala!</span>
+                </div>
+                <p class="text-xs text-base-content/70">
+                  Contribua com a evolução do projeto: abra PRs, envie correções e reporte issues no GitHub.
+                </p>
+                <a
+                  [href]="donation.githubUrl"
+                  target="_blank"
+                  rel="noopener"
+                  class="inline-flex items-center gap-1.5 text-xs font-semibold text-base-content/80 hover:text-primary transition-colors"
+                >
+                  <app-icon name="link" size="xs" />
+                  <span>github.com/skroski/open-ads</span>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </section>

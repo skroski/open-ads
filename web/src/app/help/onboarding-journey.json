@@ -2,12 +2,13 @@
   "language": "pt-BR",
   "journeys": [
     {
-      "id": "visao-geral", "route": "visao-geral", "version": 2,
+      "id": "visao-geral", "route": "visao-geral", "version": 3,
       "steps": [
-        { "id": "visao-geral-introducao", "title": "Comece pelo diagnóstico", "body": "A Visão geral reúne o caminho do investimento até o resultado. Use-a para entender o período antes de decidir onde investigar em profundidade.", "narration": "Esta é a leitura inicial da conta. Comece pelo diagnóstico e só depois aprofunde o que pede atenção.", "target": "[data-open-help=visao-geral-introducao]", "placement": "bottom" },
-        { "id": "visao-geral-resultados", "title": "Leia os resultados na ordem certa", "body": "Compare investimento, cliques, contatos, qualificados e vendas. Quando um valor estiver indisponível, o painel mostra a limitação em vez de estimar dados que não possui.", "narration": "Leia investimento, volume e resultado em sequência. Um traço indica ausência de dado, não zero.", "target": "[data-open-help=visao-geral-resultados]", "placement": "bottom" },
-        { "id": "visao-geral-prioridades", "title": "Transforme sinais em prioridades", "body": "Aqui aparecem os achados com maior impacto e confiança. Abra o Plano de ação para ver a evidência, a sugestão e como acompanhar cada decisão.", "narration": "Use estas prioridades para decidir o que investigar primeiro. A evidência completa fica no Plano de ação.", "target": "[data-open-help=visao-geral-prioridades]", "placement": "top" },
-        { "id": "visao-geral-saude", "title": "Confirme a qualidade da medição", "body": "Antes de pausar ou aumentar investimento, confira os avisos de saúde dos dados. Falhas de conversão, CRM ou período ainda imaturo podem tornar qualquer conclusão prematura.", "narration": "Antes de agir, confira a saúde da medição. Dados incompletos pedem investigação, não corte automático.", "target": "[data-open-help=visao-geral-saude]", "placement": "top" }
+        {"id": "visao-geral-introducao", "title": "Comece pela pergunta do dia", "body": "A tela Hoje responde se o dinheiro está sendo bem usado. Leia o período selecionado e só depois aprofunde as áreas que pedem atenção.", "narration": "Esta é a leitura do dia. Comece pela pergunta central e só depois investigue o que pede atenção.", "target": "[data-open-help=visao-geral-introducao]", "placement": "bottom"},
+        {"id": "visao-geral-veredito", "title": "Leia o veredito e o motivo", "body": "O veredito resume o estado da conta, explica o motivo e aponta a próxima ação. Os fatos ao lado mostram os números que sustentam a conclusão.", "narration": "Leia o veredito e o motivo. Os fatos ao lado mostram a evidência por trás da conclusão.", "target": "[data-open-help=visao-geral-veredito]", "placement": "bottom"},
+        {"id": "visao-geral-metricas", "title": "Confira as métricas essenciais", "body": "Cada cartão traz valor, comparação com o período anterior, fonte e confiança. Um valor indisponível indica ausência de dado, nunca zero.", "narration": "Cada métrica mostra fonte, comparação e confiança. Um traço indica ausência de dado, não zero.", "target": "[data-open-help=visao-geral-metricas]", "placement": "bottom"},
+        {"id": "visao-geral-fluxo", "title": "Siga o dinheiro até o resultado", "body": "O fluxo do investimento mostra onde o dinheiro vira clique, contato e venda, e onde a visão termina por falta de dados.", "narration": "Acompanhe o caminho do investimento até a venda e veja onde a medição deixa de enxergar.", "target": "[data-open-help=visao-geral-fluxo]", "placement": "top"},
+        {"id": "visao-geral-prioridades", "title": "Transforme sinais em decisões", "body": "As decisões prioritárias vêm ordenadas por impacto e confiança. Abra a evidência de cada uma antes de agir.", "narration": "Estas são as decisões prioritárias. Abra a evidência antes de agir.", "target": "[data-open-help=visao-geral-prioridades]", "placement": "top"}
       ]
     },
     {
@@ -116,6 +117,51 @@
         { "id": "configuracoes-regras", "title": "Defina a classificação dos termos", "body": "Cadastre palavras de marca, sem intenção, intenção comercial e concorrentes. A correspondência é por palavra inteira, e essas regras explicam como termos e palavras-chave são classificados.", "narration": "Configure as regras que classificam termos. Elas orientam leituras de marca, intenção e desperdício.", "target": "[data-open-help=configuracoes-regras]", "placement": "bottom" },
         { "id": "configuracoes-area", "title": "Informe área e horário reais", "body": "Defina onde a empresa atende e, se necessário, seu horário humano. Esses dados ajudam a avaliar cliques fora de cobertura ou em momentos sem atendimento, sem confundir campanha e operação.", "narration": "Informe área e horário reais. Eles ajudam a separar problema de campanha de limitação operacional.", "target": "[data-open-help=configuracoes-area]", "placement": "top" },
         { "id": "configuracoes-integracoes", "title": "Conecte as fontes de contexto", "body": "GA4, Search Console e domínios autorizados permitem cruzar anúncios, site e conteúdo. Adicione apenas propriedades e domínios que você controla e depois revise a qualidade dos dados.", "narration": "Configure fontes de contexto como GA4, Search Console e domínios do site para ampliar a leitura do painel.", "target": "[data-open-help=configuracoes-integracoes]", "placement": "top" }
+      ]
+    },
+    {
+      "id": "eficiencia", "route": "eficiencia", "version": 1,
+      "steps": [
+        {"id": "eficiencia-introducao", "title": "Veja para onde o dinheiro vai", "body": "A área Investimento compara onde o dinheiro foi aplicado, o que voltou e quanto do gasto merece revisão. Cada aba aprofunda uma dimensão.", "narration": "Aqui você vê para onde o investimento está indo e quanto dele merece revisão.", "target": "[data-open-help=eficiencia-introducao]", "placement": "bottom"},
+        {"id": "eficiencia-recorte", "title": "Escolha o que analisar", "body": "Selecione o tipo de mídia e a campanha. Os recortes disponíveis mudam conforme essa escolha.", "narration": "Escolha o tipo de mídia e a campanha que quer analisar.", "target": "[data-open-help=eficiencia-recorte]", "placement": "bottom"},
+        {"id": "eficiencia-resumo", "title": "Leia o resumo antes dos detalhes", "body": "O resumo mostra a conclusão do recorte, o gasto envolvido e o próximo passo sugerido, com a confiança do dado.", "narration": "Leia a conclusão do recorte e o gasto envolvido antes de olhar os detalhes.", "target": "[data-open-help=eficiencia-resumo]", "placement": "bottom"},
+        {"id": "eficiencia-prioridades", "title": "Comece pelo que pesa mais", "body": "A lista põe a medição primeiro, depois desperdício e custo por resultado. Dentro de cada prioridade, o maior gasto vem antes.", "narration": "Comece pela medição, depois pelos sinais de desperdício. O maior gasto vem primeiro.", "target": "[data-open-help=eficiencia-prioridades]", "placement": "top"}
+      ]
+    },
+    {
+      "id": "oportunidades", "route": "oportunidades", "version": 1,
+      "steps": [
+        {"id": "oportunidades-introducao", "title": "Uma fila única de decisões", "body": "A Central reúne economia, crescimento, medição e testes em uma só fila. Nenhuma alteração é enviada ao Google Ads por aqui.", "narration": "Esta é a fila única de decisões. Nada é alterado na sua conta de anúncios por esta tela.", "target": "[data-open-help=oportunidades-introducao]", "placement": "bottom"},
+        {"id": "oportunidades-indicadores", "title": "Dimensione a fila", "body": "Os indicadores contam quantas oportunidades existem em cada tipo, para você ver onde está o volume de trabalho.", "narration": "Veja quantas oportunidades existem em cada tipo.", "target": "[data-open-help=oportunidades-indicadores]", "placement": "bottom"},
+        {"id": "oportunidades-mapa", "title": "Cruze frente e situação", "body": "O mapa mostra a quantidade de oportunidades por frente e situação, o que ajuda a enxergar gargalos.", "narration": "O mapa cruza frente e situação para revelar onde a fila está acumulada.", "target": "[data-open-help=oportunidades-mapa]", "placement": "bottom"},
+        {"id": "oportunidades-fila", "title": "Filtre e abra a evidência", "body": "Filtre por tipo e situação e abra cada item para ver o motivo de ele estar na fila antes de decidir.", "narration": "Filtre a fila e abra a evidência de cada item antes de decidir.", "target": "[data-open-help=oportunidades-fila]", "placement": "top"}
+      ]
+    },
+    {
+      "id": "experimentos", "route": "experimentos", "version": 1,
+      "steps": [
+        {"id": "experimentos-introducao", "title": "Transforme ideia em hipótese", "body": "O laboratório registra hipóteses e resultados. Ele não muda nada na sua conta de anúncios.", "narration": "Registre ideias como hipóteses. Este laboratório não altera a sua conta.", "target": "[data-open-help=experimentos-introducao]", "placement": "bottom"},
+        {"id": "experimentos-metodo", "title": "Desenhe, execute e aprenda", "body": "Defina o que será alterado e o resultado esperado, execute fora do painel e conclua com evidência. Antes e depois pode sofrer efeito de sazonalidade.", "narration": "Desenhe a hipótese, execute fora do painel e conclua com evidência.", "target": "[data-open-help=experimentos-metodo]", "placement": "bottom"},
+        {"id": "experimentos-indicadores", "title": "Acompanhe cada estágio", "body": "Os indicadores contam as hipóteses por estágio do ciclo de aprendizado.", "narration": "Acompanhe quantas hipóteses estão em cada estágio.", "target": "[data-open-help=experimentos-indicadores]", "placement": "bottom"},
+        {"id": "experimentos-hipoteses", "title": "Registre o resultado", "body": "Filtre por estágio, abra cada hipótese e conclua com o que foi observado. Resultado inconclusivo também é aprendizado.", "narration": "Filtre as hipóteses e registre o resultado, mesmo quando for inconclusivo.", "target": "[data-open-help=experimentos-hipoteses]", "placement": "top"}
+      ]
+    },
+    {
+      "id": "performance-max", "route": "performance-max", "version": 1,
+      "steps": [
+        {"id": "pmax-introducao", "title": "Supervisione a Performance Max", "body": "O radar mostra a saúde dos grupos de recursos, a força criativa e o desempenho observado no período.", "narration": "Este radar acompanha a saúde dos grupos de recursos e dos criativos da Performance Max.", "target": "[data-open-help=pmax-introducao]", "placement": "bottom"},
+        {"id": "pmax-indicadores", "title": "Leia os indicadores", "body": "Os indicadores resumem grupos, investimento e conversões. A Performance Max reporta de forma agregada entre canais.", "narration": "Os indicadores resumem os grupos e o resultado agregado entre canais.", "target": "[data-open-help=pmax-indicadores]", "placement": "bottom"},
+        {"id": "pmax-grupos", "title": "Revise os grupos de recursos", "body": "Força do anúncio e status vêm do Google Ads; custo e conversões vêm do período. Comece pelos grupos com força baixa e gasto alto.", "narration": "Revise os grupos. Comece pelos de força baixa e gasto alto.", "target": "[data-open-help=pmax-grupos]", "placement": "top"},
+        {"id": "pmax-recursos", "title": "Confira os recursos criativos", "body": "A composição mostra quais textos, imagens e vídeos cada grupo possui, para apontar lacunas criativas.", "narration": "Confira quais recursos criativos cada grupo possui e onde faltam.", "target": "[data-open-help=pmax-recursos]", "placement": "top"}
+      ]
+    },
+    {
+      "id": "rastreamento", "route": "rastreamento", "version": 1,
+      "steps": [
+        {"id": "rastreamento-introducao", "title": "Confira a medição antes de otimizar", "body": "Esta tela lê a configuração do Google Tag Manager. Ela apenas lê dados e nunca altera ou publica tags.", "narration": "Confira a configuração do Tag Manager antes de otimizar. Esta tela só lê dados.", "target": "[data-open-help=rastreamento-introducao]", "placement": "bottom"},
+        {"id": "rastreamento-fonte", "title": "Identifique a fonte", "body": "Veja de qual contêiner e espaço de trabalho os dados estão sendo lidos.", "narration": "Veja de qual contêiner e espaço de trabalho os dados vêm.", "target": "[data-open-help=rastreamento-fonte]", "placement": "bottom"},
+        {"id": "rastreamento-resumo", "title": "Veja o inventário", "body": "O resumo conta tags, acionadores e variáveis do espaço selecionado, com a fonte indicada.", "narration": "O resumo conta as tags, os acionadores e as variáveis do espaço.", "target": "[data-open-help=rastreamento-resumo]", "placement": "bottom"},
+        {"id": "rastreamento-saude", "title": "Leia a saúde do rastreamento", "body": "Os alertas apontam falhas de configuração que podem distorcer conversões. Corrija-as antes de cortar ou ampliar investimento.", "narration": "Leia os alertas de saúde. Corrija falhas de medição antes de mexer no investimento.", "target": "[data-open-help=rastreamento-saude]", "placement": "top"}
       ]
     }
   ]

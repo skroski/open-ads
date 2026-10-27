@@ -302,32 +302,109 @@
 <app-batch-negative-modal />
 <app-toasts />
 
-<app-modal [(open)]="donationModalOpen" size="sm">
-  <div class="flex items-center gap-2 text-lg font-semibold text-base-content">
-    <app-icon name="heart" class="text-error" /> Apoiar o OpenAds
-  </div>
-  <p class="mt-2 text-sm text-base-content/80">
-    Este sistema é e sempre será <strong>100% gratuito e de código aberto</strong>. Nunca haverá obrigação ou cobrança de qualquer tipo.
-  </p>
-  <p class="mt-2 text-sm text-base-content/70">
-    Se o painel te ajudou a economizar e cortar desperdícios no Google Ads, qualquer valor ajuda para melhorar ainda mais!
-  </p>
-
-  <div class="mt-4 rounded-box border border-base-300 bg-base-200/60 p-3">
-    <div class="text-xs font-semibold uppercase tracking-wider text-base-content/60">Chave PIX ({{ donation.pixType }})</div>
-    <div class="mt-1 flex items-center justify-between gap-2">
-      <code class="font-mono text-sm font-bold text-base-content selection:bg-primary/20">{{ donation.pixKey }}</code>
-      <button type="button" class="btn btn-sm btn-primary" (click)="copyPix()">
-        <app-icon name="copy" size="xs" /> Copiar chave
+<app-modal [(open)]="donationModalOpen" size="md">
+  <div class="space-y-4">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <div class="flex size-9 items-center justify-center rounded-xl bg-error/10 text-error">
+          <app-icon name="heart" size="md" />
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-base-content flex items-center gap-2">
+            Apoiar o OpenAds
+            <span class="badge badge-xs badge-success badge-soft font-mono">100% Open Source</span>
+          </h3>
+          <p class="text-xs text-base-content/60">Software livre, gratuito e independente</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="btn btn-ghost btn-xs btn-circle text-base-content/60 hover:text-base-content"
+        (click)="donationModalOpen.set(false)"
+        aria-label="Fechar"
+      >
+        <app-icon name="x" size="xs" />
       </button>
     </div>
-  </div>
 
-  <p class="mt-3 text-xs text-base-content/60 text-center">
-    Muito obrigado pelo carinho e apoio ao projeto! ❤️
-  </p>
+    <!-- Conseguiu instalar e usar com sucesso? Apoio & Apadrinhamento -->
+    <div class="rounded-xl border border-base-300 bg-base-100 p-3.5 space-y-2.5">
+      <div class="flex items-center gap-2 text-xs font-semibold text-base-content">
+        <app-icon name="sparkles" size="xs" class="text-warning" />
+        <span>Instalou e está usando com sucesso? Colabore com o projeto!</span>
+      </div>
+      <p class="text-xs text-base-content/75 leading-relaxed">
+        Se o OpenAds te ajudou a cortar desperdícios e gerou economia real nas suas campanhas de Google Ads, qualquer contribuição fortalece a continuidade do projeto.
+        Além de ajudar a manter a ferramenta, você pode <strong>apadrinhar funcionalidades</strong>: precisa de um relatório específico, filtro avançado ou integração estratégica para o seu negócio? Contribua e apadrinhe o desenvolvimento prioritário desse recurso!
+      </p>
 
-  <div class="modal-action">
-    <button type="button" class="btn btn-ghost" (click)="donationModalOpen.set(false)">Fechar</button>
+      <div class="rounded-lg border border-base-300 bg-base-200/70 p-2.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+        <div>
+          <div class="text-[10px] font-semibold uppercase tracking-wider text-base-content/60">
+            Chave PIX ({{ donation.pixType }})
+          </div>
+          <code class="font-mono text-sm font-bold text-base-content selection:bg-primary/20">
+            {{ donation.pixKey }}
+          </code>
+        </div>
+        <button type="button" class="btn btn-sm btn-primary shrink-0 gap-1.5" (click)="copyPix()">
+          <app-icon name="copy" size="xs" />
+          <span>Copiar chave</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Precisa de ajuda para instalar e botar em prática? Consultoria por hora -->
+    <div class="rounded-xl border border-primary/25 bg-primary/5 p-3.5 space-y-2">
+      <div class="flex items-center gap-2 text-xs font-semibold text-primary">
+        <app-icon name="chat" size="xs" />
+        <span>Precisa de ajuda para instalar e colocar em prática?</span>
+      </div>
+      <p class="text-xs text-base-content/80 leading-relaxed">
+        Caso tenha dificuldades com Google Cloud Console, tela de consentimento OAuth, credenciais de API ou queira ajuda para estruturar o fluxo na sua operação, <strong>podemos ser contratados para dar uma consultoria por hora</strong> com acompanhamento direto.
+      </p>
+      <div class="pt-0.5">
+        <a
+          [href]="donation.whatsappUrl"
+          target="_blank"
+          rel="noopener"
+          class="btn btn-xs btn-outline btn-primary gap-1.5"
+        >
+          <app-icon name="phone" size="xs" />
+          <span>Falar no WhatsApp: {{ donation.whatsappFormatted }}</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Desenvolvedor: não seja mala, colabore! -->
+    <div class="rounded-xl border border-base-300 bg-base-200/50 p-3 space-y-1.5">
+      <div class="flex items-center gap-2 text-xs font-semibold text-base-content">
+        <app-icon name="desktop" size="xs" class="text-info" />
+        <span>Se for um desenvolvedor, colabore com o projeto Open Source — não seja mala!</span>
+      </div>
+      <p class="text-xs text-base-content/70 leading-relaxed">
+        Não fique apenas consumindo código de graça ou apontando falhas de braços cruzados: abra Pull Requests, reporte issues, envie correções e ajude a comunidade a construir um software cada vez mais completo.
+      </p>
+      <div class="pt-0.5">
+        <a
+          [href]="donation.githubUrl"
+          target="_blank"
+          rel="noopener"
+          class="inline-flex items-center gap-1.5 text-xs font-semibold text-base-content/80 hover:text-primary transition-colors"
+        >
+          <app-icon name="link" size="xs" />
+          <span>Contribuir no repositório GitHub</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between pt-1 border-t border-base-200">
+      <span class="text-[11px] text-base-content/50">
+        Criado por {{ author.name }} • GPL-2.0
+      </span>
+      <button type="button" class="btn btn-sm btn-ghost" (click)="donationModalOpen.set(false)">
+        Fechar
+      </button>
+    </div>
   </div>
 </app-modal>
